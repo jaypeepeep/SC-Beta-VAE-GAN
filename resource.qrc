@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/green logo.png</file>
+    <file>icons/about active.png</file>
+    <file>icons/about inactive.png</file>
+    <file>icons/hand active.png</file>
+    <file>icons/hand inactive.png</file>
+    <file>icons/home active.png</file>
+    <file>icons/home inactive.png</file>
+    <file>icons/local active.png</file>
+    <file>icons/local inactive.png</file>
+    <file>icons/logo.png</file>
+  </qresource>
+</RCC>
