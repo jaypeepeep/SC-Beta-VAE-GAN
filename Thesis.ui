@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>899</width>
-    <height>602</height>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
       <x>0</x>
       <y>0</y>
       <width>191</width>
-      <height>621</height>
+      <height>681</height>
      </rect>
     </property>
     <property name="palette">
@@ -546,7 +546,7 @@ color: #FFFFFF;</string>
        <x>0</x>
        <y>0</y>
        <width>191</width>
-       <height>609</height>
+       <height>661</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -558,7 +558,7 @@ color: #FFFFFF;</string>
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>18</height>
+          <height>50</height>
          </size>
         </property>
        </spacer>
@@ -617,13 +617,16 @@ color: #FFFFFF;</string>
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>18</height>
+          <height>50</height>
          </size>
         </property>
        </spacer>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>15</number>
+        </property>
         <item>
          <widget class="QPushButton" name="workplaceButton">
           <property name="font">
@@ -633,6 +636,9 @@ color: #FFFFFF;</string>
           </property>
           <property name="cursor">
            <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LayoutDirection::LeftToRight</enum>
           </property>
           <property name="text">
            <string>Workplace</string>
@@ -652,6 +658,9 @@ color: #FFFFFF;</string>
            <bool>true</bool>
           </property>
           <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+          <property name="flat">
            <bool>true</bool>
           </property>
          </widget>
@@ -692,6 +701,9 @@ color: #FFFFFF;</string>
           <property name="autoExclusive">
            <bool>true</bool>
           </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -724,6 +736,9 @@ color: #FFFFFF;</string>
            <bool>true</bool>
           </property>
           <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+          <property name="flat">
            <bool>true</bool>
           </property>
          </widget>
@@ -760,6 +775,9 @@ color: #FFFFFF;</string>
           <property name="autoExclusive">
            <bool>true</bool>
           </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
        </layout>
@@ -777,48 +795,121 @@ color: #FFFFFF;</string>
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="font">
+         <font>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="text">
+         <string>Exit</string>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/icons/local inactive.png</normaloff>
+          <normalon>:/icons/icons/local active.png</normalon>
+          <activeoff>:/icons/icons/local inactive.png</activeoff>
+          <activeon>:/icons/icons/local active.png</activeon>:/icons/icons/local inactive.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </widget>
-   <widget class="QStackedWidget" name="stackedWidget">
+   <widget class="QStackedWidget" name="menustack">
     <property name="geometry">
      <rect>
       <x>190</x>
-      <y>120</y>
+      <y>0</y>
       <width>711</width>
-      <height>481</height>
+      <height>681</height>
      </rect>
-    </property>
-    <property name="cursor">
-     <cursorShape>PointingHandCursor</cursorShape>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::LayoutDirection::LeftToRight</enum>
     </property>
     <property name="currentIndex">
      <number>0</number>
     </property>
-    <widget class="QWidget" name="page"/>
-    <widget class="QWidget" name="page_2"/>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>490</x>
-      <y>20</y>
-      <width>91</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="pixmap">
-     <pixmap resource="resource.qrc">:/icons/icons/green logo.png</pixmap>
-    </property>
-    <property name="scaledContents">
-     <bool>true</bool>
-    </property>
+    <widget class="QWidget" name="Workplace">
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>230</y>
+        <width>281</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LayoutDirection::LeftToRight</enum>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:26pt;&quot;&gt;WORKPLACE&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="LocalStorage">
+     <widget class="QLabel" name="StorageLabel">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>180</y>
+        <width>281</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:26pt;&quot;&gt;LOCAL STORAGE&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="About">
+     <widget class="QLabel" name="AboutLabel">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>180</y>
+        <width>131</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:26pt;&quot;&gt;ABOUT&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="Handwriting">
+     <widget class="QLabel" name="HandwritingLabel">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>210</y>
+        <width>271</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:26pt;&quot;&gt;HANDWRITING&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
  </widget>
