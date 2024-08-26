@@ -1,14 +1,20 @@
 <RCC>
-  <qresource prefix="icons">
-    <file>icons/green logo.png</file>
-    <file>icons/about active.png</file>
-    <file>icons/about inactive.png</file>
-    <file>icons/hand active.png</file>
-    <file>icons/hand inactive.png</file>
-    <file>icons/home active.png</file>
-    <file>icons/home inactive.png</file>
-    <file>icons/local active.png</file>
-    <file>icons/local inactive.png</file>
-    <file>icons/logo.png</file>
+  <qresource prefix="icon">
+    <file>icon/account-logout-64.ico</file>
+    <file>icon/activity-feed-32.ico</file>
+    <file>icon/activity-feed-48.ico</file>
+    <file>icon/close-window-64.ico</file>
+    <file>icon/dashboard-5-32.ico</file>
+    <file>icon/dashboard-5-48.ico</file>
+    <file>icon/group-32.ico</file>
+    <file>icon/group-48.ico</file>
+    <file>icon/home-4-32.ico</file>
+    <file>icon/home-4-48.ico</file>
+    <file>icon/Logo.png</file>
+    <file>icon/menu-4-32.ico</file>
+    <file>icon/product-32.ico</file>
+    <file>icon/product-48.ico</file>
+    <file>icon/search-13-48.ico</file>
+    <file>icon/user-48.ico</file>
   </qresource>
 </RCC>
