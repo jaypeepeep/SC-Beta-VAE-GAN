@@ -16,7 +16,7 @@ class Ui_MainWindow(object):
         # Add the IconOnlyWidget
         self.icon_only_widget = IconOnlyWidget(self.centralwidget)
         self.gridLayout.addWidget(self.icon_only_widget, 0, 0, 1, 1)
-        
+
         # Add the FullMenuWidget
         self.full_menu_widget = FullMenuWidget(self.centralwidget)
         self.gridLayout.addWidget(self.full_menu_widget, 0, 1, 1, 1)
