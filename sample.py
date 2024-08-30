@@ -13,6 +13,9 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         
+        self.ui.icon_only_widget.hide()
+    
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
