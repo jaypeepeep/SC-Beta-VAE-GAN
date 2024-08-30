@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
                     + self.ui.full_menu_widget.findChildren(QPushButton)
         
         for btn in btn_list:
-            if index in [3, 4]:
+            if index in [5, 6]:
                 btn.setAutoExclusive(False)
                 btn.setChecked(False)
             else:
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
     def on_local_btn_1_toggled(self):
         self.ui.stackedWidget.setCurrentIndex(3)
 
-    def on_local_btn_2_toggled(self, ):
+    def on_local_btn_2_toggled(self):
         self.ui.stackedWidget.setCurrentIndex(3)
         
 if __name__ == "__main__":

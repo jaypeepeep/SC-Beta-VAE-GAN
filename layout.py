@@ -80,7 +80,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(5)
+        self.stackedWidget.setCurrentIndex(3)
         self.change_btn.toggled['bool'].connect(self.icon_only_widget.setVisible)
         self.change_btn.toggled['bool'].connect(self.full_menu_widget.setHidden)
         self.icon_only_widget.workplace_btn_1.toggled['bool'].connect(self.full_menu_widget.workplace_btn_2.setChecked)
