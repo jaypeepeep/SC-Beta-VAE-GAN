@@ -6,6 +6,7 @@ from sidebar_sample import Ui_MainWindow
 from components.full_menu_widget import FullMenuWidget
 from components.icon_only_widget import IconOnlyWidget
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -23,7 +24,7 @@ class MainWindow(QMainWindow):
                     + self.ui.full_menu_widget.findChildren(QPushButton)
         
         for btn in btn_list:
-            if index in [5, 6]:
+            if index in [3, 4]:
                 btn.setAutoExclusive(False)
                 btn.setChecked(False)
             else:

@@ -1,6 +1,10 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from components.icon_only_widget import IconOnlyWidget  # Import the separated class
 from components.full_menu_widget import FullMenuWidget
+from pages.workplace import Workplace
+from pages.handwriting import Handwriting
+from pages.about import About
+from pages.local import Local
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -59,102 +63,18 @@ class Ui_MainWindow(object):
         self.stackedWidget.setObjectName("stackedWidget")
         
         #PAGE 1
-        self.page = QtWidgets.QWidget()
-        self.page.setObjectName("page")
-        self.gridLayout_2 = QtWidgets.QGridLayout(self.page)
-        self.gridLayout_2.setObjectName("gridLayout_2")
-        self.label_4 = QtWidgets.QLabel(self.page)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_4.setFont(font)
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setObjectName("label_4")
-        self.gridLayout_2.addWidget(self.label_4, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.page)
-        
+        self.page1 = Workplace()
+        self.stackedWidget.addWidget(self.page1)
         #PAGE 2
-        self.page_2 = QtWidgets.QWidget()
-        self.page_2.setObjectName("page_2")
-        self.gridLayout_3 = QtWidgets.QGridLayout(self.page_2)
-        self.gridLayout_3.setObjectName("gridLayout_3")
-        self.label_5 = QtWidgets.QLabel(self.page_2)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_5.setFont(font)
-        self.label_5.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_5.setObjectName("label_5")
-        self.gridLayout_3.addWidget(self.label_5, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.page_2)
-        
+        self.page2 = Handwriting()
+        self.stackedWidget.addWidget(self.page2)
         #PAGE 3
-        self.page_3 = QtWidgets.QWidget()
-        self.page_3.setObjectName("page_3")
-        self.gridLayout_4 = QtWidgets.QGridLayout(self.page_3)
-        self.gridLayout_4.setObjectName("gridLayout_4")
-        self.label_6 = QtWidgets.QLabel(self.page_3)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_6.setFont(font)
-        self.label_6.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_6.setObjectName("label_6")
-        self.gridLayout_4.addWidget(self.label_6, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.page_3)
-        
+        self.page3 = About()
+        self.stackedWidget.addWidget(self.page3)
         #PAGE 4
-        self.page_4 = QtWidgets.QWidget()
-        self.page_4.setObjectName("page_4")
-        self.gridLayout_5 = QtWidgets.QGridLayout(self.page_4)
-        self.gridLayout_5.setObjectName("gridLayout_5")
-        self.label_7 = QtWidgets.QLabel(self.page_4)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_7.setFont(font)
-        self.label_7.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_7.setObjectName("label_7")
-        self.gridLayout_5.addWidget(self.label_7, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.page_4)
+        self.page4 = Local()
+        self.stackedWidget.addWidget(self.page4)
         
-        #PAGE 5
-        self.page_5 = QtWidgets.QWidget()
-        self.page_5.setObjectName("page_5")
-        self.gridLayout_6 = QtWidgets.QGridLayout(self.page_5)
-        self.gridLayout_6.setObjectName("gridLayout_6")
-        self.label_8 = QtWidgets.QLabel(self.page_5)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_8.setFont(font)
-        self.label_8.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_8.setObjectName("label_8")
-        self.gridLayout_6.addWidget(self.label_8, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.page_5)
-        
-        #PAGE 6
-        self.page_6 = QtWidgets.QWidget()
-        self.page_6.setObjectName("page_6")
-        self.gridLayout_7 = QtWidgets.QGridLayout(self.page_6)
-        self.gridLayout_7.setObjectName("gridLayout_7")
-        self.label_9 = QtWidgets.QLabel(self.page_6)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_9.setFont(font)
-        self.label_9.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_9.setObjectName("label_9")
-        self.gridLayout_7.addWidget(self.label_9, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.page_6)
-        
-        #PAGE 7
-        self.page_7 = QtWidgets.QWidget()
-        self.page_7.setObjectName("page_7")
-        self.gridLayout_8 = QtWidgets.QGridLayout(self.page_7)
-        self.gridLayout_8.setObjectName("gridLayout_8")
-        self.label_10 = QtWidgets.QLabel(self.page_7)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_10.setFont(font)
-        self.label_10.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_10.setObjectName("label_10")
-        self.gridLayout_8.addWidget(self.label_10, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.page_7)
         self.verticalLayout_5.addWidget(self.stackedWidget)
         self.gridLayout.addWidget(self.widget_3, 0, 2, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -182,10 +102,5 @@ class Ui_MainWindow(object):
         self.full_menu_widget.handwriting_btn_2.setText(_translate("MainWindow", "Handwriting"))
         self.full_menu_widget.about_btn_2.setText(_translate("MainWindow", "About"))
         self.full_menu_widget.local_btn_2.setText(_translate("MainWindow", "Local Storage"))
-        self.label_4.setText(_translate("MainWindow", "Workplace Page"))
-        self.label_5.setText(_translate("MainWindow", "Handwriting Page"))
-        self.label_6.setText(_translate("MainWindow", "About Page"))
-        self.label_7.setText(_translate("MainWindow", "Local Page"))
-        self.label_9.setText(_translate("MainWindow", "Search Page"))
-        self.label_10.setText(_translate("MainWindow", "User Page"))
+        self.full_menu_widget.exit_btn_2.setText(_translate("MainWindow", "Exit"))
 import resource_rc
