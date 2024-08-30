@@ -9,7 +9,12 @@ class FullMenuWidget(QtWidgets.QWidget):
         self.setObjectName("full_menu_widget")
         # Vertical layout for the whole widget
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)# For the whole vertical layout
-    
+        self.setStyleSheet("""
+            #full_menu_widget {
+                background-color: #003333;
+            }
+        """)
+
         # LOGO LABEL FOR TEXT AND ICON
         # Icon logo label
         self.logo_label_2 = QtWidgets.QLabel(self)
@@ -91,6 +96,13 @@ class FullMenuWidget(QtWidgets.QWidget):
         self.exit_btn_2.setIconSize(QtCore.QSize(14, 14))
         self.exit_btn_2.setObjectName("exit_btn_2")
         self.verticalLayout_4.addWidget(self.exit_btn_2)
+        
+    def paintEvent(self, event):
+        # This ensures that the widget's background is painted
+        opt = QtWidgets.QStyleOption()
+        opt.initFrom(self)
+        p = QtGui.QPainter(self)
+        self.style().drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
         
         
 

@@ -7,6 +7,12 @@ class IconOnlyWidget(QtWidgets.QWidget):
 
     def setupUi(self):
         self.setObjectName("icon_only_widget")
+        
+        self.setStyleSheet("""
+            #icon_only_widget {
+                background-color: #003333;
+            }
+        """)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_3.setSpacing(0)
@@ -94,3 +100,10 @@ class IconOnlyWidget(QtWidgets.QWidget):
         self.exit_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.exit_btn_1.setObjectName("exit_btn_1")
         self.verticalLayout_3.addWidget(self.exit_btn_1)
+    
+    def paintEvent(self, event):
+        # This ensures that the widget's background is painted
+        opt = QtWidgets.QStyleOption()
+        opt.initFrom(self)
+        p = QtGui.QPainter(self)
+        self.style().drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
