@@ -105,6 +105,8 @@ class Ui_MainWindow(object):
         self.exit_btn_1.setObjectName("exit_btn_1")
         self.verticalLayout_3.addWidget(self.exit_btn_1)
         self.gridLayout.addWidget(self.icon_only_widget, 0, 0, 1, 1)
+        
+        
         self.full_menu_widget = QtWidgets.QWidget(self.centralwidget)
         self.full_menu_widget.setObjectName("full_menu_widget")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.full_menu_widget)
@@ -130,12 +132,14 @@ class Ui_MainWindow(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        
         self.workplace_btn_2 = QtWidgets.QPushButton(self.full_menu_widget)
         self.workplace_btn_2.setIcon(icon)
         self.workplace_btn_2.setIconSize(QtCore.QSize(14, 14))
         self.workplace_btn_2.setCheckable(True)
         self.workplace_btn_2.setAutoExclusive(True)
         self.workplace_btn_2.setObjectName("workplace_btn_2")
+        
         self.verticalLayout_2.addWidget(self.workplace_btn_2)
         self.handwriting_btn_2 = QtWidgets.QPushButton(self.full_menu_widget)
         self.handwriting_btn_2.setIcon(icon1)
@@ -144,6 +148,7 @@ class Ui_MainWindow(object):
         self.handwriting_btn_2.setAutoExclusive(True)
         self.handwriting_btn_2.setObjectName("handwriting_btn_2")
         self.verticalLayout_2.addWidget(self.handwriting_btn_2)
+        
         self.about_btn_2 = QtWidgets.QPushButton(self.full_menu_widget)
         self.about_btn_2.setIcon(icon2)
         self.about_btn_2.setIconSize(QtCore.QSize(14, 14))
@@ -151,6 +156,7 @@ class Ui_MainWindow(object):
         self.about_btn_2.setAutoExclusive(True)
         self.about_btn_2.setObjectName("about_btn_2")
         self.verticalLayout_2.addWidget(self.about_btn_2)
+        
         self.local_btn_2 = QtWidgets.QPushButton(self.full_menu_widget)
         self.local_btn_2.setIcon(icon3)
         self.local_btn_2.setIconSize(QtCore.QSize(14, 14))
