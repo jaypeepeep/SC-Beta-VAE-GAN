@@ -306,6 +306,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.widget_3, 0, 2, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
 
+        #connection of UI
         self.retranslateUi(MainWindow)
         self.stackedWidget.setCurrentIndex(5)
         self.change_btn.toggled['bool'].connect(self.icon_only_widget.setVisible)
