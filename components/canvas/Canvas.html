@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing Canvas</title>
+    <style>
+        canvas {
+            border: 1px solid #000000;
+            display: block;
+            margin: 0 auto;
+            background-color: #fff;
+        }
+        #downloadButton {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #hideInAirCheckbox {
+            display: block;
+            margin: 20px auto;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="drawingCanvas" width="800" height="600"></canvas>
+    <button id="downloadButton">Download SVC</button>
+    <button id="resetButton">Reset SVC</button>
+    <label>
+        <input type="checkbox" id="hideInAirCheckbox">Hide in-air drawings
+    </label>
+    <script src="Canvas.js"></script>
+</body>
+</html>

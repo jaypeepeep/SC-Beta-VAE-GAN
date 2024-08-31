@@ -1,4 +1,6 @@
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+import sys
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -6,12 +8,18 @@ class Handwriting(QtWidgets.QWidget):
         self.setupUi()
 
     def setupUi(self):
+        # Create a QGridLayout
         self.gridLayout = QtWidgets.QGridLayout(self)
-        self.label_4 = QtWidgets.QLabel(self)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_4.setFont(font)
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setText("Handwriting Page")
-        self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 0, 0, 1, 1)
+        
+        # Create QWebEngineView and load HTML file
+        self.web_view = QWebEngineView(self)
+        self.gridLayout.addWidget(self.web_view, 0, 0)  # Add QWebEngineView to the layout
+        
+        # Load the HTML file (make sure the path is correct)
+        self.web_view.setUrl(QtCore.QUrl.fromLocalFile(r'C:\Users\patri\Thesis-Project\components\canvas\Canvas.html'))
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    window = Handwriting()
+    window.show()
+    sys.exit(app.exec_())
