@@ -5,32 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drawing Canvas</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
         canvas {
             border: 1px solid #000000;
             display: block;
             margin: 0 auto;
             background-color: #fff;
         }
-        #downloadButton {
-            display: block;
-            margin: 20px auto;
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .controls {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .controls button {
             padding: 10px 20px;
             font-size: 16px;
+            margin: 10px;
         }
-        #hideInAirCheckbox {
-            display: block;
-            margin: 20px auto;
-            font-size: 16px;
+        .hide-checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
     <canvas id="drawingCanvas" width="800" height="600"></canvas>
-    <button id="downloadButton">Download SVC</button>
-    <button id="resetButton">Reset SVC</button>
-    <label>
-        <input type="checkbox" id="hideInAirCheckbox">Hide in-air drawings
-    </label>
+    <div class="controls-container">
+        <div class="controls">
+            <button id="downloadButton">Download SVC</button>
+            <button id="resetButton">Reset Drawing</button>
+        </div>
+        <div class="hide-checkbox-container">
+            <label for="hideInAirCheckbox">
+                Hide in-air drawings
+                <input type="checkbox" id="hideInAirCheckbox">
+            </label>
+        </div>
+    </div>
     <script src="Canvas.js"></script>
 </body>
 </html>
