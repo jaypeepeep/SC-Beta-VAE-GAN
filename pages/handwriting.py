@@ -1,4 +1,34 @@
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile, QWebEngineDownloadItem
+from PyQt5.QtCore import QUrl, QStandardPaths
+from PyQt5.QtGui import QIcon
+import sys
+
+class MyWebEnginePage(QWebEnginePage):
+    def __init__(self, parent=None):
+        super(MyWebEnginePage, self).__init__(parent)
+
+class MyWebEngineView(QWebEngineView):
+    def __init__(self, parent=None):
+        super(MyWebEngineView, self).__init__(parent)
+        self.page().profile().downloadRequested.connect(self.handleDownloadRequested)
+
+    def handleDownloadRequested(self, download):
+        file_name = download.downloadFileName()
+        save_path = QStandardPaths.writableLocation(QStandardPaths.DownloadLocation) + '/' + file_name
+        download.setPath(save_path)
+        download.accept()
+
+        # Show a popup message when the download is complete
+        download.finished.connect(lambda: self.showDownloadCompleteMessage(save_path))
+
+    def showDownloadCompleteMessage(self, file_path):
+        message_box = QtWidgets.QMessageBox(self)
+        message_box.setIcon(QtWidgets.QMessageBox.Information)
+        message_box.setWindowTitle("Download Complete")
+        message_box.setText(f"File has been downloaded successfully:\n{file_path}")
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        message_box.exec_()
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -6,12 +36,18 @@ class Handwriting(QtWidgets.QWidget):
         self.setupUi()
 
     def setupUi(self):
+        # Create a QGridLayout
         self.gridLayout = QtWidgets.QGridLayout(self)
-        self.label_4 = QtWidgets.QLabel(self)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.label_4.setFont(font)
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setText("Handwriting Page")
-        self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 0, 0, 1, 1)
+        
+        # Create QWebEngineView and load HTML file
+        self.web_view = MyWebEngineView(self)
+        self.gridLayout.addWidget(self.web_view, 0, 0)  # Add QWebEngineView to the layout
+        
+        # Load the HTML file (make sure the path is correct)
+        self.web_view.setUrl(QtCore.QUrl.fromLocalFile(r'C:\Users\patri\Thesis-Project\components\canvas\Canvas.html'))
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    window = Handwriting()
+    window.show()
+    sys.exit(app.exec_())
