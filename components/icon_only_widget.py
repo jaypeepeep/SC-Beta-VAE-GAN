@@ -17,13 +17,14 @@ class IconOnlyWidget(QtWidgets.QWidget):
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_3.setSpacing(0)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.verticalLayout_3.setContentsMargins(10, 10, 10,10)
 
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
 
         self.logo_label_1 = QtWidgets.QLabel(self)
-        self.logo_label_1.setMinimumSize(QtCore.QSize(50, 50))
-        self.logo_label_1.setMaximumSize(QtCore.QSize(50, 50))
+        self.logo_label_1.setMinimumSize(QtCore.QSize(70, 70))
+        self.logo_label_1.setMaximumSize(QtCore.QSize(70, 70))
         self.logo_label_1.setText("")
         self.logo_label_1.setPixmap(QtGui.QPixmap("./icon/Logo.png"))
         self.logo_label_1.setScaledContents(True)
