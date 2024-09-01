@@ -16,7 +16,7 @@ class Ui_MainWindow(object):
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName("gridLayout")
-        
+
         # Add the IconOnlyWidget
         self.icon_only_widget = IconOnlyWidget(self.centralwidget)
         self.gridLayout.addWidget(self.icon_only_widget, 0, 0, 1, 1)
@@ -24,54 +24,93 @@ class Ui_MainWindow(object):
         # Add the FullMenuWidget
         self.full_menu_widget = FullMenuWidget(self.centralwidget)
         self.gridLayout.addWidget(self.full_menu_widget, 0, 1, 1, 1)
-        
-        #Menu Widget
+
+        # Menu Widget with Centered Title and Subtitle
         self.widget_3 = QtWidgets.QWidget(self.centralwidget)
         self.widget_3.setObjectName("widget_3")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.widget_3)
-        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_5.setContentsMargins(0, 10, 0, 0)
         self.verticalLayout_5.setSpacing(0)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.widget = QtWidgets.QWidget(self.widget_3)
-        self.widget.setMinimumSize(QtCore.QSize(0, 40))
-        self.widget.setObjectName("widget")
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.widget)
-        self.horizontalLayout_4.setContentsMargins(0, 0, 9, 0)
-        self.horizontalLayout_4.setSpacing(0)
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.change_btn = QtWidgets.QPushButton(self.widget)
+
+        # Horizontal Layout for Menu Button, Title, and Subtitle
+        self.header_widget = QtWidgets.QWidget(self.widget_3)
+        self.header_layout = QtWidgets.QHBoxLayout(self.header_widget)
+        self.header_layout.setContentsMargins(5, 5, 5, 5)
+        self.header_layout.setSpacing(0)
+        self.header_layout.setObjectName("header_layout")
+
+        # Menu Button
+        self.change_btn = QtWidgets.QPushButton(self.header_widget)
         self.change_btn.setText("")
-        
-        #MENU BUTTON
         icon6 = QtGui.QIcon()
         icon6.addPixmap(QtGui.QPixmap("./icon/menu-4-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.change_btn.setIcon(icon6)
         self.change_btn.setIconSize(QtCore.QSize(14, 14))
         self.change_btn.setCheckable(True)
         self.change_btn.setObjectName("change_btn")
-        self.horizontalLayout_4.addWidget(self.change_btn)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setSpacing(10)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        
-        #SPACER ITEM
-        spacerItem2 = QtWidgets.QSpacerItem(236, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem2)
-        #STACK WIDGETS
+        self.header_layout.addWidget(self.change_btn)
+
+        # Spacer Before Title (Left Spacer)
+        self.left_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.header_layout.addItem(self.left_spacer)
+
+        # Vertical Layout for Title and Subtitle
+        self.title_subtitle_layout = QtWidgets.QVBoxLayout()
+        self.title_subtitle_layout.setSpacing(0)
+        self.title_subtitle_layout.setAlignment(QtCore.Qt.AlignCenter)
+
+        # "SC-β-VAE-GAN" Title
+        self.title_label_1 = QtWidgets.QLabel(self.header_widget)
+        self.title_label_1.setText("SC-β-VAE-GAN")
+        self.title_label_1.setAlignment(QtCore.Qt.AlignCenter)
+        self.title_label_1.setStyleSheet("font-weight: bold; color: #003333; font-size: 14px;")
+        self.title_subtitle_layout.addWidget(self.title_label_1)
+
+        # Subtitle "Synthetic Data Generator"
+        self.subtitle_label = QtWidgets.QLabel(self.header_widget)
+        self.subtitle_label.setText("Synthetic Data Generator")
+        self.subtitle_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.subtitle_label.setStyleSheet("font-weight: bold; color: #003333; font-size: 14px;")
+        self.title_subtitle_layout.addWidget(self.subtitle_label)
+
+        # Add Title and Subtitle Layout to Header Layout
+        self.header_layout.addLayout(self.title_subtitle_layout)
+
+        # Spacer After Title (Right Spacer)
+        self.right_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.header_layout.addItem(self.right_spacer)
+
+        # Add Header Layout to Vertical Layout
+        self.verticalLayout_5.addWidget(self.header_widget)
+
+        # Menu Button and Spacer
+        self.widget = QtWidgets.QWidget(self.widget_3)
+        self.widget.setMinimumSize(QtCore.QSize(0, 8))
+        self.widget.setObjectName("widget")
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.widget)
+        self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_4.setSpacing(0)
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+
+        # Stack Widgets
         self.verticalLayout_5.addWidget(self.widget)
         self.stackedWidget = QtWidgets.QStackedWidget(self.widget_3)
         self.stackedWidget.setObjectName("stackedWidget")
-        
-        #PAGE 1
+
+        # Page 1
         self.page1 = Workplace()
         self.stackedWidget.addWidget(self.page1)
-        #PAGE 2
+
+        # Page 2
         self.page2 = Handwriting()
         self.stackedWidget.addWidget(self.page2)
-        #PAGE 3
+
+        # Page 3
         self.page3 = About()
         self.stackedWidget.addWidget(self.page3)
-        #PAGE 4
+
+        # Page 4
         self.page4 = Local()
         self.stackedWidget.addWidget(self.page4)
         
