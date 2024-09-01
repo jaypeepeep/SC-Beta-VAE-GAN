@@ -15,8 +15,8 @@ class FullMenuWidget(QtWidgets.QWidget):
                 background-color: #003333;
             }
             QPushButton {
-                padding-left: 10px; /* Adjust the value as needed */
-                padding-right: 10px; /* Adjust the value as needed */
+                padding-left: 10px; 
+                padding-right: 10px; 
             }
         """)
 
@@ -102,8 +102,8 @@ class FullMenuWidget(QtWidgets.QWidget):
         self.verticalLayout_4.addWidget(self.exit_btn_2)
         
         font = QtGui.QFont()
-        font.setPointSize(8)  # Set the desired font size
-        font.setBold(True)     # Set the text to bold
+        font.setPointSize(8)  
+        font.setBold(True)     
         self.workplace_btn_2.setFont(font)
         self.handwriting_btn_2.setFont(font)
         self.about_btn_2.setFont(font)
