@@ -25,7 +25,7 @@ class About(QtWidgets.QWidget):
             "<li><b>Data Augmentation:</b> Generating additional synthetic data to expand the available dataset. This is particularly useful in handwriting analysis, where collecting large amounts of labeled data can be challenging. Augmented data helps improve the training of machine learning models, leading to better generalization and performance.</li>"
             "</ul>"
         )
-        self.textEdit.setReadOnly(True)  # Make the text area read-only
+        self.textEdit.setReadOnly(True)  
         self.textEdit.setStyleSheet(
             "border: none;"
             "background: transparent;"
