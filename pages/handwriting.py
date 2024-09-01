@@ -44,7 +44,7 @@ class Handwriting(QtWidgets.QWidget):
         self.gridLayout.addWidget(self.web_view, 0, 0)  # Add QWebEngineView to the layout
         
         # Load the HTML file (make sure the path is correct)
-        self.web_view.setUrl(QtCore.QUrl.fromLocalFile(r'C:\Users\patri\Thesis-Project\components\canvas\Canvas.html'))
+        self.web_view.setUrl(QtCore.QUrl("file:/../components/canvas/Canvas.html"))
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
