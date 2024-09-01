@@ -88,7 +88,6 @@ function convertToSVC(data) {
     return header + rows;
 }
 
-
 // Function to download SVC file
 function downloadSVC() {
     const svcData = convertToSVC(drawingData);
@@ -102,13 +101,13 @@ function downloadSVC() {
     document.body.removeChild(a);
 }
 
-
 // Function to clear the canvas
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawingData.length = 0;
 
 }
+
 // Add event listener for downloading the SVC file
 document.getElementById('downloadButton').addEventListener('click', downloadSVC);
 
