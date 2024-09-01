@@ -9,7 +9,7 @@ class FullMenuWidget(QtWidgets.QWidget):
         self.setObjectName("full_menu_widget")
         # Vertical layout for the whole widget
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)# For the whole vertical layout
-        self.verticalLayout_4.setContentsMargins(20, 20, 20, 20)
+        self.verticalLayout_4.setContentsMargins(15, 15, 15, 15)
         self.setStyleSheet("""
             #full_menu_widget {
                 background-color: #003333;
@@ -18,7 +18,6 @@ class FullMenuWidget(QtWidgets.QWidget):
                 padding-left: 10px; /* Adjust the value as needed */
                 padding-right: 10px; /* Adjust the value as needed */
             }
-
         """)
 
         # LOGO LABEL FOR TEXT AND ICON
@@ -109,6 +108,7 @@ class FullMenuWidget(QtWidgets.QWidget):
         self.handwriting_btn_2.setFont(font)
         self.about_btn_2.setFont(font)
         self.local_btn_2.setFont(font)
+        self.exit_btn_2.setFont(font)
         
     def paintEvent(self, event):
         # This ensures that the widget's background is painted
