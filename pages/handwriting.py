@@ -10,10 +10,11 @@ class Handwriting(QtWidgets.QWidget):
 
     def setupUi(self):
         # Create a layout
+        
         layout = QtWidgets.QVBoxLayout(self)
 
         # Create the "Start Handwriting & Drawing" button
-        self.draw_button = QtWidgets.QPushButton("Launch Canvas", self)
+        self.draw_button = QtWidgets.QPushButton("Start Handwriting and Drawing", self)
         layout.addWidget(self.draw_button)
 
         # Connect the button's clicked signal to the method that shows the confirmation dialog
