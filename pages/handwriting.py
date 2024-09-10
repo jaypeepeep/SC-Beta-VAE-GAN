@@ -14,11 +14,7 @@ class Handwriting(QtWidgets.QWidget):
     def setupUi(self):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignCenter)  
-        layout.setContentsMargins(0, 0, 0, 0)  # Remove default margins to use spacers effectively
-
-        # Add spacers to push content to the center
-        top_spacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        bottom_spacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.setContentsMargins(50, 0, 50, 50)  # Remove default margins to use spacers effectively
 
         # Create a layout for the text
         top_layout = QtWidgets.QVBoxLayout()
@@ -28,7 +24,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add text
         top_text = QtWidgets.QLabel("Draw and Handwrite", self)
         top_text.setAlignment(QtCore.Qt.AlignCenter)
-        top_text.setStyleSheet("font-size: 48px; font-weight: 300; color: #033;")
+        top_text.setStyleSheet("font-size: 30px; font-weight: 300; color: #033;")
         top_layout.addWidget(top_text)
 
         # Create and add the handwriting button
@@ -36,10 +32,8 @@ class Handwriting(QtWidgets.QWidget):
         self.drawButton.setContentsMargins(50, 20, 50, 50)  # Margins around the button
 
         # Add image, text, and button to the main layout
-        layout.addItem(top_spacer)  # Add top spacer to push content down
         layout.addLayout(top_layout)  # Add top layout with image and text
         layout.addWidget(self.drawButton)  # Add button
-        layout.addItem(bottom_spacer)  # Add bottom spacer to push content up
 
         # Connect the button's click events
         self.drawButton.clicked.connect(self.show_confirmation_dialog)
