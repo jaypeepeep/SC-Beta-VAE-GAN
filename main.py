@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton
 from PyQt5.QtCore import pyqtSlot, QFile, QTextStream
-
+from PyQt5.QtGui import QIcon
 from layout import Ui_MainWindow
 from components.full_menu_widget import FullMenuWidget
 from components.icon_only_widget import IconOnlyWidget
@@ -13,6 +13,9 @@ class MainWindow(QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        
+        self.setWindowTitle("SC-β-VAE-GAN")
+        self.setWindowIcon(QIcon('./icon/icon.ico'))  
         
         self.ui.icon_only_widget.hide()
         self.ui.stackedWidget.setCurrentIndex(0)
