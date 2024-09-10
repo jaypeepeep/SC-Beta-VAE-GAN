@@ -52,7 +52,7 @@ class Ui_MainWindow(object):
         self.header_layout.addWidget(self.change_btn)
 
         # Spacer Before Title (Left Spacer)
-        self.left_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.left_spacer = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.header_layout.addItem(self.left_spacer)
 
         # Vertical Layout for Title and Subtitle
@@ -78,7 +78,7 @@ class Ui_MainWindow(object):
         self.header_layout.addLayout(self.title_subtitle_layout)
 
         # Spacer After Title (Right Spacer)
-        self.right_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.right_spacer = QtWidgets.QSpacerItem(310, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.header_layout.addItem(self.right_spacer)
 
         # Add Header Layout to Vertical Layout
