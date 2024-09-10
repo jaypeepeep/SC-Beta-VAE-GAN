@@ -52,7 +52,7 @@ class Ui_MainWindow(object):
         self.header_layout.addWidget(self.change_btn)
 
         # Spacer Before Title (Left Spacer)
-        self.left_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.left_spacer = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.header_layout.addItem(self.left_spacer)
 
         # Vertical Layout for Title and Subtitle
@@ -71,14 +71,14 @@ class Ui_MainWindow(object):
         self.subtitle_label = QtWidgets.QLabel(self.header_widget)
         self.subtitle_label.setText("Synthetic Data Generator")
         self.subtitle_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.subtitle_label.setStyleSheet("font-weight: bold; color: #003333; font-size: 14px;")
+        self.subtitle_label.setStyleSheet("font-weight: bold; color: #003333; font-size: 15px;")
         self.title_subtitle_layout.addWidget(self.subtitle_label)
 
         # Add Title and Subtitle Layout to Header Layout
         self.header_layout.addLayout(self.title_subtitle_layout)
 
         # Spacer After Title (Right Spacer)
-        self.right_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.right_spacer = QtWidgets.QSpacerItem(300, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.header_layout.addItem(self.right_spacer)
 
         # Add Header Layout to Vertical Layout
