@@ -2,8 +2,6 @@ import webbrowser
 import os
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from components.handwriting_button import handwritingButton
 
 class Handwriting(QtWidgets.QWidget):
