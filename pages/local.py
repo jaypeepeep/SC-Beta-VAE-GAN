@@ -1,8 +1,7 @@
-# local.py
-
 from PyQt5 import QtWidgets, QtGui, QtCore
 from components.collapsible_widget import CollapsibleWidget
 from components.file_container_widget import FileContainerWidget 
+from components.slider_widget import SliderWidget
 
 class Local(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -32,6 +31,10 @@ class Local(QtWidgets.QWidget):
         # Ensure only the remove button is visible
         self.file_container.hide_download_button()
         self.file_container.hide_retry_button()
+
+                # Add the slider widget directly to the layout
+        self.slider_widget = SliderWidget(0, 10, self)
+        self.collapsible_widget.add_widget(self.slider_widget)
 
 if __name__ == "__main__":
     import sys
