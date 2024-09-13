@@ -1,7 +1,8 @@
 # local.py
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from components.collapsible_widget import CollapsibleWidget  # Import the component
+from components.collapsible_widget import CollapsibleWidget
+from components.file_container_widget import FileContainerWidget 
 
 class Local(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -24,8 +25,13 @@ class Local(QtWidgets.QWidget):
         self.collapsible_widget = CollapsibleWidget("Input", self)
         self.gridLayout.addWidget(self.collapsible_widget, 1, 0, 1, 1)
 
-        # Add content to the collapsible widget
-        self.collapsible_widget.add_widget(QtWidgets.QLabel("Laman sha"))
+        # Add a file container widget to the collapsible widget
+        self.file_container = FileContainerWidget("example_file.txt", self)
+        self.collapsible_widget.add_widget(self.file_container)
+        
+        # Ensure only the remove button is visible
+        self.file_container.hide_download_button()
+        self.file_container.hide_retry_button()
 
 if __name__ == "__main__":
     import sys
