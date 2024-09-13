@@ -55,9 +55,14 @@ class FileContainerWidget(QtWidgets.QWidget):
                 width: 192px;
                 height: 47px;
                 border-radius: 5px;
-                background: #DEDEDE;
-                color: black;
+                background: #033;
                 border: none;
+                color: #FFF;
+                font-family: Montserrat;
+                font-size: 20px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: normal;
             }
             QPushButton:hover {
                 background: #C0C0C0;
