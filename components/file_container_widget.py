@@ -23,7 +23,7 @@ class FileContainerWidget(QtWidgets.QWidget):
 
         # Label to display the file name
         self.file_label = QtWidgets.QLabel(self.file_name, self.container)
-        self.file_label.setStyleSheet("background: #DEDEDE; padding: 5px; color: black;")  # Set background color and text color
+        self.file_label.setStyleSheet(" margin-left: 10px; background: #DEDEDE; padding: 5px; color: black; color: #000; font-family: Montserrat; font-size: 20px; font-style: normal; font-weight: 600; line-height: normal;") 
         self.layout.addWidget(self.file_label)
         
         # Spacer to push buttons to the right
