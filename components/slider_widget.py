@@ -3,7 +3,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 class SliderWidget(QtWidgets.QWidget):
-    def __init__(self, min_value=0, max_value=10, parent=None):
+    def __init__(self, min_value, max_value, parent=None):
         super(SliderWidget, self).__init__(parent)
         self.min_value = min_value
         self.max_value = max_value

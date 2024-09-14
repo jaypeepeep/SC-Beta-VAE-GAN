@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from components.collapsible_widget import CollapsibleWidget
 from components.file_container_widget import FileContainerWidget 
 from components.slider_widget import SliderWidget
+from components.plot_container_widget import PlotContainerWidget 
 
 class Local(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -23,6 +24,10 @@ class Local(QtWidgets.QWidget):
         # Call the collapsible widget component
         self.collapsible_widget = CollapsibleWidget("Input", self)
         self.gridLayout.addWidget(self.collapsible_widget, 1, 0, 1, 1)
+
+        # Add the plot container widget
+        self.plot_container = PlotContainerWidget(self)
+        self.collapsible_widget.add_widget(self.plot_container)
 
         # Add a file container widget to the collapsible widget
         self.file_container = FileContainerWidget("example_file.txt", self)
