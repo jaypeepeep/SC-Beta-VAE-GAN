@@ -37,9 +37,18 @@ class Local(QtWidgets.QWidget):
         self.file_container.hide_download_button()
         self.file_container.hide_retry_button()
 
+        # Add the "Add More Files" button
+        self.add_file_button = QtWidgets.QPushButton("Add More Files", self)
+        self.add_file_button.setStyleSheet(
+            "border-radius: 5px; background-color: #535353; color: white; padding: 8px 16px;color: black; color: white; font-family: Montserrat; font-size: 20px; font-style: normal; font-weight: 600; line-height: normal;"
+        )
+        self.add_file_button.clicked.connect(self.add_more_files)  # Optional: connect to a function to add files
+        self.collapsible_widget.add_widget(self.add_file_button)
+
                 # Add the slider widget directly to the layout
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget.add_widget(self.slider_widget)
+
 
 if __name__ == "__main__":
     import sys
