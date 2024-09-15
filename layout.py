@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from components.icon_only_widget import IconOnlyWidget  # Import the separated class
-from components.full_menu_widget import FullMenuWidget
+from components.widget.icon_only_widget import IconOnlyWidget  # Import the separated class
+from components.widget.full_menu_widget import FullMenuWidget
 from pages.workplace import Workplace
 from pages.handwriting import Handwriting
 from pages.about import About

@@ -9,16 +9,11 @@ class CollapsibleWidget(QtWidgets.QWidget):
     def setupUi(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
 
-        # Toggle button with specific dimensions and style
+        # Toggle button with style and size policies
         self.toggle_button = QtWidgets.QPushButton(self.title, self)
         self.toggle_button.setCheckable(True)
         self.toggle_button.setChecked(False)
         
-        # Set button dimensions (same as container)
-        button_width = 1042
-        button_height = 60
-        self.toggle_button.setFixedSize(button_width, button_height)
-
         # Apply custom styling to the button
         self.toggle_button.setStyleSheet("""
             QPushButton {
@@ -26,7 +21,7 @@ class CollapsibleWidget(QtWidgets.QWidget):
                 border-radius: 10px;
                 color: #000000;
                 font-family: 'Montserrat';
-                font-size: 20px;
+                font-size: 14px;
                 font-weight: 600;
                 text-align: left;
                 padding: 20px;
@@ -38,13 +33,13 @@ class CollapsibleWidget(QtWidgets.QWidget):
         
         self.main_layout.addWidget(self.toggle_button)
 
-        # Collapsible content container with custom style and matching size
+        # Collapsible content container with custom style and size policies
         self.collapsible_container = QtWidgets.QWidget(self)
         self.collapsible_container.setVisible(False)
         self.collapsible_layout = QtWidgets.QVBoxLayout(self.collapsible_container)
-
-        # Ensure the container width matches the button
-        self.collapsible_container.setFixedWidth(button_width)
+        
+        # Set size policies to adapt to content
+        self.collapsible_container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         # Apply custom styling to the collapsible container
         self.collapsible_container.setStyleSheet("""
@@ -70,7 +65,6 @@ class CollapsibleWidget(QtWidgets.QWidget):
     def add_widget(self, widget):
         """Add a widget to the collapsible area."""
         self.collapsible_layout.addWidget(widget)
-
 
 if __name__ == "__main__":
     import sys
