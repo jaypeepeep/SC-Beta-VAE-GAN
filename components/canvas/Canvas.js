@@ -149,6 +149,13 @@ canvas.addEventListener('pointermove', (e) => {
     draw(x, y, pressure, azimuth, altitude);
 });
 
+// Event listener for the Done button to clear layout and reset canvas
+document.getElementById('doneButton').addEventListener('click', () => {
+    // Attempt to close the current tab
+    window.close();
+});
+
+
 // Prevent default actions for touch events to avoid scrolling
 canvas.addEventListener('touchstart', preventDefault, { passive: false });
 canvas.addEventListener('touchmove', preventDefault, { passive: false });
