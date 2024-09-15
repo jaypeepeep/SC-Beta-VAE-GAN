@@ -11,6 +11,7 @@ class Workplace(QtWidgets.QWidget):
 
     def setupUi(self):
         self.gridLayout = QtWidgets.QGridLayout(self)
+        self.gridLayout.setAlignment(QtCore.Qt.AlignTop)
         self.label_4 = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(20)
