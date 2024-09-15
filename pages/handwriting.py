@@ -2,7 +2,7 @@ import webbrowser
 import os
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
-from components.handwriting_button import handwritingButton
+from components.button.handwriting_button import handwritingButton
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):

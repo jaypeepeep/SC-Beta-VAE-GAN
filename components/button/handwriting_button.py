@@ -33,7 +33,7 @@ class handwritingButton(QtWidgets.QPushButton):
 
         # Add icon to QPushButton
         icon = QtWidgets.QLabel(self)
-        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../icon/handwriting icon.png'))
+        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../icon/handwriting icon.png'))
         
         if os.path.exists(icon_path):
             pixmap = QtGui.QPixmap(icon_path)

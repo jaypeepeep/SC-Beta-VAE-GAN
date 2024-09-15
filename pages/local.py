@@ -1,8 +1,8 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
-from components.collapsible_widget import CollapsibleWidget
-from components.file_container_widget import FileContainerWidget 
-from components.slider_widget import SliderWidget
-from components.plot_container_widget import PlotContainerWidget 
+from components.widget.collapsible_widget import CollapsibleWidget
+from components.widget.file_container_widget import FileContainerWidget 
+from components.widget.slider_widget import SliderWidget
+from components.widget.plot_container_widget import PlotContainerWidget 
 
 class Local(QtWidgets.QWidget):
     def __init__(self, parent=None):
