@@ -96,7 +96,7 @@ class FileContainerWidget(QtWidgets.QWidget):
         self.setLayout(self.main_layout)
 
     def get_image_path(self, image_name):
-        return os.path.abspath(os.path.join(os.path.dirname(__file__), f'../icon/{image_name}'))
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../icon/{image_name}'))
 
     def remove_file(self):
         # This method removes the widget from its parent
