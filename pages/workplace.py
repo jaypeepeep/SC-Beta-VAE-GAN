@@ -12,13 +12,30 @@ class Workplace(QtWidgets.QWidget):
     def setupUi(self):
         self.gridLayout = QtWidgets.QGridLayout(self)
         self.gridLayout.setAlignment(QtCore.Qt.AlignTop)
-        self.label_4 = QtWidgets.QLabel(self)
+
+        # Create a scroll area
+        self.scroll_area = QtWidgets.QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+
+        # Create a container widget for the scroll area content
+        self.scroll_widget = QtWidgets.QWidget()
+        self.scroll_layout = QtWidgets.QVBoxLayout(self.scroll_widget)
+
+        # Set a size policy for the scroll widget that allows it to shrink
+        self.scroll_widget.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+
+        # Add the scroll area to the main layout
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.gridLayout.addWidget(self.scroll_area)
+
+        # Create a label with custom font
         font = QtGui.QFont()
         font.setPointSize(20)
 
-        # Call the collapsible widget component
+        # Call the collapsible widget component for Input
         self.collapsible_widget_input = CollapsibleWidget("Input", self)
-        self.gridLayout.addWidget(self.collapsible_widget_input, 1, 0, 1, 1)
+        self.scroll_layout.addWidget(self.collapsible_widget_input)
 
         # Add "Add More Files" button to Input collapsible widget
         self.add_file_button = QtWidgets.QPushButton("Add More Files", self)
@@ -39,9 +56,9 @@ class Workplace(QtWidgets.QWidget):
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget_input.add_widget(self.slider_widget)
 
-        # Call collapsable widget for File Preview
+        # Call collapsible widget for File Preview
         self.collapsible_widget_preview = CollapsibleWidget("File Preview", self)
-        self.gridLayout.addWidget(self.collapsible_widget_preview, 2, 0, 1, 1)
+        self.scroll_layout.addWidget(self.collapsible_widget_preview)
 
         # Container for the content of the File Preview
         self.container_widget = QtWidgets.QWidget(self)
@@ -99,3 +116,8 @@ class Workplace(QtWidgets.QWidget):
         new_file_container.hide_retry_button()
         self.collapsible_widget_input.add_widget(new_file_container)
 
+if __name__ == "__main__":
+    app = QtWidgets.QApplication([])
+    window = Workplace()
+    window.show()
+    app.exec_()

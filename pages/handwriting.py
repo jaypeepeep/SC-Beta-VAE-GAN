@@ -95,9 +95,24 @@ class Handwriting(QtWidgets.QWidget):
     def show_done_page(self):
         """Show the page after the drawing is completed."""
         self.clear_layout()
+
+        # Create a scroll area to wrap the collapsible content
+        scroll_area = QtWidgets.QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+
+        # Create a widget that will be placed inside the scroll area
+        scroll_widget = QtWidgets.QWidget()
+        scroll_layout = QtWidgets.QVBoxLayout(scroll_widget)
+        scroll_layout.setAlignment(QtCore.Qt.AlignTop)
+
+        # Add the scroll area to the main layout
+        scroll_area.setWidget(scroll_widget)
+        self.layout.addWidget(scroll_area)
+
         # Call the collapsible widget component
         self.collapsible_widget = CollapsibleWidget("Input", self)
-        self.layout.addWidget(self.collapsible_widget)
+        scroll_layout.addWidget(self.collapsible_widget)
 
         # Add the plot container widget
         self.plot_container = PlotContainerWidget(self)
@@ -111,7 +126,7 @@ class Handwriting(QtWidgets.QWidget):
         self.file_container.hide_remove_button()
         self.file_container.retry_button.clicked.connect(self.reset_state)
         
-        # Add the slider widget directly to the layout
+        # Add the slider widget directly to the collapsible widget
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget.add_widget(self.slider_widget)
 
