@@ -1,5 +1,3 @@
-# slider_widget.py
-
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 class SliderWidget(QtWidgets.QWidget):

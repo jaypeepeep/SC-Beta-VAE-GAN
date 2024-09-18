@@ -109,12 +109,11 @@ class Handwriting(QtWidgets.QWidget):
         
         # Ensure only the remove button is visible
         self.file_container.hide_remove_button()
-
-        # Optionally, add a button to go back to the initial page
-        back_button = QtWidgets.QPushButton("Start New Drawing", self)
-        back_button.setStyleSheet("background-color: #033; color: white; font-size: 18px;")
-        back_button.clicked.connect(self.reset_state)
-        self.layout.addWidget(back_button)
+        self.file_container.retry_button.clicked.connect(self.reset_state)
+        
+        # Add the slider widget directly to the layout
+        self.slider_widget = SliderWidget(0, 10, self)
+        self.collapsible_widget.add_widget(self.slider_widget)
 
     def reset_state(self):
         """Reset the state and go back to the drawing page."""
