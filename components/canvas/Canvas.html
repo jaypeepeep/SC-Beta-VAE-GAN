@@ -4,57 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drawing Canvas</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-        }
-        canvas {
-            border: 1px solid #000000;
-            display: block;
-            margin: 0 auto;
-            background-color: #fff;
-        }
-        .controls-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .controls {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        .controls button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-        }
-        .hide-checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="drawingCanvas" width="800" height="600"></canvas>
-    <div class="controls-container">
-        <div class="controls">
-            <button id="downloadButton">Download SVC</button>
-            <button id="resetButton">Reset Drawing</button>
+    <div class="container">
+        <div class="label-container">
+            <img id="logo" src="../../icon/green logo.png" alt="Shift Correction Beta VAE-GAN Logo">
+            <p class="message">Draw or Handwrite something</p>
         </div>
-        <div class="hide-checkbox-container">
-            <label for="hideInAirCheckbox">
-                Hide in-air drawings
-                <input type="checkbox" id="hideInAirCheckbox">
-            </label>
+        <canvas id="drawingCanvas" width="800" height="600"></canvas>
+        <div class="controls-container">
+            <div class="controls">
+                <button class="normal-button" id="downloadButton">Download SVC</button>
+                <button class="normal-button" id="resetButton">Clear Drawing</button>
+                <button id="doneButton">Done</button>
+            </div>
+            <div class="hide-checkbox-container">
+                <label for="hideInAirCheckbox" class="hide-checkbox-label">
+                    Hide in-air drawings
+                    <input type="checkbox" id="hideInAirCheckbox">
+                </label>
+            </div>
         </div>
-    </div>
     <script src="Canvas.js"></script>
+</div>
 </body>
 </html>
