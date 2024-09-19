@@ -1,4 +1,5 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
+import os
 
 class CollapsibleWidget(QtWidgets.QWidget):
     def __init__(self, title="Show More", parent=None):
@@ -8,36 +9,65 @@ class CollapsibleWidget(QtWidgets.QWidget):
 
     def setupUi(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
+        
+        # Icon paths
+        self.arrow_down_icon_path = self.get_image_path('arrow_down.png')
+        self.arrow_up_icon_path = self.get_image_path('arrow_up.png')
+
+        # Icons on the right side
+        self.arrow_down_icon = QtGui.QIcon(self.arrow_down_icon_path)
+        self.arrow_up_icon = QtGui.QIcon(self.arrow_up_icon_path)
 
         # Toggle button with style and size policies
-        self.toggle_button = QtWidgets.QPushButton(self.title, self)
+        self.toggle_button = QtWidgets.QPushButton(self)
         self.toggle_button.setCheckable(True)
         self.toggle_button.setChecked(False)
         
-        # Apply custom styling to the button
+        # Layout for the button content
+        self.button_layout = QtWidgets.QHBoxLayout(self.toggle_button)
+        self.button_layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+        self.button_layout.setSpacing(0)  # Remove spacing
+
+        # Label for the text with custom font settings
+        self.button_text = QtWidgets.QLabel(self.title, self)
+        self.button_text.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.button_text.setStyleSheet("""
+            font-family: 'Montserrat';
+            font-size: 14px;
+            font-weight: 600;
+            color: #000000;
+            padding: 10px;
+        """)
+
+        # Label for the icon
+        self.button_icon = QtWidgets.QLabel(self)
+        self.button_icon.setPixmap(self.arrow_down_icon.pixmap(20, 20))
+        self.button_icon.setStyleSheet("padding-right: 10px;")
+
+        # Text and icon on the button layout
+        self.button_layout.addWidget(self.button_text)
+        self.button_layout.addStretch()
+        self.button_layout.addWidget(self.button_icon)
+        
+        # Custom styling for the button
         self.toggle_button.setStyleSheet("""
             QPushButton {
                 background-color: #EBEBEB;
                 border-radius: 10px;
-                color: #000000;
-                font-family: 'Montserrat';
-                font-size: 14px;
-                font-weight: 600;
-                text-align: left;
                 padding: 20px;
             }
             QPushButton:checked {
                 background-color: #DADADA; /* Slightly darker for checked state */
             }
         """)
-        
+
         self.main_layout.addWidget(self.toggle_button)
 
         # Collapsible content container with custom style and size policies
         self.collapsible_container = QtWidgets.QWidget(self)
         self.collapsible_container.setVisible(False)
         self.collapsible_layout = QtWidgets.QVBoxLayout(self.collapsible_container)
-        
+
         # Set size policies to adapt to content
         self.collapsible_container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
@@ -58,13 +88,18 @@ class CollapsibleWidget(QtWidgets.QWidget):
     def toggle_container(self, checked):
         self.collapsible_container.setVisible(checked)
         if checked:
-            self.toggle_button.setText(self.title)
+            self.button_text.setText(self.title)
+            self.button_icon.setPixmap(self.arrow_up_icon.pixmap(20, 20))
         else:
-            self.toggle_button.setText(self.title)
+            self.button_text.setText(self.title)
+            self.button_icon.setPixmap(self.arrow_down_icon.pixmap(20, 20))
 
     def add_widget(self, widget):
         """Add a widget to the collapsible area."""
         self.collapsible_layout.addWidget(widget)
+
+    def get_image_path(self, image_name):
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../icon/{image_name}'))
 
 if __name__ == "__main__":
     import sys
