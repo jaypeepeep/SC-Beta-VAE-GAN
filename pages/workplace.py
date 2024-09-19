@@ -46,9 +46,14 @@ class Workplace(QtWidgets.QWidget):
         self.add_file_button.clicked.connect(self.add_more_files)
         self.collapsible_widget_input.add_widget(self.add_file_button)
 
+        # Create a container to hold the file widgets and its layout
+        self.file_container_widget = QtWidgets.QWidget(self)
+        self.file_container_layout = QtWidgets.QVBoxLayout(self.file_container_widget)
+        self.collapsible_widget_input.add_widget(self.file_container_widget)
+
         # File container widget for Input collapsible
         self.file_container = FileContainerWidget("example_file.txt", self)
-        self.collapsible_widget_input.add_widget(self.file_container)
+        self.file_container_layout.addWidget(self.file_container)
         self.file_container.hide_download_button()
         self.file_container.hide_retry_button()
 
@@ -70,7 +75,7 @@ class Workplace(QtWidgets.QWidget):
 
         # Horizontal layout to hold the file label and button on the same line
         self.header_layout = QtWidgets.QHBoxLayout()
-        
+
         # Label for the file name
         self.file_label = QtWidgets.QLabel("Time-series_Data.svc", self.container_widget)
         self.file_label.setStyleSheet("font-size: 16px; font-family: Montserrat;")
@@ -114,7 +119,8 @@ class Workplace(QtWidgets.QWidget):
         new_file_container = FileContainerWidget("new_file.txt", self)
         new_file_container.hide_download_button()
         new_file_container.hide_retry_button()
-        self.collapsible_widget_input.add_widget(new_file_container)
+        # Add the new file container to the file container layout
+        self.file_container_layout.addWidget(new_file_container)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

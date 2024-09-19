@@ -121,8 +121,6 @@ class Handwriting(QtWidgets.QWidget):
         # Add a file container widget to the collapsible widget
         self.file_container = FileContainerWidget("example_file.txt", self)
         self.collapsible_widget.add_widget(self.file_container)
-        
-        # Ensure only the remove button is visible
         self.file_container.hide_remove_button()
         self.file_container.retry_button.clicked.connect(self.reset_state)
         
