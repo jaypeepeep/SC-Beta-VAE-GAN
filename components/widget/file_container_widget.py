@@ -51,18 +51,7 @@ class FileContainerWidget(QtWidgets.QWidget):
         self.download_button = QtWidgets.QPushButton("Download", self.container)
         self.download_button.setStyleSheet("""
             QPushButton {
-                margin: 10px;
-                width: 192px;
-                height: 47px;
-                border-radius: 5px;
-                background: #033;
-                border: none;
-                color: #FFF;
-                font-family: Montserrat;
-                font-size: 14px;
-                font-style: normal;
-                font-weight: 600;
-                line-height: normal;
+background-color: #003333; color: white; font-family: Montserrat; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 5px;
             }
             QPushButton:hover {
                 background: #C0C0C0;
