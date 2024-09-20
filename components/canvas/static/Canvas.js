@@ -108,6 +108,39 @@ function clearCanvas() {
 
 }
 
+// Function to send SVC file to the Flask backend
+function sendSVCtoServer() {
+    const svcData = convertToSVC(drawingData); // Generate the SVC data
+    const blob = new Blob([svcData], { type: 'text/plain' });
+
+    // Generate a unique filename using the current timestamp
+    const timestamp = Date.now(); // Unix timestamp in milliseconds
+    const uniqueFilename = `drawingData_${timestamp}.svc`; // e.g., drawingData_1695220192000.svc
+
+    // Create a FormData object to send the file
+    const formData = new FormData();
+    formData.append('svc_file', blob, uniqueFilename); // 'svc_file' is the name you'll use in Flask
+
+    // Send the file to the Flask server using fetch
+    fetch('/upload_svc', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('File uploaded successfully:', data.message);
+            window.close();
+        })
+        .catch(error => {
+            console.error('Error uploading file:', error);
+        });
+}
+
+
+// Add event listener for the Done button
+document.getElementById('doneButton').addEventListener('click', sendSVCtoServer);
+
+
 // Add event listener for downloading the SVC file
 document.getElementById('downloadButton').addEventListener('click', downloadSVC);
 
@@ -148,13 +181,6 @@ canvas.addEventListener('pointermove', (e) => {
     const altitude = e.altitudeAngle || 0; // Default altitude to 0 if not available
     draw(x, y, pressure, azimuth, altitude);
 });
-
-// Event listener for the Done button to clear layout and reset canvas
-document.getElementById('doneButton').addEventListener('click', () => {
-    // Attempt to close the current tab
-    window.close();
-});
-
 
 // Prevent default actions for touch events to avoid scrolling
 canvas.addEventListener('touchstart', preventDefault, { passive: false });

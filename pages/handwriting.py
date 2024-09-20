@@ -1,10 +1,11 @@
+import subprocess  # Import for running the Flask app
+import webbrowser  # Import for opening the URL in the default browser
 from PyQt5 import QtWidgets, QtCore, QtGui
 from components.button.handwriting_button import handwritingButton
 from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_container_widget import FileContainerWidget 
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.slider_widget import SliderWidget
-import webbrowser
 import os
 import sys
 
@@ -12,6 +13,7 @@ class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Handwriting, self).__init__(parent)
         self.drawing_done = False  # State to check if done button was clicked
+        self.flask_process = None  # To keep track of the Flask process
         self.setupUi()
 
     def setupUi(self):
@@ -72,7 +74,7 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle("Proceed to Handwriting & Drawing")
         message_box.setText(
-            "To start handwriting and drawing, you'll be redirected to an external browser. Do you want to proceed?"
+            "To start handwriting and drawing, you'll be redirected to a Flask app. Do you want to proceed?"
         )
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
@@ -80,13 +82,17 @@ class Handwriting(QtWidgets.QWidget):
         response = message_box.exec_()
 
         if response == QtWidgets.QMessageBox.Ok:
-            self.open_browser()
+            self.run_flask_app()
 
-    def open_browser(self):
-        """Open the browser to display the handwriting canvas."""
-        html_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../components/canvas/Canvas.html'))
-        html_file_url = 'file://' + html_file_path
-        webbrowser.open_new_tab(html_file_url)
+    def run_flask_app(self):
+        """Run the Flask app located in components/canvas/app.py and open the URL in the browser."""
+        flask_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../components/canvas/app.py'))
+        
+        # Run the Flask app as a subprocess
+        self.flask_process = subprocess.Popen(['python', flask_app_path])
+
+        # Open the URL in the default web browser
+        webbrowser.open("http://127.0.0.1:5000")
 
         # Mark drawing as done and show the done page
         self.drawing_done = True
@@ -132,6 +138,12 @@ class Handwriting(QtWidgets.QWidget):
         """Reset the state and go back to the drawing page."""
         self.drawing_done = False
         self.show_drawing_page()
+
+    def closeEvent(self, event):
+        """Ensure the Flask app process is killed when the main window is closed."""
+        if self.flask_process:
+            self.flask_process.terminate()
+        event.accept()
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
