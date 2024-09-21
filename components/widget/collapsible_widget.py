@@ -41,7 +41,7 @@ class CollapsibleWidget(QtWidgets.QWidget):
 
         # Label for the icon
         self.button_icon = QtWidgets.QLabel(self)
-        self.button_icon.setPixmap(self.arrow_down_icon.pixmap(20, 20))
+        self.button_icon.setPixmap(self.arrow_down_icon.pixmap(15, 15))
         self.button_icon.setStyleSheet("padding-right: 10px;")
 
         # Text and icon on the button layout
@@ -89,10 +89,10 @@ class CollapsibleWidget(QtWidgets.QWidget):
         self.collapsible_container.setVisible(checked)
         if checked:
             self.button_text.setText(self.title)
-            self.button_icon.setPixmap(self.arrow_up_icon.pixmap(20, 20))
+            self.button_icon.setPixmap(self.arrow_up_icon.pixmap(15, 15))
         else:
             self.button_text.setText(self.title)
-            self.button_icon.setPixmap(self.arrow_down_icon.pixmap(20, 20))
+            self.button_icon.setPixmap(self.arrow_down_icon.pixmap(15, 15))
 
     def add_widget(self, widget):
         """Add a widget to the collapsible area."""
