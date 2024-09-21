@@ -2,9 +2,11 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 import os
 
 class FileContainerWidget(QtWidgets.QWidget):
-    def __init__(self, file_name, parent=None):
+    remove_file_signal = QtCore.pyqtSignal(str) 
+    def __init__(self, file_path, parent=None):
         super(FileContainerWidget, self).__init__(parent)
-        self.file_name = file_name
+        self.file_path = file_path
+        self.file_name = file_path
         self.setupUi()
 
     def setupUi(self):
@@ -67,8 +69,8 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
         self.retry_button.setStyleSheet("""
             QPushButton {
                 margin: 10px;
-                width: 42px;
-                height: 78px;
+                width: 32px;
+                height: 59px;
                 background: #DEDEDE;
                 border: none;
             }
@@ -90,6 +92,8 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
     def remove_file(self):
         # This method removes the widget from its parent
         self.setParent(None)
+        self.remove_file_signal.emit(self.file_path)  # Emit signal when removed
+        self.deleteLater() 
 
     def download_file(self):
         # Implement the file download logic here

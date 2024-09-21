@@ -1,8 +1,8 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from components.widget.collapsible_widget import CollapsibleWidget
-from components.widget.file_container_widget import FileContainerWidget 
+from components.widget.file_container_widget import FileContainerWidget
 from components.widget.slider_widget import SliderWidget
-from components.widget.plot_container_widget import PlotContainerWidget
+from components.button.DragDrop_Button import DragDrop_Button
 
 class Workplace(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -29,13 +29,23 @@ class Workplace(QtWidgets.QWidget):
         self.scroll_area.setWidget(self.scroll_widget)
         self.gridLayout.addWidget(self.scroll_area)
 
-        # Create a label with custom font
+        # Call functions to set up collapsible components
+        self.setup_input_collapsible()
+        self.setup_preview_collapsible()
+
+    def setup_input_collapsible(self):
+        """Set up the 'Input' collapsible widget and its contents."""
         font = QtGui.QFont()
         font.setPointSize(20)
 
         # Call the collapsible widget component for Input
         self.collapsible_widget_input = CollapsibleWidget("Input", self)
         self.scroll_layout.addWidget(self.collapsible_widget_input)
+
+        # Add the FileUploadWidget
+        self.file_upload_widget = DragDrop_Button(self)
+        self.file_upload_widget.file_uploaded.connect(self.update_file_display)  # Connect the signal
+        self.collapsible_widget_input.add_widget(self.file_upload_widget)
 
         # Add "Add More Files" button to Input collapsible widget
         self.add_file_button = QtWidgets.QPushButton("Add More Files", self)
@@ -56,11 +66,23 @@ class Workplace(QtWidgets.QWidget):
         self.file_container_layout.addWidget(self.file_container)
         self.file_container.hide_download_button()
         self.file_container.hide_retry_button()
-
         # Slider widget in Input collapsible
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget_input.add_widget(self.slider_widget)
 
+        # Initially hide other components
+        self.file_upload_widget.setVisible(True)
+        self.show_other_components(False)
+        self.collapsible_widget_input.add_widget(self.slider_widget)
+    
+    def show_other_components(self, show=True):
+        """Show or hide other components based on file upload."""
+        self.add_file_button.setVisible(show)
+        self.file_container_widget.setVisible(show)
+        self.slider_widget.setVisible(show)
+
+    def setup_preview_collapsible(self):
+        """Set up the 'File Preview' collapsible widget and its contents."""
         # Call collapsible widget for File Preview
         self.collapsible_widget_preview = CollapsibleWidget("File Preview", self)
         self.scroll_layout.addWidget(self.collapsible_widget_preview)
@@ -114,14 +136,31 @@ class Workplace(QtWidgets.QWidget):
         self.container_layout.addWidget(self.text_preview)
         self.collapsible_widget_preview.add_widget(self.container_widget)
 
-    # Function to handle adding more file widgets (Optional)
-    def add_more_files(self):
-        new_file_container = FileContainerWidget("new_file.txt", self)
-        new_file_container.hide_download_button()
-        new_file_container.hide_retry_button()
-        # Add the new file container to the file container layout
-        self.file_container_layout.addWidget(new_file_container)
+    def update_file_display(self, uploaded_files):
+        """Update the display of files based on uploaded files."""
+        has_files = bool(uploaded_files)
+        self.show_other_components(has_files)
+        
+        # Make the file upload widget visible if no files are uploaded
+        self.file_upload_widget.setVisible(not has_files)
+                
+        # Clear existing widgets in the file container layout
+        for i in reversed(range(self.file_container_layout.count())): 
+            widget = self.file_container_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
 
+        # Re-add file containers for each uploaded file
+        for file_path in uploaded_files:
+            new_file_container = FileContainerWidget(file_path, self)
+            new_file_container.hide_download_button()
+            new_file_container.hide_retry_button()
+            new_file_container.remove_file_signal.connect(self.file_upload_widget.remove_file)  # Connect remove signal
+            self.file_container_layout.addWidget(new_file_container)
+    
+    def add_more_files(self):
+        self.file_upload_widget.open_file_dialog()
+        
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     window = Workplace()
