@@ -79,7 +79,11 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
 
+         # Apply stylesheet to customize button font size
+        message_box.setStyleSheet("QPushButton { font-size: 14px; }")
+    
         response = message_box.exec_()
+        
 
         if response == QtWidgets.QMessageBox.Ok:
             self.run_flask_app()

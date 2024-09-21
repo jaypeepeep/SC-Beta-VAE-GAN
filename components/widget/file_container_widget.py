@@ -35,10 +35,11 @@ class FileContainerWidget(QtWidgets.QWidget):
         # Button to remove the file
         self.remove_button = QtWidgets.QPushButton(self.container)
         self.remove_button.setIcon(QtGui.QIcon(self.get_image_path('close.png')))
-        self.remove_button.setIconSize(QtCore.QSize(30, 30))
+        self.remove_button.setIconSize(QtCore.QSize(20, 20))
+        self.remove_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.remove_button.setStyleSheet("""
             QPushButton {
-                margin: 10px;
+                margin: 1px;
                 background: #DEDEDE;
                 border: none;
             }

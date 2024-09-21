@@ -12,6 +12,9 @@ class Workplace(QtWidgets.QWidget):
     def setupUi(self):
         self.gridLayout = QtWidgets.QGridLayout(self)
         self.gridLayout.setAlignment(QtCore.Qt.AlignTop)
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        self.setFont(font)
 
         # Create a scroll area
         self.scroll_area = QtWidgets.QScrollArea(self)
@@ -50,12 +53,26 @@ class Workplace(QtWidgets.QWidget):
         # Add "Add More Files" button to Input collapsible widget
         self.add_file_button = QtWidgets.QPushButton("Add More Files", self)
         self.add_file_button.setStyleSheet(
-            "border-radius: 5px; background-color: #535353; color: white; padding: 8px 16px; font-family: Montserrat; font-size: 14px; font-style: normal; font-weight: 600; line-height: normal;"
+            """
+            QPushButton {
+                background-color: #535353; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 8px 16px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+            """
         )
         self.add_file_button.setFont(font)
+        self.add_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.add_file_button.clicked.connect(self.add_more_files)
         self.collapsible_widget_input.add_widget(self.add_file_button)
-
+        
         # Create a container to hold the file widgets and its layout
         self.file_container_widget = QtWidgets.QWidget(self)
         self.file_container_layout = QtWidgets.QVBoxLayout(self.file_container_widget)
@@ -97,11 +114,6 @@ class Workplace(QtWidgets.QWidget):
 
         # Horizontal layout to hold the file label and button on the same line
         self.header_layout = QtWidgets.QHBoxLayout()
-
-        # Label for the file name
-        self.file_label = QtWidgets.QLabel("Time-series_Data.svc", self.container_widget)
-        self.file_label.setStyleSheet("font-size: 16px; font-family: Montserrat;")
-        self.header_layout.addWidget(self.file_label, alignment=QtCore.Qt.AlignLeft)
 
         # Select file button
         self.select_file_button = QtWidgets.QPushButton("Select File", self.container_widget)
@@ -162,6 +174,8 @@ class Workplace(QtWidgets.QWidget):
         self.file_upload_widget.open_file_dialog()
         
 if __name__ == "__main__":
+    
+    
     app = QtWidgets.QApplication([])
     window = Workplace()
     window.show()

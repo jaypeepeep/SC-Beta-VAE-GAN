@@ -28,7 +28,21 @@ class DragDrop_Button(QtWidgets.QWidget):
         # Create the "Choose file" button
         self.file_button = QtWidgets.QPushButton("Choose File...", self.drop_area)
         self.file_button.setStyleSheet(
-            "background-color: #003333; color: white; font-family: Montserrat; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 5px; border: none;"
+            """
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 8px 16px; 
+                border-radius: 5px; 
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #005555;  /* Change this to your desired hover color */
+            }
+            """
         )
         self.file_button.setFixedWidth(150)
         self.file_button.clicked.connect(self.open_file_dialog)

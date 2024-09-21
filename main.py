@@ -1,6 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton
 from PyQt5.QtCore import pyqtSlot, QFile, QTextStream
+from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtGui import QIcon
 from layout import Ui_MainWindow
 from components.widget.full_menu_widget import FullMenuWidget
@@ -60,6 +61,29 @@ class MainWindow(QMainWindow):
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # Load Montserrat fonts
+    regular_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-Regular.ttf")
+    bold_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-Bold.ttf")
+    extrabold_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-ExtraBold.ttf")
+    black_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-Black.ttf")
+    medium_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-Medium.ttf")
+    italic_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-Italic.ttf")
+    semibold_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-SemiBold.ttf")
+    thin_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-Thin.ttf")
+
+    # Get font family names 
+    regular_font_family = QFontDatabase.applicationFontFamilies(regular_font_id)[0]
+    bold_font_family = QFontDatabase.applicationFontFamilies(bold_font_id)[0]
+    extrabold_font_family = QFontDatabase.applicationFontFamilies(extrabold_font_id)[0]
+    black_font_family = QFontDatabase.applicationFontFamilies(black_font_id)[0]
+    medium_font_family = QFontDatabase.applicationFontFamilies(medium_font_id)[0]
+    italic_font_family = QFontDatabase.applicationFontFamilies(italic_font_id)[0]
+    semibold_font_family = QFontDatabase.applicationFontFamilies(semibold_font_id)[0]
+    thin_font_family = QFontDatabase.applicationFontFamilies(thin_font_id)[0]
+
+    # Set the default font for the application
+    app.setFont(QFont(regular_font_family, 15))  # Set the default font to regular
 
     # Load and apply the stylesheet
     style_file = QFile("style.qss")
