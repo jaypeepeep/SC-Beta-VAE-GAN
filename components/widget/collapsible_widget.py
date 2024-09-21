@@ -36,13 +36,13 @@ class CollapsibleWidget(QtWidgets.QWidget):
             font-size: 14px;
             font-weight: 600;
             color: #000000;
-            padding: 10px;
+            padding: 15px;
         """)
 
         # Label for the icon
         self.button_icon = QtWidgets.QLabel(self)
         self.button_icon.setPixmap(self.arrow_down_icon.pixmap(15, 15))
-        self.button_icon.setStyleSheet("padding-right: 10px;")
+        self.button_icon.setStyleSheet("padding-right: 15px;")
 
         # Text and icon on the button layout
         self.button_layout.addWidget(self.button_text)
@@ -54,7 +54,7 @@ class CollapsibleWidget(QtWidgets.QWidget):
             QPushButton {
                 background-color: #EBEBEB;
                 border-radius: 10px;
-                padding: 20px;
+                padding: 10px;
             }
             QPushButton:checked {
                 background-color: #DADADA; /* Slightly darker for checked state */
@@ -76,7 +76,7 @@ class CollapsibleWidget(QtWidgets.QWidget):
             QWidget {
                 background-color: #EBEBEB;
                 border-radius: 10px;
-                padding: 10px;  /* Optional: adds padding around content */
+                padding: 15px;  /* Optional: adds padding around content */
             }
         """)
 
