@@ -12,6 +12,9 @@ class Workplace(QtWidgets.QWidget):
     def setupUi(self):
         self.gridLayout = QtWidgets.QGridLayout(self)
         self.gridLayout.setAlignment(QtCore.Qt.AlignTop)
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        self.setFont(font)
 
         # Create a scroll area
         self.scroll_area = QtWidgets.QScrollArea(self)
