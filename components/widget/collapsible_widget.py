@@ -59,8 +59,11 @@ class CollapsibleWidget(QtWidgets.QWidget):
             QPushButton:checked {
                 background-color: #DADADA; /* Slightly darker for checked state */
             }
+            QPushButton:hover {
+                background-color: #DADADA; /* Slightly darker for checked state */
+            }
         """)
-
+        self.toggle_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.main_layout.addWidget(self.toggle_button)
 
         # Collapsible content container with custom style and size policies
