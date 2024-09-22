@@ -134,7 +134,7 @@ function sendSVCtoServer() {
 
     // Generate a unique filename using the current timestamp
     const timestamp = Date.now(); // Unix timestamp in milliseconds
-    const uniqueFilename = `drawingData_${timestamp}.svc`; // e.g., drawingData_1695220192000.svc
+    const uniqueFilename = `handwritingData_${timestamp}.svc`;
 
     // Create a FormData object to send the file
     const formData = new FormData();

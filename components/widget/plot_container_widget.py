@@ -41,46 +41,44 @@ class PlotContainerWidget(QtWidgets.QWidget):
 
         # Read and process the .svc file
         df = pd.read_csv(file_path, skiprows=1, header=None, delim_whitespace=True)
-        df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
-        
+        df.columns = [
+            "x",
+            "y",
+            "timestamp",
+            "pen_status",
+            "pressure",
+            "azimuth",
+            "altitude",
+        ]
+
         # Modify timestamp to start from 0
-        df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
+        df["timestamp"] = (df["timestamp"] - df["timestamp"].min()).round().astype(int)
         df = df.iloc[:, [0, 1, 2, 3]]  # Select x, y, timestamp, and pen_status
 
-        on_paper = df[df['pen_status'] == 1]
-        in_air = df[df['pen_status'] == 0]
+        on_paper = df[df["pen_status"] == 1]
+        in_air = df[df["pen_status"] == 0]
 
         # Set figure size for landscape orientation
         self.figure.set_size_inches(12, 6)  # Width, Height in inches
 
         # Create the plot without any transformations
         ax = self.figure.add_subplot(111)
-        
-        # Scatter plot with rotated coordinates
-        ax.scatter(on_paper['x'], -on_paper['y'], c='blue', s=1, alpha=0.7, label='On Surface')
-        ax.scatter(in_air['x'], -in_air['y'], c='red', s=1, alpha=0.7, label='In Air')
 
-        ax.set_title(f'Plot from {os.path.basename(file_path)}')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
+        # Scatter plot with rotated coordinates
+        ax.scatter(
+            on_paper["x"], -on_paper["y"], c="blue", s=1, alpha=0.7, label="On Surface"
+        )
+        ax.scatter(in_air["x"], -in_air["y"], c="red", s=1, alpha=0.7, label="In Air")
+
+        ax.set_title(f"Plot from {os.path.basename(file_path)}")
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
         ax.legend()
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
 
         # Set x and y limits to adjust for the rotation
-        ax.set_xlim(df['x'].min(), df['x'].max())
-        ax.set_ylim(-df['y'].max(), -df['y'].min())
+        ax.set_xlim(df["x"].min(), df["x"].max())
+        ax.set_ylim(-df["y"].max(), -df["y"].min())
 
         # Refresh the canvas
         self.canvas.draw()
-
-
-# Example usage
-if __name__ == "__main__":
-    import sys
-
-    app = QtWidgets.QApplication(sys.argv)
-    plot_widget = PlotContainerWidget()
-    plot_widget.loadPlot("your_plot_file.svc")  # Replace with the actual filename
-    plot_widget.resize(800, 600)
-    plot_widget.show()
-    sys.exit(app.exec_())
