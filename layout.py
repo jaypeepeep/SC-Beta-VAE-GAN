@@ -50,6 +50,7 @@ class Ui_MainWindow(object):
         self.change_btn.setCheckable(True)
         self.change_btn.setObjectName("change_btn")
         self.header_layout.addWidget(self.change_btn)
+        self.change_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
         # Spacer Before Title (Left Spacer)
         self.left_spacer = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
