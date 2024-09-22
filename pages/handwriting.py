@@ -141,6 +141,7 @@ class Handwriting(QtWidgets.QWidget):
 
         # Add the plot container widget
         self.plot_container = PlotContainerWidget(self)
+        self.plot_container.loadPlot(filename)
         self.collapsible_widget.add_widget(self.plot_container)
 
         # Add a file container widget to the collapsible widget with the actual filename
