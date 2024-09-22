@@ -138,6 +138,7 @@ class Handwriting(QtWidgets.QWidget):
         # Call the collapsible widget component
         self.collapsible_widget = CollapsibleWidget("Input", self)
         scroll_layout.addWidget(self.collapsible_widget)
+        self.collapsible_widget.toggle_container(True)
 
         # Add the plot container widget
         self.plot_container = PlotContainerWidget(self)
