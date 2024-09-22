@@ -11,56 +11,103 @@ class Local(QtWidgets.QWidget):
 
     def setupUi(self):
         # Main layout
-        main_layout = QtWidgets.QVBoxLayout(self)
+        self.gridLayout = QtWidgets.QGridLayout(self)
+        self.gridLayout.setAlignment(QtCore.Qt.AlignTop)
+        self.gridLayout.setContentsMargins(20, 10, 20, 20)
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        self.setFont(font)
 
-        # Horizontal layout for Local Storage label and Change Location button
-        header_layout = QtWidgets.QHBoxLayout()
+        # Create a layout for the labels (Local Storage and Path)
+        label_layout = QtWidgets.QVBoxLayout()
 
         # Local Storage label
         self.local_storage_label = QtWidgets.QLabel("Local Storage", self)
-        font = QtGui.QFont()
-        font.setPointSize(14)  # Set font size to 14
-        self.local_storage_label.setFont(font)
+        self.local_storage_label.setStyleSheet("""
+            margin-left: 5px; 
+            color: black;
+            font-weight: bold;
+            font-family: Montserrat; 
+            font-size: 14px; 
+        """)
         self.local_storage_label.setAlignment(QtCore.Qt.AlignLeft)
-        header_layout.addWidget(self.local_storage_label)
+        label_layout.addWidget(self.local_storage_label)
 
+        # Path label
+        self.path_label = QtWidgets.QLabel(self.current_directory, self)  # Initialize with the current directory path
+        self.path_label.setStyleSheet("""
+            margin-left: 25px;
+            color: black;
+            font-family: Montserrat; 
+            font-size: 14px;
+            text-decoration: underline;
+        """)
+        self.path_label.setAlignment(QtCore.Qt.AlignLeft)
+        label_layout.addWidget(self.path_label)
+
+        # Horizontal layout for combining the label_layout and Change Location button
+        header_layout = QtWidgets.QHBoxLayout()
+        # Add the vertical labels layout to the horizontal layout
+        header_layout.addLayout(label_layout)
         # Spacer to push the button to the right
         header_layout.addStretch()
 
         # Change Location button
         self.change_location_button = QtWidgets.QPushButton("Change Location", self)
-        self.change_location_button.setStyleSheet("border: 1px solid black; padding: 5px;")
+        self.change_location_button.setStyleSheet("""
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+        """)
+        self.change_location_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.change_location_button.clicked.connect(self.change_directory)
         header_layout.addWidget(self.change_location_button)
 
-        # Add header layout to main layout
-        main_layout.addLayout(header_layout)
-
-        # Path label
-        self.path_label = QtWidgets.QLabel(self.current_directory, self)  # Initialize with the current directory path
-        font.setPointSize(14)  # Set font size to 14
-        self.path_label.setFont(font)
-        self.path_label.setAlignment(QtCore.Qt.AlignLeft)
-        main_layout.addWidget(self.path_label)
+        # Add the header layout to the grid layout at row 0, spanning 2 columns
+        self.gridLayout.addLayout(header_layout, 0, 0, 1, 2)
 
         # Files label
         self.files_label = QtWidgets.QLabel("Files", self)
-        font.setPointSize(16)
-        self.files_label.setFont(font)
+        self.files_label.setStyleSheet("""
+            margin-left: 5px; 
+            color: black;
+            font-family: Montserrat; 
+            font-size: 14px; 
+            font-weight: 600;
+        """)
         self.files_label.setAlignment(QtCore.Qt.AlignLeft)
-        main_layout.addWidget(self.files_label)
+        self.gridLayout.addWidget(self.files_label, 1, 0, 1, 2)  # Span across 2 columns
 
+        # # Scroll Area
+        # self.scroll_area = QtWidgets.QScrollArea(self)
+        # self.scroll_area.setWidgetResizable(True)
+        # self.scroll_widget = QtWidgets.QWidget()
+        # self.scroll_layout = QtWidgets.QGridLayout(self.scroll_widget)  # Grid layout for file items
+
+        # # Add scroll area to the grid layout
+        # self.scroll_area.setWidget(self.scroll_widget)
+        # self.gridLayout.addWidget(self.scroll_area, 2, 0, 1, 2)
+        
         # Table for files
         self.table_widget = QtWidgets.QTableWidget(self)
         self.table_widget.setColumnCount(2)
         self.table_widget.setHorizontalHeaderLabels(["Name", "Date"])
         self.table_widget.horizontalHeader().setStretchLastSection(True)  # Stretch last column to fit
         self.table_widget.setRowCount(0)  # Empty table for now
-        main_layout.addWidget(self.table_widget)
-
-        # Set layout margins
-        main_layout.setContentsMargins(20, 20, 20, 20)
-
+        self.gridLayout.addWidget(self.table_widget)
+        
     def load_files(self, directory):
         """Populate the table with files and folders from the given directory"""
         if not os.path.exists(directory):
