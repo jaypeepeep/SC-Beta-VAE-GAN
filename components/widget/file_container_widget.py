@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import os
+import shutil
 
 class FileContainerWidget(QtWidgets.QWidget):
     remove_file_signal = QtCore.pyqtSignal(str) 
@@ -97,8 +98,21 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
         self.deleteLater() 
 
     def download_file(self):
-        # Implement the file download logic here
-        print("Download button clicked")
+        # Create a QFileDialog to prompt the user for a save location
+        options = QtWidgets.QFileDialog.Options()
+        save_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", self.file_name, "All Files (*)", options=options)
+        
+        if save_path:
+            try:
+                # Define the source path in the uploads folder
+                source_path = os.path.join(os.path.dirname(__file__), '../../uploads', self.file_name)
+                
+                # Copy the file to the specified save path
+                shutil.copy(source_path, save_path)
+                
+                QtWidgets.QMessageBox.information(self, "Success", "File downloaded successfully!")
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(self, "Error", f"Failed to download file:\n{e}")
 
     def retry_action(self):
         # Implement the retry logic here
