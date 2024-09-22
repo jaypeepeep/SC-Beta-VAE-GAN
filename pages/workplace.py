@@ -92,6 +92,10 @@ class Workplace(QtWidgets.QWidget):
         self.file_upload_widget.setVisible(True)
         self.show_other_components(False)
         self.collapsible_widget_input.add_widget(self.slider_widget)
+
+        # Open the collapsible widget by default
+        self.collapsible_widget_input.toggle_container(True)
+
     
     def show_other_components(self, show=True):
         """Show or hide other components based on file upload."""
