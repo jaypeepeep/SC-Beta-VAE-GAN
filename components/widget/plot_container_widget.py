@@ -57,7 +57,7 @@ class PlotContainerWidget(QtWidgets.QWidget):
         ax = self.figure.add_subplot(111)
         
         # Scatter plot with rotated coordinates
-        ax.scatter(on_paper['x'], -on_paper['y'], c='blue', s=1, alpha=0.7, label='On Paper')
+        ax.scatter(on_paper['x'], -on_paper['y'], c='blue', s=1, alpha=0.7, label='On Surface')
         ax.scatter(in_air['x'], -in_air['y'], c='red', s=1, alpha=0.7, label='In Air')
 
         ax.set_title(f'Plot from {os.path.basename(file_path)}')
