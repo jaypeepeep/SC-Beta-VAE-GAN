@@ -38,18 +38,24 @@ class About(QtWidgets.QWidget):
 
         # Button to redirect to a website
         self.button = QtWidgets.QPushButton("View the Main Paper", self)
-        self.button.setStyleSheet(
-            "background-color: #003333;"
-            "color: white;"
-            "border: none;"
-            "padding: 10px 20px;"
-            "border-radius: 5px;"
-            "font-size: 11px;"
-            "font-weight: bold;"
-            "font-family: 'Montserrat', sans-serif;"
-            "line-height: 20px;"
-            "margin-bottom: 30px;"
-        )
+        self.button.setStyleSheet("""
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+        """)
+        self.button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.button.clicked.connect(self.openWebsite)
 
         # Add the button to the layout
