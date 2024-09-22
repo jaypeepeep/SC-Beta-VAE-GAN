@@ -110,6 +110,13 @@ class FullMenuWidget(QtWidgets.QWidget):
         self.local_btn_2.setFont(font)
         self.exit_btn_2.setFont(font)
         
+        #set cursor to pointer
+        self.workplace_btn_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.handwriting_btn_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.about_btn_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.local_btn_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.exit_btn_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        
     def paintEvent(self, event):
         # This ensures that the widget's background is painted
         opt = QtWidgets.QStyleOption()
