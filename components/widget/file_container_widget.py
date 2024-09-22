@@ -1,10 +1,13 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import os
+import shutil
 
 class FileContainerWidget(QtWidgets.QWidget):
-    def __init__(self, file_name, parent=None):
+    remove_file_signal = QtCore.pyqtSignal(str) 
+    def __init__(self, file_path, parent=None):
         super(FileContainerWidget, self).__init__(parent)
-        self.file_name = file_name
+        self.file_path = file_path
+        self.file_name = file_path
         self.setupUi()
 
     def setupUi(self):
@@ -33,10 +36,11 @@ class FileContainerWidget(QtWidgets.QWidget):
         # Button to remove the file
         self.remove_button = QtWidgets.QPushButton(self.container)
         self.remove_button.setIcon(QtGui.QIcon(self.get_image_path('close.png')))
-        self.remove_button.setIconSize(QtCore.QSize(30, 30))
+        self.remove_button.setIconSize(QtCore.QSize(20, 20))
+        self.remove_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.remove_button.setStyleSheet("""
             QPushButton {
-                margin: 10px;
+                margin: 1px;
                 background: #DEDEDE;
                 border: none;
             }
@@ -67,8 +71,8 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
         self.retry_button.setStyleSheet("""
             QPushButton {
                 margin: 10px;
-                width: 42px;
-                height: 78px;
+                width: 32px;
+                height: 59px;
                 background: #DEDEDE;
                 border: none;
             }
@@ -90,10 +94,25 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
     def remove_file(self):
         # This method removes the widget from its parent
         self.setParent(None)
+        self.remove_file_signal.emit(self.file_path)  # Emit signal when removed
+        self.deleteLater() 
 
     def download_file(self):
-        # Implement the file download logic here
-        print("Download button clicked")
+        # Create a QFileDialog to prompt the user for a save location
+        options = QtWidgets.QFileDialog.Options()
+        save_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", self.file_name, "All Files (*)", options=options)
+        
+        if save_path:
+            try:
+                # Define the source path in the uploads folder
+                source_path = os.path.join(os.path.dirname(__file__), '../../uploads', self.file_name)
+                
+                # Copy the file to the specified save path
+                shutil.copy(source_path, save_path)
+                
+                QtWidgets.QMessageBox.information(self, "Success", "File downloaded successfully!")
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(self, "Error", f"Failed to download file:\n{e}")
 
     def retry_action(self):
         # Implement the retry logic here

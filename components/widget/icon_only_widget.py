@@ -101,6 +101,13 @@ class IconOnlyWidget(QtWidgets.QWidget):
         self.exit_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.exit_btn_1.setObjectName("exit_btn_1")
         self.verticalLayout_3.addWidget(self.exit_btn_1)
+        
+        #set cursor to pointer
+        self.workplace_btn_1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.handwriting_btn_1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.about_btn_1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.local_btn_1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.exit_btn_1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
     
     def paintEvent(self, event):
         # This ensures that the widget's background is painted

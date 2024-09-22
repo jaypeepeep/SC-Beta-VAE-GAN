@@ -19,6 +19,7 @@ class SliderWidget(QtWidgets.QWidget):
         self.slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self.slider.setSingleStep(1)
         self.slider.valueChanged.connect(self.updateValue)
+        self.slider.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
         # Apply custom styles to the slider
         self.slider.setStyleSheet("""
@@ -30,8 +31,8 @@ class SliderWidget(QtWidgets.QWidget):
             QSlider::handle:horizontal {
                 background: white;
                 border: 2px solid black;
-                width: 29px;
-                height: 47px;
+                width: 10px;
+                height: 20px;
                 border-radius: 4px;
                 margin: -10px 0;
             }
@@ -48,13 +49,13 @@ class SliderWidget(QtWidgets.QWidget):
         self.number_input.setStyleSheet("""
             QSpinBox {
                 border-radius: 5px;
-                border: 3px solid #000;
+                border: 1px solid #000;
                 background: #FFF;
-                width: 100px;
-                height: 71px;
+                width: 50px;
+                height: 20px;
                 color: #000;
                 font-family: Montserrat;
-                font-size: 20px;
+                font-size: 14px;
                 font-style: normal;
                 font-weight: 600;
                 line-height: normal;
@@ -62,14 +63,14 @@ class SliderWidget(QtWidgets.QWidget):
                 padding-left: 30px;
             }
             QSpinBox::up-button {
-                width: 35px;
-                height: 35px;
+                width: 20px;
+                height: 20px;
                 margin-bottom: -1px; /* Adjust the margin to create space between buttons */
                 padding: 0;
             }
             QSpinBox::down-button {
-                width: 35px;
-                height: 35px;
+                width: 20px;
+                height: 20px;
                 margin-top: -1px; /* Adjust the margin to create space between buttons */
                 padding: 0;
             }

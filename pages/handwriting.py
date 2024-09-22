@@ -1,5 +1,5 @@
-import subprocess  # Import for running the Flask app
-import webbrowser  # Import for opening the URL in the default browser
+import subprocess
+import webbrowser
 from PyQt5 import QtWidgets, QtCore, QtGui
 from components.button.handwriting_button import handwritingButton
 from components.widget.collapsible_widget import CollapsibleWidget
@@ -8,6 +8,7 @@ from components.widget.plot_container_widget import PlotContainerWidget
 from components.widget.slider_widget import SliderWidget
 import os
 import sys
+import requests
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -79,7 +80,11 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
 
+         # Apply stylesheet to customize button font size
+        message_box.setStyleSheet("QPushButton { font-size: 14px; }")
+    
         response = message_box.exec_()
+        
 
         if response == QtWidgets.QMessageBox.Ok:
             self.run_flask_app()
@@ -94,11 +99,25 @@ class Handwriting(QtWidgets.QWidget):
         # Open the URL in the default web browser
         webbrowser.open("http://127.0.0.1:5000")
 
-        # Mark drawing as done and show the done page
-        self.drawing_done = True
-        self.show_done_page()
+        # Poll Flask to check if drawing is done and file is uploaded
+        QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Adjust the delay if necessary
 
-    def show_done_page(self):
+    def check_drawing_done(self):
+        """Periodically check if the drawing is done by querying Flask."""
+        try:
+            response = requests.get("http://127.0.0.1:5000/check_upload")
+            if response.status_code == 200:
+                data = response.json()
+                filename = data.get('filename')
+                self.show_done_page(filename)  # Pass the filename to the next page
+            else:
+                print("File not uploaded yet, retrying...")
+                QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Retry after delay
+        except requests.ConnectionError:
+            print("Flask server not ready, retrying...")
+            QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Retry after delay if connection failed
+
+    def show_done_page(self, filename):
         """Show the page after the drawing is completed."""
         self.clear_layout()
 
@@ -122,10 +141,11 @@ class Handwriting(QtWidgets.QWidget):
 
         # Add the plot container widget
         self.plot_container = PlotContainerWidget(self)
+        self.plot_container.loadPlot(filename)
         self.collapsible_widget.add_widget(self.plot_container)
 
-        # Add a file container widget to the collapsible widget
-        self.file_container = FileContainerWidget("example_file.txt", self)
+        # Add a file container widget to the collapsible widget with the actual filename
+        self.file_container = FileContainerWidget(filename, self)
         self.collapsible_widget.add_widget(self.file_container)
         self.file_container.hide_remove_button()
         self.file_container.retry_button.clicked.connect(self.reset_state)

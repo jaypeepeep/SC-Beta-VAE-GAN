@@ -55,16 +55,26 @@ function draw(x, y, pressure, azimuth, altitude) {
 
     const scaledX = Math.round(x * scalingFactor);
     const scaledY = Math.round(y * scalingFactor);
-    const scaledAltitude = convertAltitude(altitude); // Convert and scale altitude
-    const scaledPressure = convertPressure(pressure); // Convert and scale pressure
-    const computedAzimuth = computeAzimuth(); // Compute azimuth
+    const scaledAltitude = convertAltitude(altitude);
+    const scaledPressure = convertPressure(pressure);
+    const computedAzimuth = computeAzimuth();
 
     if (isDrawing) {
         ctx.lineTo(x, y);
         ctx.stroke();
+
+        // Interpolating multiple points between the last point and the current point
+        for (let i = 1; i <= 5; i++) { // Adjust the number for more/less dots
+            const interpolatedX = scaledX - (scaledX - lastX) * (i / 5);
+            const interpolatedY = scaledY - (scaledY - lastY) * (i / 5);
+            addDrawingData(interpolatedX, interpolatedY, timestamp, penStatus, computedAzimuth, scaledAltitude, scaledPressure);
+        }
+
+        lastX = scaledX; // Update lastX
+        lastY = scaledY; // Update lastY
     } else {
         if (!hideInAir) {
-            ctx.strokeStyle = 'red'; // Change color to red when hovering
+            ctx.strokeStyle = 'red';
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(x, y);
@@ -72,13 +82,22 @@ function draw(x, y, pressure, azimuth, altitude) {
         }
     }
 
-    // Store the data
+    // Store the current position for future interpolations
+    lastX = scaledX;
+    lastY = scaledY;
+
+    // Store the data for the actual drawn point
     addDrawingData(scaledX, scaledY, timestamp, penStatus, computedAzimuth, scaledAltitude, scaledPressure);
 }
 
+
 // Function to add data to the array
 function addDrawingData(x, y, timestamp, penStatus, azimuth, altitude, pressure) {
-    drawingData.push([x, y, timestamp, penStatus, azimuth, altitude, pressure]);
+    // Round x and y to ensure they are whole numbers
+    const roundedX = Math.round(x);
+    const roundedY = Math.round(y);
+
+    drawingData.push([roundedX, roundedY, timestamp, penStatus, azimuth, altitude, pressure]);
 }
 
 // Function to convert array data to SVC string
@@ -115,7 +134,7 @@ function sendSVCtoServer() {
 
     // Generate a unique filename using the current timestamp
     const timestamp = Date.now(); // Unix timestamp in milliseconds
-    const uniqueFilename = `drawingData_${timestamp}.svc`; // e.g., drawingData_1695220192000.svc
+    const uniqueFilename = `handwritingData_${timestamp}.svc`;
 
     // Create a FormData object to send the file
     const formData = new FormData();
