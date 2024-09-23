@@ -138,6 +138,7 @@ class Handwriting(QtWidgets.QWidget):
         # Call the collapsible widget component
         self.collapsible_widget = CollapsibleWidget("Input", self)
         scroll_layout.addWidget(self.collapsible_widget)
+        self.collapsible_widget.toggle_container(True)
 
         # Add the plot container widget
         self.plot_container = PlotContainerWidget(self)
@@ -148,11 +149,27 @@ class Handwriting(QtWidgets.QWidget):
         self.file_container = FileContainerWidget(filename, self)
         self.collapsible_widget.add_widget(self.file_container)
         self.file_container.hide_remove_button()
-        self.file_container.retry_button.clicked.connect(self.reset_state)
+        self.file_container.retry_button.clicked.connect(self.show_reset_confirmation_dialog)
         
         # Add the slider widget directly to the collapsible widget
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget.add_widget(self.slider_widget)
+
+    def show_reset_confirmation_dialog(self):
+        """Show a confirmation dialog before resetting the state."""
+        message_box = QtWidgets.QMessageBox(self)
+        message_box.setIcon(QtWidgets.QMessageBox.Question)
+        message_box.setWindowTitle("Discard and Retry")
+        message_box.setText("Are you sure you want to discard your current handwriting and start over?")
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        message_box.setDefaultButton(QtWidgets.QMessageBox.No)
+        
+        message_box.setStyleSheet("QPushButton { font-size: 14px; }")
+        
+        response = message_box.exec_()
+
+        if response == QtWidgets.QMessageBox.Yes:
+            self.reset_state()
 
     def reset_state(self):
         """Reset the state and go back to the drawing page."""

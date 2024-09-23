@@ -159,10 +159,6 @@ function sendSVCtoServer() {
 // Add event listener for the Done button
 document.getElementById('doneButton').addEventListener('click', sendSVCtoServer);
 
-
-// Add event listener for downloading the SVC file
-document.getElementById('downloadButton').addEventListener('click', downloadSVC);
-
 // Add event listener for downloading the SVC file
 document.getElementById('resetButton').addEventListener('click', clearCanvas);
 

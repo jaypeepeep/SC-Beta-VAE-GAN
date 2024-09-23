@@ -3,6 +3,7 @@ from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_container_widget import FileContainerWidget
 from components.widget.slider_widget import SliderWidget
 from components.button.DragDrop_Button import DragDrop_Button
+import os
 
 class Workplace(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -91,6 +92,10 @@ class Workplace(QtWidgets.QWidget):
         self.file_upload_widget.setVisible(True)
         self.show_other_components(False)
         self.collapsible_widget_input.add_widget(self.slider_widget)
+
+        # Open the collapsible widget by default
+        self.collapsible_widget_input.toggle_container(True)
+
     
     def show_other_components(self, show=True):
         """Show or hide other components based on file upload."""
@@ -164,7 +169,8 @@ class Workplace(QtWidgets.QWidget):
 
         # Re-add file containers for each uploaded file
         for file_path in uploaded_files:
-            new_file_container = FileContainerWidget(file_path, self)
+            file_name = os.path.basename(file_path)
+            new_file_container = FileContainerWidget(file_name, self)
             new_file_container.hide_download_button()
             new_file_container.hide_retry_button()
             new_file_container.remove_file_signal.connect(self.file_upload_widget.remove_file)  # Connect remove signal

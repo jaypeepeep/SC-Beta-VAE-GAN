@@ -1,4 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
+import os
+import shutil
 
 class DragDrop_Button(QtWidgets.QWidget):
     file_uploaded = QtCore.pyqtSignal(list)
@@ -95,8 +97,22 @@ class DragDrop_Button(QtWidgets.QWidget):
 
     def handle_files(self, file_paths):
         self.uploaded_files.extend(file_paths)  # Add new files to the list
+
         for file_path in file_paths:
-            print(f"Selected File: {file_path}")
+            try:
+                # Get the base name of the file (i.e., file name with extension)
+                file_name = os.path.basename(file_path)
+                
+                # Construct the full path where the file will be saved
+                destination_path = os.path.join(os.path.dirname(__file__), '../../uploads', file_name)
+                
+                # Copy the file to the save directory
+                shutil.copy(file_path, destination_path)
+                
+                print(f"File '{file_name}' uploaded and saved to: {destination_path}")
+            except Exception as e:
+                print(f"Error saving file '{file_path}': {e}")
+
         self.file_uploaded.emit(self.uploaded_files)  # Emit the signal with the list of files
 
     def remove_file(self, file_path):
