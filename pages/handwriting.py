@@ -155,6 +155,22 @@ class Handwriting(QtWidgets.QWidget):
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget.add_widget(self.slider_widget)
 
+        # File preview section
+        self.collapsible_widget = CollapsibleWidget("File Preview", self)
+        scroll_layout.addWidget(self.collapsible_widget)
+        self.collapsible_widget.toggle_container(False)
+
+        # Process Log section
+        self.collapsible_widget = CollapsibleWidget("Process Log", self)
+        scroll_layout.addWidget(self.collapsible_widget)
+        self.collapsible_widget.toggle_container(False)
+
+        # Output Section
+        self.collapsible_widget = CollapsibleWidget("Process Log", self)
+        scroll_layout.addWidget(self.collapsible_widget)
+        self.collapsible_widget.toggle_container(False)
+            
+
     def show_reset_confirmation_dialog(self):
         """Show a confirmation dialog before resetting the state."""
         message_box = QtWidgets.QMessageBox(self)
