@@ -31,8 +31,11 @@ def upload_svc():
 # Route for checking file upload status
 @app.route('/check_upload', methods=['GET'])
 def check_upload():
+    global last_uploaded_filename
     if last_uploaded_filename is not None:
-        return jsonify({"message": "File uploaded", "filename": last_uploaded_filename}), 200
+        filename = last_uploaded_filename
+        last_uploaded_filename = None
+        return jsonify({"message": "File uploaded", "filename": filename}), 200
     else:
         return jsonify({"message": "No file uploaded yet"}), 204
 
