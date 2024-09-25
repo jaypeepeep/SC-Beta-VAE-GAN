@@ -75,7 +75,7 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle("Proceed to Handwriting & Drawing")
         message_box.setText(
-            "To start handwriting and drawing, you'll be redirected to a Flask app. Do you want to proceed?"
+            "To start handwriting and drawing, you'll be redirected to an external browser. Do you want to proceed?"
         )
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)

@@ -38,7 +38,7 @@ class About(QtWidgets.QWidget):
 
         # Button to redirect to a website
         self.button = QtWidgets.QPushButton("View the Main Paper", self)
-        self.button.setStyleSheet("""
+        self.button.setStyleSheet(""" 
             QPushButton {
                 margin-left: 10px;
                 background-color: #003333;
@@ -62,5 +62,18 @@ class About(QtWidgets.QWidget):
         self.gridLayout.addWidget(self.button, 2, 0, 1, 1, QtCore.Qt.AlignCenter)
 
     def openWebsite(self):
-        url = "https://docs.google.com/document/d/1sqG_w8LSiaO8grmNdqV8ltWWL9LJOPmJaPLiJ3d9gbU/edit?usp=sharing"  # Replace with the actual URL
-        webbrowser.open(url)
+        # Create a confirmation dialog
+        message_box = QtWidgets.QMessageBox(self)
+        message_box.setWindowTitle('Confirm')
+        message_box.setText("To read the paper, you'll be redirected to an external browser to access Google Docs. Do you want to proceed?")
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        message_box.setDefaultButton(QtWidgets.QMessageBox.Yes)
+
+        # Apply stylesheet to the message box buttons
+        message_box.setStyleSheet("QPushButton { font-size: 14px; }")
+
+        reply = message_box.exec_()  # Display the dialog and wait for user response
+
+        if reply == QtWidgets.QMessageBox.Yes:
+            url = "https://docs.google.com/document/d/1sqG_w8LSiaO8grmNdqV8ltWWL9LJOPmJaPLiJ3d9gbU/edit?usp=sharing"  # Replace with the actual URL
+            webbrowser.open(url)
