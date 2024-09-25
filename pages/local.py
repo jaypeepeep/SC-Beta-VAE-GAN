@@ -145,17 +145,22 @@ class Local(QtWidgets.QWidget):
         
         self.table_widget.cellClicked.connect(self.preview_file)
 
+    def showEvent(self, event):
+        """Override the showEvent to reload files each time the widget is shown."""
+        super(Local, self).showEvent(event)
+        self.load_files(self.current_directory)  # Refresh the files whenever the tab is shown
+
     def load_files(self, directory):
         """Populate the table with files and folders from the given directory"""
         if not os.path.exists(directory):
             os.makedirs(directory)  # Create the directory if it doesn't exist
 
+        # Clear the table first
+        self.table_widget.setRowCount(0)
+
         # Get list of files and directories
         files = os.listdir(directory)
-
-        # Set number of rows in the table based on the number of files
-        self.table_widget.setRowCount(len(files))
-        self.table_widget.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.table_widget.setRowCount(len(files))  # Set the number of rows in the table
 
         for index, file_name in enumerate(files):
             # Get full path
@@ -172,6 +177,9 @@ class Local(QtWidgets.QWidget):
             # Set modification date
             date_item = QtWidgets.QTableWidgetItem(mod_date)
             self.table_widget.setItem(index, 1, date_item)
+
+        # Ensure all items are loaded properly
+        self.table_widget.viewport().update()
 
     def open_context_menu(self, position):
         """Show custom context menu on right-click"""
