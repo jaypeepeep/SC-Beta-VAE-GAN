@@ -142,6 +142,8 @@ class Local(QtWidgets.QWidget):
         # Set up the context menu policy
         self.table_widget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.table_widget.customContextMenuRequested.connect(self.open_context_menu)
+        
+        self.table_widget.cellClicked.connect(self.preview_file)
 
     def load_files(self, directory):
         """Populate the table with files and folders from the given directory"""
@@ -182,6 +184,30 @@ class Local(QtWidgets.QWidget):
 
         # Create a context menu
         context_menu = QtWidgets.QMenu(self)
+        
+        context_menu.setStyleSheet("""
+            QMenu { 
+                background-color: #033; 
+                border: none;
+                font-weight: bold;
+            }
+            QMenu::item { 
+                color: white; 
+                padding: 10px 15px; 
+            }
+            QMenu::item:selected { 
+                background-color: white;
+                color: #033;
+            }
+            QMenu::item:hover { 
+                background-color: white;
+                color: #033; 
+            }
+        """)
+        
+        # Create actions for the context menu
+        open_action = context_menu.addAction("Open")
+        open_action.triggered.connect(lambda: self.preview_file(index.row(), index.column()))  # Pass row and column
 
         # Add Rename option
         rename_action = context_menu.addAction("Rename")
@@ -193,7 +219,99 @@ class Local(QtWidgets.QWidget):
 
         # Show the context menu at the clicked position
         context_menu.exec_(self.table_widget.viewport().mapToGlobal(position))
+        
+        
+    def preview_file(self, row, column):
+        """Handle file preview when a file is clicked"""
+        # Get the file name from the clicked row
+        file_name = self.table_widget.item(row, 0).text()
+        file_path = os.path.join(self.current_directory, file_name)
 
+        # For now, let's handle basic previews:
+        # 1. If it's an image file, show it in a QLabel
+        # 2. Otherwise, print file path or open the file with the default program
+        if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+            # Preview image
+            self.show_image_preview(file_path)
+        else:
+            # Non-image files - open in default program (or print path)
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(file_path))
+    
+    def preview_file(self, row, column):
+        """Handle file preview when a file is clicked"""
+        # Get the file name from the clicked row
+        file_name = self.table_widget.item(row, 0).text()
+        file_path = os.path.join(self.current_directory, file_name)
+
+        # For now, let's handle basic previews:
+        # 1. If it's an image file, show it in a QLabel
+        # 2. Otherwise, print file path or open the file with the default program
+        if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+            # Preview image
+            self.show_image_preview(file_path)
+        else:
+            # Non-image files - open in default program (or print path)
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(file_path))
+
+
+    def show_image_preview(self, file_path):
+        """Display an image preview in a centered dialog with a close button, scaling the dialog to the image size."""
+        # Load the image
+        pixmap = QtGui.QPixmap(file_path)
+        
+        # Create a dialog for the image preview
+        preview_dialog = QtWidgets.QDialog(self)
+        preview_dialog.setWindowTitle("Image Preview")
+
+        # Calculate the scaled size of the image while maintaining the aspect ratio
+        scaled_pixmap = pixmap.scaled(600, 600, QtCore.Qt.KeepAspectRatio)
+        dialog_width = scaled_pixmap.width() + 20  # Adding some padding
+        dialog_height = scaled_pixmap.height() + 60  # Adding padding for the button
+
+        # Set the dialog size based on the scaled image
+        preview_dialog.setFixedSize(dialog_width, dialog_height)
+
+        # Create a layout for the dialog
+        layout = QtWidgets.QVBoxLayout(preview_dialog)
+
+        # Add the image label to the layout
+        image_label = QtWidgets.QLabel(preview_dialog)
+        image_label.setPixmap(scaled_pixmap)
+        layout.addWidget(image_label, 0, QtCore.Qt.AlignCenter)
+
+        # Create a close button
+        close_button = QtWidgets.QPushButton("Close", preview_dialog)
+        close_button.clicked.connect(preview_dialog.close)
+        close_button.setStyleSheet("""
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+        """)
+        close_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+
+        # Add the close button to the layout
+        layout.addWidget(close_button, 0, QtCore.Qt.AlignCenter)
+
+        # Center the dialog on the screen
+        screen = QtWidgets.QDesktopWidget().screenGeometry()
+        size = preview_dialog.geometry()
+        preview_dialog.move((screen.width() - size.width()) // 2, (screen.height() - size.height()) // 2)
+
+        # Show the dialog
+        preview_dialog.exec_()
+        
     def rename_file(self):
         """Rename the selected file"""
         if self.selected_file:
