@@ -176,6 +176,9 @@ class Workplace(QtWidgets.QWidget):
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
         self.scroll_layout.addWidget(self.collapsible_widget_result)
 
+        self.svc_preview = SVCpreview(self)
+        self.collapsible_widget_result.add_widget(self.svc_preview)
+
 
     def update_file_display(self, uploaded_files):
         """Update the display of files based on uploaded files."""
@@ -195,8 +198,7 @@ class Workplace(QtWidgets.QWidget):
         for file_path in uploaded_files:
             file_name = os.path.basename(file_path)
 
-            self.svc_preview = SVCpreview(file_name, file_name)
-            self.collapsible_widget_result.add_widget(self.svc_preview)
+
             new_file_container = FileContainerWidget(file_name, self)
             new_file_container.hide_download_button()
             new_file_container.hide_retry_button()
@@ -205,6 +207,9 @@ class Workplace(QtWidgets.QWidget):
 
             # Display the file content in the file preview widget
             self.file_preview_widget.display_file_contents(file_path)
+            
+            # Display the files content in the file results widget
+            self.svc_preview.display_file_contents(file_path, 0 )
 
         # Automatically expand the preview collapsible widget
         self.collapsible_widget_preview.toggle_container(True)  # Expand the preview collapsible

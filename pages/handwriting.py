@@ -198,7 +198,7 @@ class Handwriting(QtWidgets.QWidget):
         scroll_layout.addWidget(self.collapsible_widget_result)
 
         # Add the svc preview widget for input
-        self.svc_preview = SVCpreview(filename, filename)
+        self.svc_preview = SVCpreview(filename, 0)
         self.collapsible_widget_result.add_widget(self.svc_preview)
 
 
