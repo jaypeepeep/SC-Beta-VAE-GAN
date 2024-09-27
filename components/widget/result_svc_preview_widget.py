@@ -1,19 +1,14 @@
 from PyQt5 import QtWidgets, QtCore
 import os  # Import os for handling file paths
 
-
 class SVCpreview(QtWidgets.QWidget):
-    def __init__(self, filename1=None, filename2=None, parent=None):
+    def __init__(self, input=None, output=None, parent=None):
         super(SVCpreview, self).__init__(parent)
         self.setupUi()
-        if filename1:
-            self.display_file_contents(
-                filename1, 0
-            )  # Display content in the first text preview
-        if filename2:
-            self.display_file_contents(
-                filename2, 1
-            )  # Display content in the second text preview
+        if input:
+            self.display_file_contents(input, 0)  # Display content in the first text preview
+        if output:
+            self.display_file_contents(output, 1)  # Display content in the second text preview
 
     def setupUi(self):
         self.container_widget = QtWidgets.QWidget(self)
@@ -35,8 +30,14 @@ class SVCpreview(QtWidgets.QWidget):
 
         self.container_layout.addLayout(self.header_layout)
 
-        # Horizontal layout for two text previews
+        # Horizontal layout for text previews and their labels
         self.preview_layout = QtWidgets.QHBoxLayout()
+
+        # Vertical layout for first text preview and its label
+        self.text_preview1_layout = QtWidgets.QVBoxLayout()
+        self.label1 = QtWidgets.QLabel("Input", self.container_widget)
+        self.label1.setStyleSheet("font-family: Montserrat; font-size: 14px; font-weight: bold; text-align: center; justify-content: center;")
+        self.text_preview1_layout.addWidget(self.label1, alignment=QtCore.Qt.AlignLeft)
 
         # Text preview for the first file
         self.text_preview1 = QtWidgets.QTextEdit(self.container_widget)
@@ -45,6 +46,13 @@ class SVCpreview(QtWidgets.QWidget):
         self.text_preview1.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
         )
+        self.text_preview1_layout.addWidget(self.text_preview1)
+
+        # Vertical layout for second text preview and its label
+        self.text_preview2_layout = QtWidgets.QVBoxLayout()
+        self.label2 = QtWidgets.QLabel("Output", self.container_widget)
+        self.label2.setStyleSheet("font-family: Montserrat; font-size: 14px; font-weight: bold; text-align: center; justify-content: center;")
+        self.text_preview2_layout.addWidget(self.label2, alignment=QtCore.Qt.AlignLeft)
 
         # Text preview for the second file
         self.text_preview2 = QtWidgets.QTextEdit(self.container_widget)
@@ -53,10 +61,11 @@ class SVCpreview(QtWidgets.QWidget):
         self.text_preview2.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
         )
+        self.text_preview2_layout.addWidget(self.text_preview2)
 
-        # Add both text previews to the horizontal layout
-        self.preview_layout.addWidget(self.text_preview1)
-        self.preview_layout.addWidget(self.text_preview2)
+        # Add both vertical layouts to the horizontal layout
+        self.preview_layout.addLayout(self.text_preview1_layout)
+        self.preview_layout.addLayout(self.text_preview2_layout)
 
         # Add the horizontal layout to the container layout
         self.container_layout.addLayout(self.preview_layout)
