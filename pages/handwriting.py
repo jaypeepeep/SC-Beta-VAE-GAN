@@ -6,6 +6,9 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
 from components.widget.collapsible_widget import CollapsibleWidget
+from components.widget.file_preview_widget import FilePreviewWidget
+from components.widget.process_log_widget import ProcessLogWidget
+from components.widget.output_widget import OutputWidget
 from components.widget.file_container_widget import FileContainerWidget 
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.slider_widget import SliderWidget
@@ -171,6 +174,24 @@ class Handwriting(QtWidgets.QWidget):
         # Add the slider widget directly to the collapsible widget
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget.add_widget(self.slider_widget)
+
+        # Add the File Preview Widget
+        self.collapsible_widget_result = CollapsibleWidget("File Preview", self)
+        scroll_layout.addWidget(self.collapsible_widget_result)
+        self.file_preview_widget = FilePreviewWidget(filename, self)
+        self.collapsible_widget_result.add_widget(self.file_preview_widget)
+
+        # Add the Process Log Widget
+        self.collapsible_widget_result = CollapsibleWidget("Process Log", self)
+        scroll_layout.addWidget(self.collapsible_widget_result)
+        self.process_log_widget = ProcessLogWidget(self)
+        self.collapsible_widget_result.add_widget(self.process_log_widget)
+
+        # Add the Output Widget
+        self.collapsible_widget_result = CollapsibleWidget("Output", self)
+        scroll_layout.addWidget(self.collapsible_widget_result)
+        self.output_widget = OutputWidget(self)
+        self.collapsible_widget_result.add_widget(self.output_widget)
 
         # Call the collapsible widget component for result
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
