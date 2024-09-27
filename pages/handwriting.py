@@ -1,6 +1,9 @@
 import subprocess
-import webbrowser
-from PyQt5 import QtWidgets, QtCore, QtGui
+import requests
+import os
+import sys
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
 from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_container_widget import FileContainerWidget 
@@ -76,29 +79,42 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle("Proceed to Handwriting & Drawing")
         message_box.setText(
-            "To start handwriting and drawing, you'll be redirected to an external browser. Do you want to proceed?"
+            "To start handwriting and drawing, you'll be redirected to an internal browser. Do you want to proceed?"
         )
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
 
-         # Apply stylesheet to customize button font size
+        # Apply stylesheet to customize button font size
         message_box.setStyleSheet("QPushButton { font-size: 14px; }")
     
         response = message_box.exec_()
-        
 
         if response == QtWidgets.QMessageBox.Ok:
             self.run_flask_app()
 
     def run_flask_app(self):
-        """Run the Flask app located in components/canvas/app.py and open the URL in the browser."""
+        """Run the Flask app located in components/canvas/app.py and open it in the embedded browser."""
         flask_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../components/canvas/app.py'))
         
         # Run the Flask app as a subprocess
         self.flask_process = subprocess.Popen(['python', flask_app_path])
 
-        # Open the URL in the default web browser
-        webbrowser.open("http://127.0.0.1:5000")
+        # Display the embedded browser after a short delay to ensure Flask is running
+        QtCore.QTimer.singleShot(5000, self.show_embedded_browser)
+
+    def show_embedded_browser(self):
+        """Show the Flask app inside the Handwriting page using QWebEngineView."""
+        # Clear the current layout and show the embedded browser
+        self.clear_layout()
+
+        # Create a QWebEngineView and load the Flask app's URL
+        self.webview = QWebEngineView(self)
+        self.webview.setUrl(QtCore.QUrl("http://127.0.0.1:5000"))
+        # Add webview to the layout
+        self.layout.addWidget(self.webview)
+
+        # Ensure the webview resizes responsively
+        self.webview.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         # Poll Flask to check if drawing is done and file is uploaded
         QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Adjust the delay if necessary
@@ -195,6 +211,6 @@ class Handwriting(QtWidgets.QWidget):
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = Handwriting()
-    window.resize(400, 400)  
+    window.resize(800, 600)  # Adjust window size for the embedded browser
     window.show()
     sys.exit(app.exec_())
