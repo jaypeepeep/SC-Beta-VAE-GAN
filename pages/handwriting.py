@@ -6,6 +6,7 @@ from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_container_widget import FileContainerWidget 
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.slider_widget import SliderWidget
+from components.widget.result_svc_preview_widget import SVCpreview
 import os
 import sys
 import requests
@@ -154,6 +155,16 @@ class Handwriting(QtWidgets.QWidget):
         # Add the slider widget directly to the collapsible widget
         self.slider_widget = SliderWidget(0, 10, self)
         self.collapsible_widget.add_widget(self.slider_widget)
+
+        # Call the collapsible widget component for result
+        self.collapsible_widget_result = CollapsibleWidget("Result", self)
+        scroll_layout.addWidget(self.collapsible_widget_result)
+        self.collapsible_widget.toggle_container(True)
+
+        # Add the svc preview widget for input
+        self.svc_preview = SVCpreview(filename, filename)
+        self.collapsible_widget_result.add_widget(self.svc_preview)
+
 
     def show_reset_confirmation_dialog(self):
         """Show a confirmation dialog before resetting the state."""
