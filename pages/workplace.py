@@ -5,9 +5,11 @@ from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_container_widget import FileContainerWidget
 from components.widget.slider_widget import SliderWidget
 from components.button.DragDrop_Button import DragDrop_Button
+from components.widget.result_svc_preview_widget import SVCpreview
 import os
 
 class Workplace(QtWidgets.QWidget):
+
     def __init__(self, parent=None):
         super(Workplace, self).__init__(parent)
         self.setupUi()
@@ -40,6 +42,7 @@ class Workplace(QtWidgets.QWidget):
         self.setup_preview_collapsible()
         self.setup_process_log_collapsible()
         self.setup_output_collapsible()
+        self.setup_result_collapsible()
 
         # Generate Synthetic Data button
         button_layout = QtWidgets.QVBoxLayout()
@@ -391,6 +394,14 @@ class Workplace(QtWidgets.QWidget):
         # Outer container added to the collapsible widget
         self.collapsible_widget_output.add_widget(images_outer_container)
 
+    def setup_result_collapsible(self):
+        """Set up the 'Result' collapsible widget and its contents."""
+
+        # Call collapsible widget for Result
+        self.collapsible_widget_result = CollapsibleWidget("Result", self)
+        self.scroll_layout.addWidget(self.collapsible_widget_result)
+
+
     def update_file_display(self, uploaded_files):
         """Update the display of files based on uploaded files."""
         has_files = bool(uploaded_files)
@@ -408,6 +419,8 @@ class Workplace(QtWidgets.QWidget):
         # Re-add file containers for each uploaded file
         for file_path in uploaded_files:
             file_name = os.path.basename(file_path)
+            self.svc_preview = SVCpreview(file_name, file_name)
+            self.collapsible_widget_result.add_widget(self.svc_preview)
             new_file_container = FileContainerWidget(file_name, self)
             new_file_container.hide_download_button()
             new_file_container.hide_retry_button()

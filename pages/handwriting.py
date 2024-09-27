@@ -175,7 +175,6 @@ class Handwriting(QtWidgets.QWidget):
         # Call the collapsible widget component for result
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
         scroll_layout.addWidget(self.collapsible_widget_result)
-        self.collapsible_widget.toggle_container(True)
 
         # Add the svc preview widget for input
         self.svc_preview = SVCpreview(filename, filename)
