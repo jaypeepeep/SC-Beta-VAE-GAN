@@ -101,92 +101,10 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
         return os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../icon/{image_name}'))
 
     def remove_file(self):
-        # Define the path of the file to be removed (in the 'uploads' folder)
-        file_to_remove = os.path.join(os.path.dirname(__file__), '../../uploads', self.file_name)
-
-        try:
-            # Create a custom styled QMessageBox
-            msg_box = QtWidgets.QMessageBox(self)
-
-            # Check if the file exists before attempting to delete it
-            if os.path.exists(file_to_remove):
-                os.remove(file_to_remove)  # Remove the file from the system
-                msg_box.setIcon(QtWidgets.QMessageBox.Information)
-                msg_box.setWindowTitle("Success")
-                msg_box.setText("File removed successfully!")
-            else:
-                msg_box.setIcon(QtWidgets.QMessageBox.Warning)
-                msg_box.setWindowTitle("Warning")
-                msg_box.setText("File not found on the system.")
-
-            # Apply custom style to the message box and its buttons
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    font-size: 12px;
-                    font-weight: bold;
-                    padding: 20px;
-                    font-family: 'Montserrat', sans-serif;
-                }
-                QPushButton {
-                    margin-left: 10px;
-                    background-color: #003333;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    font-size: 11px;
-                    font-weight: bold;
-                    font-family: 'Montserrat', sans-serif;
-                    line-height: 20px;
-                }
-                QPushButton:hover {
-                    background-color: #005555;
-                }
-            """)
-            
-            # Show the message box
-            msg_box.exec_()
-            
-        except Exception as e:
-            # Handle any error during file removal
-            error_msg_box = QtWidgets.QMessageBox(self)
-            error_msg_box.setIcon(QtWidgets.QMessageBox.Critical)
-            error_msg_box.setWindowTitle("Error")
-            error_msg_box.setText(f"Failed to remove file:\n{e}")
-            
-            # Apply the same style to the error message box
-            error_msg_box.setStyleSheet("""
-                QMessageBox {
-                    font-size: 12px;
-                    font-weight: bold;
-                    padding: 20px;
-                    font-family: 'Montserrat', sans-serif;
-                }
-                QPushButton {
-                    margin-left: 10px;
-                    background-color: #003333;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    font-size: 11px;
-                    font-weight: bold;
-                    font-family: 'Montserrat', sans-serif;
-                    line-height: 20px;
-                }
-                QPushButton:hover {
-                    background-color: #005555;
-                }
-            """)
-            
-            # Show the error message box
-            error_msg_box.exec_()
-
-        # Remove the widget from the UI and emit the signal
+        # This method removes the widget from its parent
         self.setParent(None)
         self.remove_file_signal.emit(self.file_path)  # Emit signal when removed
-        self.deleteLater()
-
+        self.deleteLater() 
 
     def download_file(self):
         # Create a QFileDialog to prompt the user for a save location

@@ -9,7 +9,6 @@ from components.widget.output_widget import OutputWidget
 from components.widget.slider_widget import SliderWidget
 from components.button.DragDrop_Button import DragDrop_Button
 from components.widget.result_preview_widget import SVCpreview
-from functools import partial
 import os
 import time
 
@@ -17,7 +16,6 @@ class Workplace(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super(Workplace, self).__init__(parent)
-        self.uploaded_files = []  # To keep track of uploaded files
         self.setupUi()
 
     def setupUi(self):
@@ -200,35 +198,27 @@ class Workplace(QtWidgets.QWidget):
             if widget is not None:
                 widget.deleteLater()
 
-        # Re-add file containers for each uploaded file
+        # Re-add file containers for each uploaded file and update preview
         for file_path in uploaded_files:
             file_name = os.path.basename(file_path)
 
-            # Create a new file container for each file
+
             new_file_container = FileContainerWidget(file_name, self)
             new_file_container.hide_download_button()
             new_file_container.hide_retry_button()
-
-            # Connect the remove file signal to the remove_file method in Workplace
-            new_file_container.remove_file_signal.connect(partial(self.remove_file, file_path))
-
+            new_file_container.remove_file_signal.connect(self.file_upload_widget.remove_file)  # Connect remove signal
             self.file_container_layout.addWidget(new_file_container)
 
-            # Update the preview and other widgets
+            # Display the file content in the file preview widget
             self.file_preview_widget.display_file_contents(file_path)
-            self.svc_preview.display_file_contents(file_path, 0)
+            
+            # Display the files content in the file results widget
+            self.svc_preview.display_file_contents(file_path, 0 )
 
         # Automatically expand the preview collapsible widget
-        self.collapsible_widget_preview.toggle_container(True)
-        
-    def remove_file(self, file_path):
-        """Remove the file both from the list and the UI when the remove button is clicked."""
-        # Remove the file from the internal list
-        if file_path in self.uploaded_files:
-            self.uploaded_files.remove(file_path)
+        self.collapsible_widget_preview.toggle_container(True)  # Expand the preview collapsible
 
-        # Update the UI display
-        self.update_file_display(self.uploaded_files)
+
     
     def add_more_files(self):
         self.file_upload_widget.open_file_dialog()
