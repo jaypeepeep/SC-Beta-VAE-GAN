@@ -11,6 +11,7 @@ from components.button.DragDrop_Button import DragDrop_Button
 from components.widget.result_preview_widget import SVCpreview
 from functools import partial
 import os
+import time
 
 class Workplace(QtWidgets.QWidget):
 
@@ -81,8 +82,11 @@ class Workplace(QtWidgets.QWidget):
         self.gridLayout.addLayout(button_layout, 1, 0)
         
     def on_generate_data(self):
-        # function when the button is clicked, right now, let's just put a print statement
         print("Synthetic data generated.")
+        
+        QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
+        QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
+        QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
     
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
