@@ -31,7 +31,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
         # Text preview for the uploaded file
         self.text_preview = QtWidgets.QTextEdit(self.container_widget)
         self.text_preview.setReadOnly(True)
-        self.text_preview.setFixedHeight(150)
+        self.text_preview.setFixedHeight(300)
         self.text_preview.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
         )

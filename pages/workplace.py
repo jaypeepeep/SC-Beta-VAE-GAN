@@ -8,7 +8,7 @@ from components.widget.process_log_widget import ProcessLogWidget
 from components.widget.output_widget import OutputWidget
 from components.widget.slider_widget import SliderWidget
 from components.button.DragDrop_Button import DragDrop_Button
-from components.widget.result_svc_preview_widget import SVCpreview
+from components.widget.result_preview_widget import SVCpreview
 import os
 
 class Workplace(QtWidgets.QWidget):
