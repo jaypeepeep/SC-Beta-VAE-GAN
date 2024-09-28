@@ -1,4 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect
+from PyQt5.QtGui import QColor
 import os
 import shutil
 
@@ -16,8 +18,15 @@ class FileContainerWidget(QtWidgets.QWidget):
         
         # Create a container widget for the layout
         self.container = QtWidgets.QWidget(self)
-        self.container.setStyleSheet("background: #DEDEDE;")
+        self.container.setStyleSheet("background: #DEDEDE; border-radius: 0;")
         self.container.setContentsMargins(0, 0, 0, 0)
+
+        shadow_effect = QGraphicsDropShadowEffect()
+        shadow_effect.setBlurRadius(8)
+        shadow_effect.setColor(QColor(0, 0, 0, 160))
+        shadow_effect.setOffset(2)
+        self.container.setGraphicsEffect(shadow_effect)
+        
         
         # Set layout for the container
         self.layout = QtWidgets.QHBoxLayout(self.container)
@@ -26,7 +35,7 @@ class FileContainerWidget(QtWidgets.QWidget):
 
         # Label to display the file name
         self.file_label = QtWidgets.QLabel(self.file_name, self.container)
-        self.file_label.setStyleSheet(" margin-left: 10px; background: #DEDEDE; padding: 5px; color: black; color: #000; font-family: Montserrat; font-size: 14px; font-style: normal; font-weight: 600; line-height: normal;") 
+        self.file_label.setStyleSheet(" margin-left: 10px; background: #DEDEDE; padding: 5px; color: black; color: #000; font-family: Montserrat; font-size: 14px;") 
         self.layout.addWidget(self.file_label)
         
         # Spacer to push buttons to the right

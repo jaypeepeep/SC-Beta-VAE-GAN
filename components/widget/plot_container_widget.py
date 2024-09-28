@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-
 class PlotContainerWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(PlotContainerWidget, self).__init__(parent)
@@ -21,6 +20,9 @@ class PlotContainerWidget(QtWidgets.QWidget):
 
         # Set the styling for the canvas
         self.canvas.setStyleSheet("border: 5px solid #000; background-color: #FFF;")
+
+        # Set a minimum height for the canvas
+        self.canvas.setMinimumHeight(600)  # Adjust the height as needed
 
         layout.addWidget(self.canvas)
 
