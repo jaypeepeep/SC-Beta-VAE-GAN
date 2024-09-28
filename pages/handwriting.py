@@ -11,7 +11,7 @@ from components.widget.process_log_widget import ProcessLogWidget
 from components.widget.output_widget import OutputWidget
 from components.widget.file_container_widget import FileContainerWidget 
 from components.widget.plot_container_widget import PlotContainerWidget 
-from components.widget.slider_widget import SliderWidget
+from components.widget.spin_box_widget import SpinBoxWidget
 from components.widget.result_preview_widget import SVCpreview
 import os
 import sys
@@ -83,7 +83,7 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle("Proceed to Handwriting & Drawing")
         message_box.setText(
-            "To start handwriting and drawing, you'll be redirected to an internal browser. Do you want to proceed?"
+            "Do you want to start drawing and handwriting?"
         )
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
@@ -173,8 +173,8 @@ class Handwriting(QtWidgets.QWidget):
         self.file_container.retry_button.clicked.connect(self.show_reset_confirmation_dialog)
         
         # Add the slider widget directly to the collapsible widget
-        self.slider_widget = SliderWidget(0, 10, self)
-        self.collapsible_widget.add_widget(self.slider_widget)
+        self.spin_box_widget =  SpinBoxWidget(0)
+        self.collapsible_widget.add_widget(self.spin_box_widget)
 
         # Add the File Preview Widget
         self.collapsible_widget_file_preview = CollapsibleWidget("File Preview", self)
