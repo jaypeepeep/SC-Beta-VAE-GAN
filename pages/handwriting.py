@@ -12,7 +12,7 @@ from components.widget.output_widget import OutputWidget
 from components.widget.file_container_widget import FileContainerWidget 
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.slider_widget import SliderWidget
-from components.widget.result_svc_preview_widget import SVCpreview
+from components.widget.result_preview_widget import SVCpreview
 import os
 import sys
 import requests

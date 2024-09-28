@@ -30,7 +30,7 @@ class ProcessLogWidget(QtWidgets.QWidget):
             "Epoch 9/100: 100% ▉▉▉▉▉▉▉▉▉▉ 1329/1329 [00:20<00:00, 64.93batch/s, loss=0.000354]"
         )
         self.text_preview_log.setReadOnly(True)
-        self.text_preview_log.setFixedHeight(150)
+        self.text_preview_log.setFixedHeight(300)
         self.text_preview_log.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
         )
