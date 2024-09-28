@@ -6,7 +6,7 @@ from components.widget.file_container_widget import FileContainerWidget
 from components.widget.file_preview_widget import FilePreviewWidget
 from components.widget.process_log_widget import ProcessLogWidget
 from components.widget.output_widget import OutputWidget
-from components.widget.slider_widget import SliderWidget
+from components.widget.spin_box_widget import SpinBoxWidget
 from components.button.DragDrop_Button import DragDrop_Button
 from components.widget.result_preview_widget import SVCpreview
 import os
@@ -134,7 +134,7 @@ class Workplace(QtWidgets.QWidget):
         self.file_container.hide_download_button()
         self.file_container.hide_retry_button()
         # Slider widget in Input collapsible
-        self.slider_widget = SliderWidget(0, 10, self)
+        self.slider_widget = SpinBoxWidget(0)
         self.collapsible_widget_input.add_widget(self.slider_widget)
 
         # Initially hide other components

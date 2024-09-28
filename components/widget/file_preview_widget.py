@@ -15,16 +15,22 @@ class FilePreviewWidget(QtWidgets.QWidget):
         # Horizontal layout to hold the file label and button on the same line
         self.header_layout = QtWidgets.QHBoxLayout()
 
-        # Select file button (temporarily just for layout)
-        self.select_file_button = QtWidgets.QPushButton(
-            "Select File", self.container_widget
-        )
+        # Horizontal layout for first filename and select file button
+        self.filename_button_layout = QtWidgets.QHBoxLayout()
+        self.filename = QtWidgets.QLabel("Filename", self.container_widget)
+        self.filename.setStyleSheet("font-family: Montserrat; font-size: 14px; font-weight: bold;")
+        self.filename_button_layout.addWidget(self.filename, alignment=QtCore.Qt.AlignLeft)
+
+        # Select file button
+        self.select_file_button = QtWidgets.QPushButton("Select Files", self.container_widget)
         self.select_file_button.setStyleSheet(
             "background-color: #003333; color: white; font-family: Montserrat; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 5px;"
         )
-        self.header_layout.addWidget(
-            self.select_file_button, alignment=QtCore.Qt.AlignRight
-        )
+        self.filename_button_layout.addWidget(self.select_file_button, alignment=QtCore.Qt.AlignRight)
+
+        # Add the filename and button layout to the first text preview layout
+        self.header_layout.addLayout(self.filename_button_layout)
+
 
         self.container_layout.addLayout(self.header_layout)
 
@@ -55,6 +61,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
             # Read the file and set its content to the text preview
             with open(file_path, "r") as file:
                 content = file.read()
+            self.filename.setText(os.path.basename(filename))
             self.text_preview.setPlainText(content)
         except Exception as e:
             self.text_preview.setPlainText(f"Error reading file: {str(e)}")
