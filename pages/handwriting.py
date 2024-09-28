@@ -2,7 +2,7 @@ import subprocess
 import requests
 import os
 import sys
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
 from components.widget.collapsible_widget import CollapsibleWidget
@@ -16,6 +16,7 @@ from components.widget.result_preview_widget import SVCpreview
 import os
 import sys
 import requests
+import time
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -176,22 +177,22 @@ class Handwriting(QtWidgets.QWidget):
         self.collapsible_widget.add_widget(self.slider_widget)
 
         # Add the File Preview Widget
-        self.collapsible_widget_result = CollapsibleWidget("File Preview", self)
-        scroll_layout.addWidget(self.collapsible_widget_result)
+        self.collapsible_widget_file_preview = CollapsibleWidget("File Preview", self)
+        scroll_layout.addWidget(self.collapsible_widget_file_preview)
         self.file_preview_widget = FilePreviewWidget(filename, self)
-        self.collapsible_widget_result.add_widget(self.file_preview_widget)
+        self.collapsible_widget_file_preview.add_widget(self.file_preview_widget)
 
         # Add the Process Log Widget
-        self.collapsible_widget_result = CollapsibleWidget("Process Log", self)
-        scroll_layout.addWidget(self.collapsible_widget_result)
+        self.collapsible_widget_process_log = CollapsibleWidget("Process Log", self)
+        scroll_layout.addWidget(self.collapsible_widget_process_log)
         self.process_log_widget = ProcessLogWidget(self)
-        self.collapsible_widget_result.add_widget(self.process_log_widget)
+        self.collapsible_widget_process_log.add_widget(self.process_log_widget)
 
         # Add the Output Widget
-        self.collapsible_widget_result = CollapsibleWidget("Output", self)
-        scroll_layout.addWidget(self.collapsible_widget_result)
+        self.collapsible_widget_output = CollapsibleWidget("Output", self)
+        scroll_layout.addWidget(self.collapsible_widget_output)
         self.output_widget = OutputWidget(self)
-        self.collapsible_widget_result.add_widget(self.output_widget)
+        self.collapsible_widget_output.add_widget(self.output_widget)
 
         # Call the collapsible widget component for result
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
@@ -200,6 +201,47 @@ class Handwriting(QtWidgets.QWidget):
         # Add the svc preview widget for input
         self.svc_preview = SVCpreview(filename, 0)
         self.collapsible_widget_result.add_widget(self.svc_preview)
+
+        # Generate Synthetic Data button
+        button_layout = QtWidgets.QVBoxLayout()
+        self.generate_data_button = QtWidgets.QPushButton("Generate Synthetic Data", self)
+        self.generate_data_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 10px 20px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+            """
+        )
+        self.generate_data_button.setFixedSize(250, 50)
+        self.generate_data_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor)) # put the button at the bottom
+        self.generate_data_button.clicked.connect(self.on_generate_data)
+
+        button_layout.addWidget(self.generate_data_button, alignment=QtCore.Qt.AlignCenter)
+
+        spacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        button_layout.addItem(spacer)
+
+        # Adding the button to the main layout
+        scroll_layout.addLayout(button_layout)
+
+        # Automatically open file preview widget after 2 secs
+        QtCore.QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
+        
+    def on_generate_data(self):
+        print("Synthetic data generated.")
+        
+        QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
+        QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
+        QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
 
 
     def show_reset_confirmation_dialog(self):
