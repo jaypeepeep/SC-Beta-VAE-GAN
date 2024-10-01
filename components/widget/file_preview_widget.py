@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 
 class FilePreviewWidget(QtWidgets.QWidget):
@@ -24,8 +24,22 @@ class FilePreviewWidget(QtWidgets.QWidget):
         # Select file button
         self.select_file_button = QtWidgets.QPushButton("Select Files", self.container_widget)
         self.select_file_button.setStyleSheet(
-            "background-color: #003333; color: white; font-family: Montserrat; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 5px;"
+            """
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 8px 16px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+            """
         )
+        self.select_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.filename_button_layout.addWidget(self.select_file_button, alignment=QtCore.Qt.AlignRight)
 
         # Add the filename and button layout to the first text preview layout
