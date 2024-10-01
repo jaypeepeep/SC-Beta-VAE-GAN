@@ -1,4 +1,5 @@
 import os
+import shutil
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 
@@ -321,41 +322,67 @@ class Local(QtWidgets.QWidget):
         preview_dialog.exec_()
         
     def rename_file(self):
-        """Rename the selected file"""
+        """Rename the selected file or folder."""
         if self.selected_file:
             # Get the full path of the selected file
             old_path = os.path.join(self.current_directory, self.selected_file)
 
             # Open a custom-styled input dialog to get the new name
             new_name, ok = self.create_custom_input_dialog("Rename File/Folder", "Enter new name:", self.selected_file)
+            
             if ok and new_name:
                 new_path = os.path.join(self.current_directory, new_name)
+
+                # Check if the new path already exists
+                if os.path.exists(new_path):
+                    QtWidgets.QMessageBox.warning(self, "Rename Failed", "A file or folder with this name already exists.")
+                    return
+                
                 try:
                     os.rename(old_path, new_path)
+                    self.selected_file = None  # Clear selection after renaming
                     self.load_files(self.current_directory)  # Reload the files
                 except Exception as e:
                     QtWidgets.QMessageBox.warning(self, "Rename Failed", f"Failed to rename file: {str(e)}")
 
     def delete_file(self):
-        """Delete the selected file"""
+        """Delete the selected file or folder."""
         if self.selected_file:
-            # Get the full path of the selected file
-            file_path = os.path.join(self.current_directory, self.selected_file)
+            # Get the full path of the selected file or folder
+            file_path = os.path.normpath(os.path.join(self.current_directory, self.selected_file))
+            print(f"Attempting to delete: {file_path}")  # Debugging output
 
+            # Check if the file exists before attempting to delete
+            if not os.path.exists(file_path):
+                QtWidgets.QMessageBox.warning(self, "Delete Failed", f"The file or folder '{self.selected_file}' does not exist.")
+                return
+            
             # Ask for confirmation before deleting
-            reply = self.create_custom_message_box("Delete File/Folder",
-                                                   f"Are you sure you want to delete '{self.selected_file}'?",
-                                                   "Delete", "Cancel")
+            reply = self.create_custom_message_box(
+                "Delete File/Folder",
+                f"Are you sure you want to delete '{self.selected_file}'?",
+                "Delete", "Cancel"
+            )
 
             if reply == QtWidgets.QMessageBox.Yes:
                 try:
                     if os.path.isdir(file_path):
-                        os.rmdir(file_path)  # For directories, make sure they're empty
+                        # Check if the directory is empty
+                        if not os.listdir(file_path):  # Check if the directory is empty
+                            os.rmdir(file_path)  # For empty directories
+                        else:
+                            # Attempt to remove the directory and its contents
+                            shutil.rmtree(file_path)  # This will remove a non-empty directory
+                            print(f"Deleted directory: {file_path}")
                     else:
-                        os.remove(file_path)  # Delete file
+                        os.remove(file_path)  # Delete the file
+                        print(f"Deleted file: {file_path}")
+                    
+                    self.selected_file = None  # Clear selection after deletion
                     self.load_files(self.current_directory)  # Reload the files
                 except Exception as e:
-                    self.create_custom_message_box("Delete Failed", f"Failed to delete file: {str(e)}", "Ok")
+                    QtWidgets.QMessageBox.warning(self, "Delete Failed", f"Failed to delete file: {str(e)}")
+                    print(f"Error: {str(e)}")  # Debugging output
 
     def create_custom_message_box(self, title, message, yes_button_text="Yes", no_button_text="No"):
         """Create a QMessageBox with custom-styled buttons"""
