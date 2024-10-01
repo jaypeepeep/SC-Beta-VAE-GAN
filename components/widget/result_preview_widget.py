@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 
 class SVCpreview(QtWidgets.QWidget):
@@ -32,8 +32,22 @@ class SVCpreview(QtWidgets.QWidget):
         # Select file button
         self.select_file_button1 = QtWidgets.QPushButton("Select Files", self.container_widget)
         self.select_file_button1.setStyleSheet(
-            "background-color: #003333; color: white; font-family: Montserrat; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 5px;"
+            """
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 8px 16px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+            """
         )
+        self.select_file_button1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.filename_button_layout1.addWidget(self.select_file_button1, alignment=QtCore.Qt.AlignRight)
 
         # Add the filename and button layout to the first text preview layout
@@ -69,8 +83,22 @@ class SVCpreview(QtWidgets.QWidget):
         # Select file button
         self.select_file_button2 = QtWidgets.QPushButton("Select Files", self.container_widget)
         self.select_file_button2.setStyleSheet(
-            "background-color: #003333; color: white; font-family: Montserrat; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 5px;"
+            """
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 8px 16px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+            """
         )
+        self.select_file_button2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.filename_button_layout2.addWidget(self.select_file_button2, alignment=QtCore.Qt.AlignRight)
 
         # Add the filename and button layout to the second text preview layout
