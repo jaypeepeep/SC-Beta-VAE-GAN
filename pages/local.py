@@ -346,56 +346,20 @@ class Local(QtWidgets.QWidget):
                     QtWidgets.QMessageBox.warning(self, "Rename Failed", f"Failed to rename file: {str(e)}")
 
     def delete_file(self):
-        """Delete the selected file or folder."""
+        """Delete a selected file"""
         if self.selected_file:
-            # Get the full path of the selected file or folder
-            file_path = os.path.normpath(os.path.join(self.current_directory, self.selected_file))
-            print(f"Attempting to delete: {file_path}")  # Debugging output
+            if self.create_custom_message_box("Delete File", "Are you sure you want to delete this file?"):
+                file_path = os.path.join(self.current_directory, self.selected_file)
+                os.remove(file_path)  # Delete the file
+                self.load_files(self.current_directory)  # Reload files
 
-            # Check if the file exists before attempting to delete
-            if not os.path.exists(file_path):
-                QtWidgets.QMessageBox.warning(self, "Delete Failed", f"The file or folder '{self.selected_file}' does not exist.")
-                return
-            
-            # Ask for confirmation before deleting
-            reply = self.create_custom_message_box(
-                "Delete File/Folder",
-                f"Are you sure you want to delete '{self.selected_file}'?",
-                "Delete", "Cancel"
-            )
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                try:
-                    if os.path.isdir(file_path):
-                        # Check if the directory is empty
-                        if not os.listdir(file_path):  # Check if the directory is empty
-                            os.rmdir(file_path)  # For empty directories
-                        else:
-                            # Attempt to remove the directory and its contents
-                            shutil.rmtree(file_path)  # This will remove a non-empty directory
-                            print(f"Deleted directory: {file_path}")
-                    else:
-                        os.remove(file_path)  # Delete the file
-                        print(f"Deleted file: {file_path}")
-                    
-                    self.selected_file = None  # Clear selection after deletion
-                    self.load_files(self.current_directory)  # Reload the files
-                except Exception as e:
-                    QtWidgets.QMessageBox.warning(self, "Delete Failed", f"Failed to delete file: {str(e)}")
-                    print(f"Error: {str(e)}")  # Debugging output
-
-    def create_custom_message_box(self, title, message, yes_button_text="Yes", no_button_text="No"):
-        """Create a QMessageBox with custom-styled buttons"""
-        msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setWindowTitle(title)
-        msg_box.setText(message)
-
-        # Customize QMessageBox buttons
-        yes_button = msg_box.addButton(yes_button_text, QtWidgets.QMessageBox.YesRole)
-        no_button = msg_box.addButton(no_button_text, QtWidgets.QMessageBox.NoRole)
-
-        # Apply custom styles to buttons and message box
-        msg_box.setStyleSheet("""
+    def create_custom_message_box(self, title, message):
+        """Create a custom message box"""
+        message_box = QtWidgets.QMessageBox()
+        message_box.setWindowTitle(title)
+        message_box.setText(message)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        message_box.setStyleSheet("""
             QMessageBox {
                 font-size: 12px;
                 font-weight: bold;
@@ -418,9 +382,9 @@ class Local(QtWidgets.QWidget):
                 background-color: #005555;
             }
         """)
-        msg_box.exec_()
 
-        return msg_box.clickedButton()
+        return message_box.exec_() == QtWidgets.QMessageBox.Yes
+    
 
     def create_custom_input_dialog(self, title, label, text=""):
         """Create a QInputDialog with custom styling"""
