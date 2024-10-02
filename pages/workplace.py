@@ -67,7 +67,6 @@ class Workplace(QtWidgets.QWidget):
             }
             """
         )
-        self.generate_data_button.setFixedSize(250, 50)
         self.generate_data_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor)) # put the button at the bottom
         self.generate_data_button.clicked.connect(self.on_generate_data)
 

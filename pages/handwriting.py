@@ -65,7 +65,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add text
         top_text = QtWidgets.QLabel("Draw and Handwrite", self)
         top_text.setAlignment(QtCore.Qt.AlignCenter)
-        top_text.setStyleSheet("font-size: 30px; font-weight: 300; color: #033;")
+        top_text.setStyleSheet("font-size: 30px; font-weight: bold; color: #033; ")
         top_layout.addWidget(top_text)
 
         # Create and add the handwriting button
