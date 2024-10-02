@@ -16,6 +16,7 @@ class Workplace(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super(Workplace, self).__init__(parent)
+        self.uploaded_files = []
         self.setupUi()
 
     def setupUi(self):
@@ -127,11 +128,6 @@ class Workplace(QtWidgets.QWidget):
         self.file_container_layout = QtWidgets.QVBoxLayout(self.file_container_widget)
         self.collapsible_widget_input.add_widget(self.file_container_widget)
 
-        # File container widget for Input collapsible
-        self.file_container = FileContainerWidget("example_file.txt", self)
-        self.file_container_layout.addWidget(self.file_container)
-        self.file_container.hide_download_button()
-        self.file_container.hide_retry_button()
         # Slider widget in Input collapsible
         self.slider_widget = SpinBoxWidget(0)
         self.collapsible_widget_input.add_widget(self.slider_widget)
@@ -181,44 +177,77 @@ class Workplace(QtWidgets.QWidget):
 
         self.svc_preview = SVCpreview(self)
         self.collapsible_widget_result.add_widget(self.svc_preview)
+        
+    def handle_file_removal(self, file_path, file_name):
+        """Handle the file removal logic when a file is removed."""
+        if file_path in self.uploaded_files:
+            # Remove the file from the uploaded_files list
+            self.uploaded_files.remove(file_path)  
+            print(f"Removed file: {file_name}, remaining files: {self.uploaded_files}")  # Debug statement
 
+            # Update the UI to reflect the removal
+            for i in reversed(range(self.file_container_layout.count())):
+                widget = self.file_container_layout.itemAt(i).widget()
+                if isinstance(widget, FileContainerWidget) and widget.file_name == file_name:
+                    widget.remove_file_signal.disconnect()  # Disconnect signal to avoid errors
+                    self.file_container_layout.removeWidget(widget)  # Remove the widget from layout
+                    widget.deleteLater()  # Schedule the widget for deletion
+                    widget.setParent(None)  # Detach widget from its parent
+                    break  # Exit after removing the specific file container
 
-    def update_file_display(self, uploaded_files):
-        """Update the display of files based on uploaded files."""
-        has_files = bool(uploaded_files)
+            # If no more files, show the file upload widget again
+            if not self.uploaded_files:
+                self.show_other_components(False)
+                self.file_upload_widget.setVisible(True)
+
+            # Update the file container layout to reflect the changes
+            self.file_container_layout.update()
+
+    def update_file_display(self, new_uploaded_files):
+        """Update the display of files based on newly uploaded files."""
+        # Append new files to the existing list, avoiding duplicates
+        for file_path in new_uploaded_files:
+            if file_path not in self.uploaded_files:
+                self.uploaded_files.append(file_path)
+        
+        print("Uploaded files:", self.uploaded_files)  # Debugging output
+        
+        has_files = bool(self.uploaded_files)
         self.show_other_components(has_files)
 
-        # Make the file upload widget visible if no files are uploaded
+        # Hide the file upload widget if files are uploaded
         self.file_upload_widget.setVisible(not has_files)
 
         # Clear existing widgets in the file container layout
-        for i in reversed(range(self.file_container_layout.count())): 
+        for i in reversed(range(self.file_container_layout.count())):
             widget = self.file_container_layout.itemAt(i).widget()
             if widget is not None:
-                widget.deleteLater()
+                widget.remove_file_signal.disconnect()  # Disconnect signal to avoid errors
+                widget.deleteLater()  # Schedule widget deletion
+                self.file_container_layout.removeWidget(widget)
 
         # Re-add file containers for each uploaded file and update preview
-        for file_path in uploaded_files:
+        for file_path in self.uploaded_files:
             file_name = os.path.basename(file_path)
 
+            # Verify the file still exists before displaying it
+            if os.path.exists(file_path):
+                new_file_container = FileContainerWidget(file_path, self)
+                new_file_container.hide_download_button()
+                new_file_container.hide_retry_button()
+                new_file_container.remove_file_signal.connect(self.handle_file_removal)  # Connect remove signal
+                self.file_container_layout.addWidget(new_file_container)
 
-            new_file_container = FileContainerWidget(file_name, self)
-            new_file_container.hide_download_button()
-            new_file_container.hide_retry_button()
-            new_file_container.remove_file_signal.connect(self.file_upload_widget.remove_file)  # Connect remove signal
-            self.file_container_layout.addWidget(new_file_container)
+                # Display the file content in the file preview widget
+                self.file_preview_widget.display_file_contents(file_path)
 
-            # Display the file content in the file preview widget
-            self.file_preview_widget.display_file_contents(file_path)
-            
-            # Display the files content in the file results widget
-            self.svc_preview.display_file_contents(file_path, 0 )
+                # Display the file content in the result preview widget
+                self.svc_preview.display_file_contents(file_path, 0)
 
-        # Automatically expand the preview collapsible widget
-        self.collapsible_widget_preview.toggle_container(True)  # Expand the preview collapsible
+        # Automatically expand the preview collapsible widget if there are files
+        if has_files:
+            self.collapsible_widget_preview.toggle_container(True)
 
-
-    
     def add_more_files(self):
         self.file_upload_widget.open_file_dialog()
     
