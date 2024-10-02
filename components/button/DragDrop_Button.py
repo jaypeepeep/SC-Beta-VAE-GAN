@@ -96,8 +96,6 @@ class DragDrop_Button(QtWidgets.QWidget):
             self.handle_files(file_paths)
 
     def handle_files(self, file_paths):
-        self.uploaded_files.extend(file_paths)  # Add new files to the list
-
         for file_path in file_paths:
             try:
                 # Get the base name of the file (i.e., file name with extension)
@@ -113,7 +111,8 @@ class DragDrop_Button(QtWidgets.QWidget):
             except Exception as e:
                 print(f"Error saving file '{file_path}': {e}")
 
-        self.file_uploaded.emit(self.uploaded_files)  # Emit the signal with the list of files
+        # Emit the signal with the list of files after handling
+        self.file_uploaded.emit(file_paths)
 
     def remove_file(self, file_path):
         if file_path in self.uploaded_files:
