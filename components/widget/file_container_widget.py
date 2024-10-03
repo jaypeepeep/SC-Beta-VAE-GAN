@@ -5,7 +5,7 @@ import os
 import shutil
 
 class FileContainerWidget(QtWidgets.QWidget):
-    remove_file_signal = QtCore.pyqtSignal(str) 
+    remove_file_signal = QtCore.pyqtSignal(str, str) 
     def __init__(self, file_path, parent=None):
         super(FileContainerWidget, self).__init__(parent)
         self.file_path = file_path
@@ -59,7 +59,6 @@ class FileContainerWidget(QtWidgets.QWidget):
         """)
         self.remove_button.clicked.connect(self.remove_file)
         self.layout.addWidget(self.remove_button)
-        
         # Button to download the file
         self.download_button = QtWidgets.QPushButton("Download", self.container)
         self.download_button.setStyleSheet("""
@@ -101,10 +100,8 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
         return os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../icon/{image_name}'))
 
     def remove_file(self):
-        # This method removes the widget from its parent
-        self.setParent(None)
-        self.remove_file_signal.emit(self.file_path)  # Emit signal when removed
-        self.deleteLater() 
+        """Emit signal to remove the file from the UI and uploaded_files list."""
+        self.remove_file_signal.emit(self.file_path, self.file_name)
 
     def download_file(self):
         # Create a QFileDialog to prompt the user for a save location
