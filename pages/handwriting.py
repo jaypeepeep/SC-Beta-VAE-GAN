@@ -13,16 +13,15 @@ from components.widget.file_container_widget import FileContainerWidget
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.spin_box_widget import SpinBoxWidget
 from components.widget.result_preview_widget import SVCpreview
-import os
-import sys
-import requests
 import time
+import shutil
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Handwriting, self).__init__(parent)
         self.drawing_done = False  # State to check if done button was clicked
         self.flask_process = None  # To keep track of the Flask process
+        self.current_filename = None
         self.setupUi()
 
     def setupUi(self):
@@ -140,6 +139,7 @@ class Handwriting(QtWidgets.QWidget):
 
     def show_done_page(self, filename):
         """Show the page after the drawing is completed."""
+        self.current_filename = filename
         self.clear_layout()
 
         # Create a scroll area to wrap the collapsible content
