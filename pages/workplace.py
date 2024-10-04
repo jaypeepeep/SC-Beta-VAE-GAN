@@ -166,6 +166,7 @@ class Workplace(QtWidgets.QWidget):
         self.scroll_layout.addWidget(self.collapsible_widget_output)
 
         self.output_widget = OutputWidget(self)
+        self.output_widget.clearUI.connect(self.clear_all_ui)
         self.collapsible_widget_output.add_widget(self.output_widget)
 
     def setup_result_collapsible(self):
@@ -254,6 +255,31 @@ class Workplace(QtWidgets.QWidget):
     def get_image_path(self, image_name):
         path = os.path.join(os.path.dirname(__file__), '..', 'icon', image_name)
         return path
+    
+    def clear_all_ui(self):
+        # Clear uploaded files
+        self.uploaded_files = []
+        
+        # Reset file upload widget
+        self.file_upload_widget.setVisible(True)
+        self.show_other_components(False)
+        
+        # Clear file containers
+        for i in reversed(range(self.file_container_layout.count())):
+            widget = self.file_container_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
+        
+        # Clear previews and logs
+        self.file_preview_widget.clear()
+        self.process_log_widget.clear()
+        self.svc_preview.clear()
+        
+        # Collapse all widgets except Input
+        self.collapsible_widget_preview.toggle_container(False)
+        self.collapsible_widget_process_log.toggle_container(False)
+        self.collapsible_widget_output.toggle_container(False)
+        self.collapsible_widget_result.toggle_container(False)
         
 if __name__ == "__main__":
     
