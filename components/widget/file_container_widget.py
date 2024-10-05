@@ -9,7 +9,7 @@ class FileContainerWidget(QtWidgets.QWidget):
     def __init__(self, file_path, parent=None):
         super(FileContainerWidget, self).__init__(parent)
         self.file_path = file_path
-        self.file_name = file_path
+        self.file_name = os.path.basename(self.file_path)
         self.setupUi()
 
     def setupUi(self):
@@ -45,7 +45,7 @@ class FileContainerWidget(QtWidgets.QWidget):
         # Button to remove the file
         self.remove_button = QtWidgets.QPushButton(self.container)
         self.remove_button.setIcon(QtGui.QIcon(self.get_image_path('close.png')))
-        self.remove_button.setIconSize(QtCore.QSize(20, 20))
+        self.remove_button.setIconSize(QtCore.QSize(42, 78))
         self.remove_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.remove_button.setStyleSheet("""
             QPushButton {
@@ -63,7 +63,12 @@ class FileContainerWidget(QtWidgets.QWidget):
         self.download_button = QtWidgets.QPushButton("Download", self.container)
         self.download_button.setStyleSheet("""
             QPushButton {
-background-color: #003333; color: white; font-family: Montserrat; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 5px;
+                background-color: #003333; 
+                color: white; font-family: 
+                Montserrat; font-size: 14px; 
+                font-weight: 600; 
+                padding: 8px 16px; 
+                border-radius: 5px;
             }
             QPushButton:hover {
                 background: #C0C0C0;
@@ -75,7 +80,7 @@ background-color: #003333; color: white; font-family: Montserrat; font-size: 14p
         # Button to retry an action
         self.retry_button = QtWidgets.QPushButton(self.container)
         self.retry_button.setIcon(QtGui.QIcon(self.get_image_path('restart.png')))
-        self.retry_button.setIconSize(QtCore.QSize(42, 78))
+        self.retry_button.setIconSize(QtCore.QSize(20, 20))
         self.retry_button.setStyleSheet("""
             QPushButton {
                 margin: 10px;

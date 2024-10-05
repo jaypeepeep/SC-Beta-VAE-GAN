@@ -105,16 +105,19 @@ class Workplace(QtWidgets.QWidget):
         self.add_file_button.setStyleSheet(
             """
             QPushButton {
-                background-color: #535353; 
+                background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
                 font-size: 14px; 
                 font-weight: 600; 
-                padding: 8px 16px; 
-                border-radius: 5px;
+                padding: 8px 16px;
+                margin-left: 15px; 
+                margin-right: 15px; 
+                border-radius: 5px; 
+                border: none;
             }
             QPushButton:hover {
-                background-color: #005555; 
+                background-color: #005555;  /* Change this to your desired hover color */
             }
             """
         )
@@ -123,11 +126,19 @@ class Workplace(QtWidgets.QWidget):
         self.add_file_button.clicked.connect(self.add_more_files)
         self.collapsible_widget_input.add_widget(self.add_file_button)
         
+        # Create a scrollable area to hold the file widgets
+        self.file_scroll_area = QtWidgets.QScrollArea(self)
+        self.file_scroll_area.setWidgetResizable(True)
+        self.file_scroll_area.setMinimumHeight(200)
+
         # Create a container to hold the file widgets and its layout
         self.file_container_widget = QtWidgets.QWidget(self)
         self.file_container_layout = QtWidgets.QVBoxLayout(self.file_container_widget)
-        self.collapsible_widget_input.add_widget(self.file_container_widget)
 
+        # Add the file container widget to the scroll area
+        self.file_scroll_area.setWidget(self.file_container_widget)
+        self.collapsible_widget_input.add_widget(self.file_scroll_area)
+        
         # Slider widget in Input collapsible
         self.slider_widget = SpinBoxWidget(0)
         self.collapsible_widget_input.add_widget(self.slider_widget)
