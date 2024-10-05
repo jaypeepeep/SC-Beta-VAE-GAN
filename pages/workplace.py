@@ -211,6 +211,7 @@ class Workplace(QtWidgets.QWidget):
             if not self.uploaded_files:
                 self.show_other_components(False)
                 self.file_upload_widget.setVisible(True)
+                self.file_preview_widget.clear()
 
             # Update the file container layout to reflect the changes
             self.file_container_layout.update()
@@ -256,6 +257,8 @@ class Workplace(QtWidgets.QWidget):
                 # Display the file content in the result preview widget
                 self.svc_preview.display_file_contents(file_path, 0)
 
+        self.file_preview_widget.set_uploaded_files(self.uploaded_files)
+        
         # Automatically expand the preview collapsible widget if there are files
         if has_files:
             self.collapsible_widget_preview.toggle_container(True)
