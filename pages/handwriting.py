@@ -179,7 +179,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add the File Preview Widget
         self.collapsible_widget_file_preview = CollapsibleWidget("File Preview", self)
         scroll_layout.addWidget(self.collapsible_widget_file_preview)
-        self.file_preview_widget = FilePreviewWidget(filename, self)
+        self.file_preview_widget = FilePreviewWidget(self)
         self.collapsible_widget_file_preview.add_widget(self.file_preview_widget)
 
         # Add the Process Log Widget

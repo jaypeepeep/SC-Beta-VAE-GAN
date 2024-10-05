@@ -198,6 +198,9 @@ class OutputWidget(QtWidgets.QWidget):
                 for file_path in input_files:
                     if os.path.exists(file_path):
                         zipf.write(file_path, os.path.basename(file_path))
+            
+            if hasattr(self.parent, 'svc_preview'):
+                self.parent.svc_preview.set_zip_path(self.output_zip_path)
 
         except Exception as e:
             QMessageBox.warning(
