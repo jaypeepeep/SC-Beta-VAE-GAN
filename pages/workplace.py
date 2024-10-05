@@ -4,6 +4,7 @@ from PyQt5.QtGui import QColor
 from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_container_widget import FileContainerWidget
 from components.widget.file_preview_widget import FilePreviewWidget
+from components.widget.model_widget import ModelWidget
 from components.widget.process_log_widget import ProcessLogWidget
 from components.widget.output_widget import OutputWidget
 from components.widget.spin_box_widget import SpinBoxWidget
@@ -18,6 +19,7 @@ class Workplace(QtWidgets.QWidget):
         super(Workplace, self).__init__(parent)
         self.uploaded_files = []
         self.setupUi()
+        
 
     def setupUi(self):
         self.gridLayout = QtWidgets.QGridLayout(self)
@@ -44,6 +46,7 @@ class Workplace(QtWidgets.QWidget):
 
         # Call functions to set up collapsible components
         self.setup_input_collapsible()
+        self.setup_model_collapsible()
         self.setup_preview_collapsible()
         self.setup_process_log_collapsible()
         self.setup_output_collapsible()
@@ -129,24 +132,22 @@ class Workplace(QtWidgets.QWidget):
         # Create a scrollable area to hold the file widgets
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
-        self.file_scroll_area.setMinimumHeight(200)
+        self.file_scroll_area.setMinimumHeight(300)
 
         # Create a container to hold the file widgets and its layout
         self.file_container_widget = QtWidgets.QWidget(self)
         self.file_container_layout = QtWidgets.QVBoxLayout(self.file_container_widget)
-
+        self.file_container_layout.setSpacing(0)
+        
         # Add the file container widget to the scroll area
         self.file_scroll_area.setWidget(self.file_container_widget)
         self.collapsible_widget_input.add_widget(self.file_scroll_area)
         
-        # Slider widget in Input collapsible
-        self.slider_widget = SpinBoxWidget(0)
-        self.collapsible_widget_input.add_widget(self.slider_widget)
 
         # Initially hide other components
         self.file_upload_widget.setVisible(True)
         self.show_other_components(False)
-        self.collapsible_widget_input.add_widget(self.slider_widget)
+
 
         # Open the collapsible widget by default
         self.collapsible_widget_input.toggle_container(True)
@@ -156,8 +157,14 @@ class Workplace(QtWidgets.QWidget):
         """Show or hide other components based on file upload."""
         self.add_file_button.setVisible(show)
         self.file_container_widget.setVisible(show)
-        self.slider_widget.setVisible(show)
 
+    def setup_model_collapsible(self):
+        self.collapsible_model_container = CollapsibleWidget("Models", self)
+        self.scroll_layout.addWidget(self.collapsible_model_container)
+
+        self.model_widget = ModelWidget(self)
+        self.collapsible_model_container.add_widget(self.model_widget)
+    
     def setup_preview_collapsible(self):
         self.collapsible_widget_preview = CollapsibleWidget("File Preview", self)
         self.scroll_layout.addWidget(self.collapsible_widget_preview)
@@ -165,6 +172,8 @@ class Workplace(QtWidgets.QWidget):
         self.file_preview_widget = FilePreviewWidget(self)
         self.collapsible_widget_preview.add_widget(self.file_preview_widget)
 
+    
+    
     def setup_process_log_collapsible(self):
         self.collapsible_widget_process_log = CollapsibleWidget("Process Log", self)
         self.scroll_layout.addWidget(self.collapsible_widget_process_log)
