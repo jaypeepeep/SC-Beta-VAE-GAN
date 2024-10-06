@@ -8,7 +8,7 @@ class SpinBoxWidget(QtWidgets.QWidget):
         self.min_value = min_value
         self.setupUi()
 
-    def setupUi(self):
+    def setupUi(self):        
         self.layout = QtWidgets.QHBoxLayout(self)
         self.layout.setContentsMargins(10, 10, 10, 10)  # Add some margins to the layout
 
