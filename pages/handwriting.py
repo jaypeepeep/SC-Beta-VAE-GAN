@@ -22,6 +22,7 @@ class Handwriting(QtWidgets.QWidget):
         self.drawing_done = False  # State to check if done button was clicked
         self.flask_process = None  # To keep track of the Flask process
         self.current_filename = None
+        self.file_list = []
         self.setupUi()
 
     def setupUi(self):
@@ -139,7 +140,8 @@ class Handwriting(QtWidgets.QWidget):
 
     def show_done_page(self, filename):
         """Show the page after the drawing is completed."""
-        self.current_filename = filename
+        """Show the page after the drawing is completed."""
+        self.file_list.append(filename)  # Append the new filename to the list
         self.clear_layout()
 
         # Create a scroll area to wrap the collapsible content
@@ -155,7 +157,62 @@ class Handwriting(QtWidgets.QWidget):
         # Add the scroll area to the main layout
         scroll_area.setWidget(scroll_widget)
         self.layout.addWidget(scroll_area)
+        self.collapsible_container = CollapsibleWidget("Input", self)
+        self.layout.addWidget(self.collapsible_container)
 
+        # Call the collapsible widget for each drawing added
+        for file in self.file_list:
+            # Add file preview or processing widgets here
+            file_container = FileContainerWidget(file, self)
+            scroll_layout.addWidget(file_container)
+        
+        # Add the "Draw More" and "Clear All" buttons
+        button_layout = QtWidgets.QHBoxLayout()
+
+        self.draw_more_button = QtWidgets.QPushButton("Draw More", self)
+        self.draw_more_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 10px 20px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+            """
+        )
+        self.draw_more_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor)) # put the button at the bottom
+        self.draw_more_button.clicked.connect(self.show_drawing_page)  # Return to drawing
+
+        self.clear_all_button = QtWidgets.QPushButton("Clear All", self)
+        self.clear_all_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 10px 20px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+            """
+        )
+        self.clear_all_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor)) # put the button at the bottom
+        self.clear_all_button.clicked.connect(self.clear_all_drawings)
+
+        button_layout.addWidget(self.draw_more_button)
+        button_layout.addWidget(self.clear_all_button)
+
+        scroll_layout.addLayout(button_layout)
         # Call the collapsible widget component
         self.collapsible_widget = CollapsibleWidget("Input", self)
         scroll_layout.addWidget(self.collapsible_widget)
@@ -260,9 +317,15 @@ class Handwriting(QtWidgets.QWidget):
         if response == QtWidgets.QMessageBox.Yes:
             self.reset_state()
 
+    def clear_all_drawings(self):
+        """Clear all added files and reset the state."""
+        self.file_list.clear()  # Empty the file list
+        self.show_drawing_page()  # Go back to the initial drawing page
+
     def reset_state(self):
         """Reset the state and go back to the drawing page."""
         self.drawing_done = False
+        self.file_list.clear()  # Clear file list when resetting
         self.show_drawing_page()
 
     def closeEvent(self, event):
