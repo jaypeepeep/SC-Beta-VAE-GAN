@@ -22,14 +22,19 @@ class ModelWidget(QtWidgets.QWidget):
     def setup_ui(self):
         self.layout = QtWidgets.QGridLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignTop)
-        self.layout.setContentsMargins(20, 10, 20, 20)
+        
+        self.layout.setVerticalSpacing(2)
+        self.layout.setHorizontalSpacing(10)
+        
+        self.layout.setContentsMargins(20, 5, 20, 5)
+        
         font = QtGui.QFont()
         font.setPointSize(8)
         self.setFont(font)
 
         self.setLayout(self.layout)
 
-        # Buttons layout (Train VAE)
+        # Train VAE button
         self.train_button = QtWidgets.QPushButton("Train VAE")
         button_style = """
             QPushButton {
@@ -55,24 +60,19 @@ class ModelWidget(QtWidgets.QWidget):
         self.train_button.setStyleSheet(button_style)
         self.train_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
-        # Add the train button to the grid layout
-        self.layout.addWidget(self.train_button)  # Row 0, Column 0
-        
-        # Table to display files in ../pre-trained
+        self.layout.addWidget(self.train_button, 0, 0)
+
+        # Table to display files
         self.files_table = QtWidgets.QTableWidget(self)
         self.files_table.setColumnCount(4)
         self.files_table.setHorizontalHeaderLabels(["Select", "Name", "Date", "Actions"])
-        self.files_table.horizontalHeader().setStretchLastSection(True)  # Stretch the last column to fit
-
-
-        # Set fixed height for the table
-        self.files_table.setColumnWidth(1, 600)  # Adjusted "Name" column width
-        self.files_table.setFixedHeight(600)  # Set the height to 600px
+        self.files_table.horizontalHeader().setStretchLastSection(True)
+        self.files_table.setColumnWidth(1, 600)
+        self.files_table.setFixedHeight(300)  # Reduced height
         
         font_x = QtGui.QFont()
         font_x.setPointSize(8)
         self.files_table.setFont(font_x)
-        # Set uniform style for the table
         self.files_table.setStyleSheet("""    
             QHeaderView::section {
                 background-color: transparent;
@@ -83,28 +83,22 @@ class ModelWidget(QtWidgets.QWidget):
                 border: 1px solid #033;
                 min-height: 50px;           
             }
-
             QTableWidget::item {
                 border: 1px solid #033;
                 padding-left: 10px;
                 padding-right: 10px;
             }
-
             QTableCornerButton::section {
                 border: none;
                 background-color: transparent;
             }
         """)
 
-        # Add table to layout
-        self.layout.addWidget(self.files_table)  # Row 1, Column 0
+        self.layout.addWidget(self.files_table, 1, 0)
 
-        # Slider widget in Input collapsible
+        # SpinBox widget
         self.slider_widget = SpinBoxWidget(0)
-        self.layout.addWidget(self.slider_widget)  # Row 2, Column 0
-
-        # Fetch files from ../pre-trained and display
-        self.load_files()
+        self.layout.addWidget(self.slider_widget, 2, 0)
 
         # Connect button actions
         self.train_button.clicked.connect(self.train_vae)
@@ -259,6 +253,8 @@ class ModelWidget(QtWidgets.QWidget):
         message_box.setWindowTitle(title)
         message_box.setText(message)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        message_box.setMinimumSize(600, 300)
+        message_box.setSizeGripEnabled(True)
         message_box.setStyleSheet("""
             QMessageBox {
                 font-size: 12px;

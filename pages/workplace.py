@@ -132,7 +132,7 @@ class Workplace(QtWidgets.QWidget):
         # Create a scrollable area to hold the file widgets
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
-        self.file_scroll_area.setMinimumHeight(300)
+        self.file_scroll_area.setMinimumHeight(150)
 
         # Create a container to hold the file widgets and its layout
         self.file_container_widget = QtWidgets.QWidget(self)
@@ -172,8 +172,6 @@ class Workplace(QtWidgets.QWidget):
         self.file_preview_widget = FilePreviewWidget(self)
         self.collapsible_widget_preview.add_widget(self.file_preview_widget)
 
-    
-    
     def setup_process_log_collapsible(self):
         self.collapsible_widget_process_log = CollapsibleWidget("Process Log", self)
         self.scroll_layout.addWidget(self.collapsible_widget_process_log)
