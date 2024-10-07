@@ -14,25 +14,21 @@ class ModelWidget(QtWidgets.QWidget):
             os.makedirs(self.pre_trained_path)
 
         self.setup_ui()
-        # Add a QTimer to refresh the file list every 5 seconds (5000 milliseconds)
         self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.load_files)  # Connect the timer to the load_files method
-        self.timer.start(5000)  # Refresh every 5 seconds
+        self.timer.timeout.connect(self.load_files)
+        self.timer.start(5000)
+
+        self.load_files()
 
     def setup_ui(self):
-        self.layout = QtWidgets.QGridLayout(self)
+        self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignTop)
-        
-        self.layout.setVerticalSpacing(2)
-        self.layout.setHorizontalSpacing(10)
-        
-        self.layout.setContentsMargins(20, 5, 20, 5)
-        
-        font = QtGui.QFont()
-        font.setPointSize(8)
-        self.setFont(font)
+        self.layout.setContentsMargins(20, 10, 20, 10)
+        self.layout.setSpacing(10)
 
-        self.setLayout(self.layout)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.setFont(font)
 
         # Train VAE button
         self.train_button = QtWidgets.QPushButton("Train VAE")
@@ -44,8 +40,6 @@ class ModelWidget(QtWidgets.QWidget):
                 font-size: 14px; 
                 font-weight: 600; 
                 padding: 8px 16px;
-                margin-left: 15px; 
-                margin-right: 15px; 
                 border-radius: 5px; 
                 border: none;
             }
@@ -59,94 +53,111 @@ class ModelWidget(QtWidgets.QWidget):
         """
         self.train_button.setStyleSheet(button_style)
         self.train_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-
-        self.layout.addWidget(self.train_button, 0, 0)
+        self.layout.addWidget(self.train_button)
 
         # Table to display files
         self.files_table = QtWidgets.QTableWidget(self)
         self.files_table.setColumnCount(4)
         self.files_table.setHorizontalHeaderLabels(["Select", "Name", "Date", "Actions"])
-        self.files_table.horizontalHeader().setStretchLastSection(True)
-        self.files_table.setColumnWidth(1, 600)
-        self.files_table.setFixedHeight(300)  # Reduced height
         
-        font_x = QtGui.QFont()
-        font_x.setPointSize(8)
-        self.files_table.setFont(font_x)
+        # Set minimum height and allow vertical expansion
+        self.files_table.setMinimumHeight(200)
+        self.files_table.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        
+        # Table styling
         self.files_table.setStyleSheet("""    
             QHeaderView::section {
-                background-color: transparent;
-                padding: 5px;
-                color: #033;            
+                background-color: #033;
+                padding: 8px;
+                color: white;            
                 font-size: 13px;
                 font-weight: bold;
-                border: 1px solid #033;
-                min-height: 50px;           
+                border: none;
+                height: 50px;
+            }
+            QTableWidget {
+                background-color: transparent;
+                border: none;
             }
             QTableWidget::item {
-                border: 1px solid #033;
-                padding-left: 10px;
-                padding-right: 10px;
+                /* border-bottom: 1px solid #ccc; */
+                 /* padding: 5px; */
+                padding-left: 30px;
+                background-color: transparent;
             }
             QTableCornerButton::section {
                 border: none;
-                background-color: transparent;
+                background-color: #033;
             }
         """)
 
-        self.layout.addWidget(self.files_table, 1, 0)
+        # Adjust header and sizing
+        self.files_table.horizontalHeader().setStretchLastSection(False)
+        self.files_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.files_table.verticalHeader().setVisible(False)
+        self.files_table.setShowGrid(False)
+        self.files_table.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        
+        # Create a container widget for the table
+        table_container = QtWidgets.QWidget()
+        table_layout = QtWidgets.QVBoxLayout(table_container)
+        table_layout.addWidget(self.files_table)
+        table_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.layout.addWidget(table_container)
 
         # SpinBox widget
         self.slider_widget = SpinBoxWidget(0)
-        self.layout.addWidget(self.slider_widget, 2, 0)
+        self.layout.addWidget(self.slider_widget)
 
-        # Connect button actions
         self.train_button.clicked.connect(self.train_vae)
+
     def load_files(self, directory=None):
-        """Populate the table with files and folders from the given directory."""
         if directory is None:
-            directory = self.pre_trained_path  # Use the pre-trained path if no directory is provided
+            directory = self.pre_trained_path
 
         if not os.path.exists(directory):
-            os.makedirs(directory)  # Create the directory if it doesn't exist
+            os.makedirs(directory)
 
-        # Clear the table first
-        self.files_table.setRowCount(0)
-
-        # Get list of files and directories
         files = os.listdir(directory)
-        self.files_table.setRowCount(len(files))  # Set the number of rows in the table
-
+        self.files_table.setRowCount(len(files))
+        
+        # Set row height
+        row_height = 40  # Adjust this value as needed
+        
         for index, file_name in enumerate(files):
-            # Get full path
+            self.files_table.setRowHeight(index, row_height)
             full_path = os.path.join(directory, file_name)
 
-            # Set file/folder name
+            # Name column
             name_item = QtWidgets.QTableWidgetItem(file_name)
-            self.files_table.setItem(index, 1, name_item)  # Set to column 1 for Name
+            name_item.setTextAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignVCenter)
+            self.files_table.setItem(index, 1, name_item)
 
-            # Get the modification date
+            # Date column
             mod_time = os.path.getmtime(full_path)
             mod_date = QtCore.QDateTime.fromSecsSinceEpoch(int(mod_time)).toString(QtCore.Qt.DefaultLocaleShortDate)
-
-            # Set modification date
             date_item = QtWidgets.QTableWidgetItem(mod_date)
-            self.files_table.setItem(index, 2, date_item)  # Set to column 2 for Date
+            date_item.setTextAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignVCenter)
+            self.files_table.setItem(index, 2, date_item)
 
-            # Add checkbox for selection
-            checkbox = QtWidgets.QCheckBox(self.files_table)
+            # Checkbox column
+            checkbox_widget = QtWidgets.QWidget()
+            checkbox_layout = QtWidgets.QHBoxLayout(checkbox_widget)
+            checkbox = QtWidgets.QCheckBox()
             checkbox.setStyleSheet("""
                 QCheckBox {
-                    padding: auto;
+                    background: transparent;
                 }
                 QCheckBox::indicator {
                     width: 15px;
                     height: 15px;
+                    background-color: transparent;
                 }
                 QCheckBox::indicator:unchecked {
-                    background-color: #ccc;
                     border: 2px solid #003333;
                     border-radius: 3px;
+                    background-color: white;
                 }
                 QCheckBox::indicator:checked {
                     background-color: #005555;
@@ -154,30 +165,45 @@ class ModelWidget(QtWidgets.QWidget):
                     border-radius: 3px;
                 }
             """)
-            self.files_table.setCellWidget(index, 0, checkbox)  # Column 0 for checkbox
+            checkbox_layout.addWidget(checkbox)
+            checkbox_layout.setAlignment(QtCore.Qt.AlignCenter)
+            checkbox_layout.setContentsMargins(0, 0, 0, 0)
+            checkbox_widget.setStyleSheet("background: transparent;")
+            self.files_table.setCellWidget(index, 0, checkbox_widget)
 
-            # Actions button with custom icon
+            # Actions column
+            button_widget = QtWidgets.QWidget()
+            button_layout = QtWidgets.QHBoxLayout(button_widget)
             actions_button = QtWidgets.QPushButton()
-            actions_button.setIcon(QtGui.QIcon('../../icon/arrow_up.png'))  # Add an icon for the button
-            actions_button.setIconSize(QtCore.QSize(20, 20))  # Set the size of the icon
-            actions_button.setFixedSize(40, 40)  # Set button size
+            
+            icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../icon/arrow_up.png")
+            if os.path.exists(icon_path):
+                actions_button.setIcon(QtGui.QIcon(icon_path))
+                actions_button.setIconSize(QtCore.QSize(20, 20))
+            
+            actions_button.setFixedSize(30, 30)
             actions_button.setStyleSheet("""
                 QPushButton {
                     border: none;
-                    border-radius: 5px;
-                    
+                    background-color: transparent;
                 }
                 QPushButton:hover {
-                    background-color: yellow;
+                    background-color: #e6e6e6;
+                    border-radius: 5px;
                 }
             """)
             actions_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
             actions_button.clicked.connect(lambda _, f=file_name: self.show_file_options(f))
-            self.files_table.setCellWidget(index, 3, actions_button)  # Set to column 3 for Actions
+            
+            button_layout.addWidget(actions_button)
+            button_layout.setAlignment(QtCore.Qt.AlignCenter)
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_widget.setStyleSheet("background: transparent;")
+            self.files_table.setCellWidget(index, 3, button_widget)
 
-        # Ensure all items are loaded properly
-        self.files_table.viewport().update()
-
+        # Adjust table height based on content
+        total_height = (len(files) * row_height) + self.files_table.horizontalHeader().height()
+        self.files_table.setMinimumHeight(total_height)
     def show_file_options(self, file):
         menu = QtWidgets.QMenu(self)
         menu.setStyleSheet("""
@@ -216,7 +242,7 @@ class ModelWidget(QtWidgets.QWidget):
             title="Rename File",
             label=f"Enter new name for {file}:"
         )
-        
+
         if ok and new_name:
             old_path = os.path.join(self.pre_trained_path, file)
             new_path = os.path.join(self.pre_trained_path, new_name)
@@ -232,7 +258,7 @@ class ModelWidget(QtWidgets.QWidget):
             title="Delete File",
             message=f"Are you sure you want to delete {file}?"
         )
-        
+
         if confirm_delete:
             file_path = os.path.join(self.pre_trained_path, file)
             try:
@@ -246,7 +272,7 @@ class ModelWidget(QtWidgets.QWidget):
             title="Train VAE",
             message=f"Training VAE model..."
         )
-    
+
     def create_custom_message_box(self, title, message):
         """Create a custom message box"""
         message_box = QtWidgets.QMessageBox()
@@ -280,7 +306,6 @@ class ModelWidget(QtWidgets.QWidget):
         """)
 
         return message_box.exec_() == QtWidgets.QMessageBox.Yes
-    
 
     def create_custom_input_dialog(self, title, label, text=""):
         """Create a QInputDialog with custom styling"""
@@ -315,6 +340,7 @@ class ModelWidget(QtWidgets.QWidget):
                 width: 500px;
                 font-family: 'Montserrat', sans-serif;
                 font-size: 11px;
+                border: 1px solid #ccc;
             }
             QLabel {
                 font-size: 12px; 
@@ -325,7 +351,7 @@ class ModelWidget(QtWidgets.QWidget):
         ok = input_dialog.exec_()
 
         return input_dialog.textValue(), ok
-    
+
     def refresh_file_list(self):
         self.load_files()
 
