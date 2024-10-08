@@ -3,6 +3,7 @@ import requests
 import os
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
 from components.widget.collapsible_widget import CollapsibleWidget
@@ -26,12 +27,18 @@ class Handwriting(QtWidgets.QWidget):
         self.setupUi()
 
     def setupUi(self):
+        """Initial setup for the drawing page or Flask app depending on the file_list state."""
         self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.setAlignment(QtCore.Qt.AlignTop)  
+        self.layout.setAlignment(QtCore.Qt.AlignTop)
         self.layout.setContentsMargins(50, 0, 50, 50)
 
-        # Initial setup for the drawing page
-        self.show_drawing_page()
+        # Check if there is existing handwriting data (i.e., file_list is not empty)
+        if self.file_list:
+            # If handwriting data exists, skip the drawing page and show the embedded browser
+            self.show_embedded_browser()
+        else:
+            # If no handwriting data, show the drawing page with the button
+            self.show_drawing_page()
 
     def clear_layout(self):
         """Clear the current layout and any child layouts."""
@@ -54,7 +61,7 @@ class Handwriting(QtWidgets.QWidget):
             del item
 
     def show_drawing_page(self):
-        """Show the drawing page layout."""
+        """Show the drawing page layout with the Draw and Handwrite button."""
         self.clear_layout()
 
         # Create a layout for the text
@@ -67,16 +74,15 @@ class Handwriting(QtWidgets.QWidget):
         top_text.setAlignment(QtCore.Qt.AlignCenter)
         top_text.setStyleSheet("font-size: 30px; font-weight: bold; color: #033; ")
         top_layout.addWidget(top_text)
+        self.layout.addLayout(top_layout)
 
         # Create and add the handwriting button
         drawButton = handwritingButton(self)
         drawButton.setContentsMargins(50, 20, 50, 50)
-        self.layout.addLayout(top_layout)
         self.layout.addWidget(drawButton)
 
         # Connect the button's click events
         drawButton.clicked.connect(self.show_confirmation_dialog)
-
     def show_confirmation_dialog(self):
         """Show a confirmation dialog before proceeding to the drawing page."""
         message_box = QtWidgets.QMessageBox(self)
@@ -108,13 +114,11 @@ class Handwriting(QtWidgets.QWidget):
 
     def show_embedded_browser(self):
         """Show the Flask app inside the Handwriting page using QWebEngineView."""
-        # Clear the current layout and show the embedded browser
         self.clear_layout()
 
         # Create a QWebEngineView and load the Flask app's URL
         self.webview = QWebEngineView(self)
         self.webview.setUrl(QtCore.QUrl("http://127.0.0.1:5000"))
-        # Add webview to the layout
         self.layout.addWidget(self.webview)
 
         # Ensure the webview resizes responsively
@@ -122,7 +126,7 @@ class Handwriting(QtWidgets.QWidget):
 
         # Poll Flask to check if drawing is done and file is uploaded
         QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Adjust the delay if necessary
-
+            
     def check_drawing_done(self):
         """Periodically check if the drawing is done by querying Flask."""
         try:
@@ -140,7 +144,6 @@ class Handwriting(QtWidgets.QWidget):
 
     def show_done_page(self, filename):
         """Show the page after the drawing is completed."""
-        """Show the page after the drawing is completed."""
         self.file_list.append(filename)  # Append the new filename to the list
         self.clear_layout()
 
@@ -153,86 +156,141 @@ class Handwriting(QtWidgets.QWidget):
         scroll_widget = QtWidgets.QWidget()
         scroll_layout = QtWidgets.QVBoxLayout(scroll_widget)
         scroll_layout.setAlignment(QtCore.Qt.AlignTop)
+        ##
+        # Create a scrollable widget
+        sub_area = QScrollArea()
+        sub_area.setWidgetResizable(True)
 
+        # Create a container for the scroll area
+        sub_container = QWidget()
+        sub_container.setMaximumHeight(300) 
+        sub_layout = QVBoxLayout(sub_container)
+        
+        # Add file containers to the scrollable layout
+        for file in self.file_list:
+            file_container = FileContainerWidget(file, self)
+            sub_layout.addWidget(file_container)
+
+        # Set the scrollable widget
+        sub_area.setWidget(sub_container)
+
+        # Add the scroll area to the collapsible widget
+        ##
         # Add the scroll area to the main layout
         scroll_area.setWidget(scroll_widget)
         self.layout.addWidget(scroll_area)
-        self.collapsible_container = CollapsibleWidget("Input", self)
-        self.layout.addWidget(self.collapsible_container)
 
-        # Call the collapsible widget for each drawing added
-        for file in self.file_list:
-            # Add file preview or processing widgets here
-            file_container = FileContainerWidget(file, self)
-            scroll_layout.addWidget(file_container)
-        
-        # Add the "Draw More" and "Clear All" buttons
-        button_layout = QtWidgets.QHBoxLayout()
-
-        self.draw_more_button = QtWidgets.QPushButton("Draw More", self)
-        self.draw_more_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #003333; 
-                color: white; 
-                font-family: Montserrat; 
-                font-size: 14px; 
-                font-weight: 600; 
-                padding: 10px 20px; 
-                border-radius: 5px;
-            }
-            QPushButton:hover {
-                background-color: #005555; 
-            }
-            """
-        )
-        self.draw_more_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor)) # put the button at the bottom
-        self.draw_more_button.clicked.connect(self.show_drawing_page)  # Return to drawing
-
-        self.clear_all_button = QtWidgets.QPushButton("Clear All", self)
-        self.clear_all_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #003333; 
-                color: white; 
-                font-family: Montserrat; 
-                font-size: 14px; 
-                font-weight: 600; 
-                padding: 10px 20px; 
-                border-radius: 5px;
-            }
-            QPushButton:hover {
-                background-color: #005555; 
-            }
-            """
-        )
-        self.clear_all_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor)) # put the button at the bottom
-        self.clear_all_button.clicked.connect(self.clear_all_drawings)
-
-        button_layout.addWidget(self.draw_more_button)
-        button_layout.addWidget(self.clear_all_button)
-
-        scroll_layout.addLayout(button_layout)
         # Call the collapsible widget component
         self.collapsible_widget = CollapsibleWidget("Input", self)
         scroll_layout.addWidget(self.collapsible_widget)
         self.collapsible_widget.toggle_container(True)
 
+        # Add a file container widget to the collapsible widget for each drawing added
+        for file in self.file_list:
+            file_container = FileContainerWidget(file, self)
+            self.collapsible_widget.add_widget(file_container)
+
+        # Add the dropdown (QComboBox) for selecting a file to plot
+        self.file_dropdown = QtWidgets.QComboBox(self)
+        self.file_dropdown.setStyleSheet("""
+            QComboBox {
+                background-color: #033;  
+                color: white; 
+                font-weight: bold;           
+                font-family: Montserrat; 
+                font-size: 14px;        
+                padding: 10px;            
+                border: 2px solid #033;  
+                border-radius: 5px;      
+            }
+
+            /* Dropdown arrow styling */
+            QComboBox::drop-down {
+                border: none;
+            }
+
+            /* Dropdown arrow icon */
+            QComboBox::down-arrow {
+                image: url(arrow_down_icon.png); 
+                width: 14px;
+                height: 14px;
+            }
+
+            /* Styling for the dropdown items */
+            QComboBox QAbstractItemView {
+                background-color: white;   
+                color: #033;                 
+                border: 1px solid #033;    
+                font-family: Montserrat;
+                font-size: 14px;
+        }""")
+        self.file_dropdown.addItems(self.file_list)
+        self.file_dropdown.currentIndexChanged.connect(self.on_file_selected)
+
+        # Add the dropdown to the collapsible widget
+        self.collapsible_widget.add_widget(self.file_dropdown)
+
         # Add the plot container widget
         self.plot_container = PlotContainerWidget(self)
-        self.plot_container.loadPlot(filename)
         self.collapsible_widget.add_widget(self.plot_container)
 
-        # Add a file container widget to the collapsible widget with the actual filename
-        self.file_container = FileContainerWidget(filename, self)
-        self.collapsible_widget.add_widget(self.file_container)
-        self.file_container.hide_remove_button()
-        self.file_container.retry_button.clicked.connect(self.show_reset_confirmation_dialog)
-        
+        # Initially load the plot for the first file in the list
+        if self.file_list:
+            self.plot_container.loadPlot(self.file_list[0])
+
+
         # Add the slider widget directly to the collapsible widget
-        self.spin_box_widget =  SpinBoxWidget(0)
+        self.spin_box_widget = SpinBoxWidget(0)
         self.collapsible_widget.add_widget(self.spin_box_widget)
 
+        # Add "Draw More" and "Clear All" buttons inside the collapsible widget
+        button_layout = QtWidgets.QHBoxLayout()
+        
+        self.draw_more_button = QtWidgets.QPushButton("Draw More", self)
+        self.draw_more_button.setStyleSheet("""
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 10px 20px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+        """)
+        self.draw_more_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.draw_more_button.clicked.connect(self.run_flask_app)
+        
+        self.clear_all_button = QtWidgets.QPushButton("Clear All", self)
+        self.clear_all_button.setStyleSheet("""
+            QPushButton {
+                background-color: #003333; 
+                color: white; 
+                font-family: Montserrat; 
+                font-size: 14px; 
+                font-weight: 600; 
+                padding: 10px 20px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #005555; 
+            }
+        """)
+        self.clear_all_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.clear_all_button.clicked.connect(self.clear_all_drawings)
+        
+        # Add the buttons to the button layout
+        button_layout.addWidget(self.draw_more_button)
+        button_layout.addWidget(self.clear_all_button)
+
+        # Add the button layout to the collapsible widget
+        button_widget = QtWidgets.QWidget()  # Wrap buttons in a QWidget
+        button_widget.setLayout(button_layout)
+        self.collapsible_widget.add_widget(button_widget)
+        
         # Add the File Preview Widget
         self.collapsible_widget_file_preview = CollapsibleWidget("File Preview", self)
         scroll_layout.addWidget(self.collapsible_widget_file_preview)
@@ -328,6 +386,11 @@ class Handwriting(QtWidgets.QWidget):
         self.file_list.clear()  # Clear file list when resetting
         self.show_drawing_page()
 
+    def on_file_selected(self):
+        """Update the plot when a different file is selected from the dropdown."""
+        selected_file = self.file_dropdown.currentText()
+        self.plot_container.loadPlot(selected_file)
+    
     def closeEvent(self, event):
         """Ensure the Flask app process is killed when the main window is closed."""
         if self.flask_process:
