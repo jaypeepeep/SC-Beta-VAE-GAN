@@ -8,12 +8,14 @@ import tempfile
 
 class OutputWidget(QtWidgets.QWidget):
     clearUI = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         super(OutputWidget, self).__init__(parent)
         self.parent = parent
         self.output_zip_path = None
         self.setup_output_collapsible()
-        
+        self.setVisible(False) 
+
     def setup_output_collapsible(self):
         """Set up the 'Output' collapsible widget"""
         layout = QtWidgets.QVBoxLayout(self)
@@ -117,12 +119,9 @@ class OutputWidget(QtWidgets.QWidget):
                 "Finished Generating Synthetic Data",
                 QMessageBox.Ok
             )
-            self.clearUI.emit()  # Emit signal to clear the UI
+            self.clearUI.emit()
 
     def handle_download_click(self):
-        if not self.output_zip_path:
-            self.create_output_zip()
-        
         if self.output_zip_path and os.path.exists(self.output_zip_path):
             save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
                 self,
@@ -161,6 +160,7 @@ class OutputWidget(QtWidgets.QWidget):
                 try:
                     os.remove(self.output_zip_path)
                     self.output_zip_path = None
+                    self.setVisible(False)
                     QMessageBox.information(
                         self,
                         'Success',
@@ -177,7 +177,6 @@ class OutputWidget(QtWidgets.QWidget):
 
     def create_output_zip(self):
         try:
-            # Get the input files from the parent Workplace widget
             input_files = self.parent.uploaded_files if hasattr(self.parent, 'uploaded_files') else []
             
             if not input_files:
@@ -201,6 +200,8 @@ class OutputWidget(QtWidgets.QWidget):
             
             if hasattr(self.parent, 'svc_preview'):
                 self.parent.svc_preview.set_zip_path(self.output_zip_path)
+
+            self.setVisible(True)  # Show widget after zip is created
 
         except Exception as e:
             QMessageBox.warning(
