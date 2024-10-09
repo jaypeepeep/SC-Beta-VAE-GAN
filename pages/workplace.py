@@ -10,6 +10,7 @@ from components.widget.output_widget import OutputWidget
 from components.widget.spin_box_widget import SpinBoxWidget
 from components.button.DragDrop_Button import DragDrop_Button
 from components.widget.result_preview_widget import SVCpreview
+from model import scbetavaegan
 import os
 import time
 import shutil
@@ -106,6 +107,8 @@ class Workplace(QtWidgets.QWidget):
                 print(f"File {file_path} does not exist and was skipped.")
 
         print(f"Files have been copied to {output_dir}")
+        
+        
 
         self.logger.info("Starting synthetic data generation...")
         
@@ -143,6 +146,13 @@ class Workplace(QtWidgets.QWidget):
                 "No input files uploaded to generate synthetic data",
                 QMessageBox.Ok
             )
+        print(self.uploaded_files)
+        self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, original_data_frames = scbetavaegan.upload_and_process_files(self.uploaded_files)
+
+        # # Store the name of the first file for use in Cell 4
+        self.input_filename = self.input_filenames[0] if self.input_filenames else 'processed_data'
+        print(f"Number of processed files: {len(self.processed_data)}") ##dito sa processed data naka_store
+        print(f"Average number of data points: {self.avg_data_points}")
     
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
