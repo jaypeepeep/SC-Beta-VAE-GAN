@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QColor
 from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_container_widget import FileContainerWidget
@@ -107,11 +107,42 @@ class Workplace(QtWidgets.QWidget):
 
         print(f"Files have been copied to {output_dir}")
 
-        # Trigger the expanding of collapsible widgets (as before)
-        QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
-        QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
-        QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
-
+        self.logger.info("Starting synthetic data generation...")
+        
+        # Simulate some processing steps with different log levels
+        self.logger.info("Checking input files...")
+        time.sleep(1) 
+        
+        if self.uploaded_files:
+            self.logger.info(f"Found {len(self.uploaded_files)} files to process")
+            
+            for i, file in enumerate(self.uploaded_files, 1):
+                self.logger.info(f"Processing file {i}: {os.path.basename(file)}")
+                time.sleep(0.5)
+                
+                # Simulate some potential warnings or errors
+                if i % 3 == 0:
+                    self.logger.warning(f"Warning: File {i} may contain inconsistent data")
+                if i % 5 == 0:
+                    self.logger.error(f"Error: Could not process some sections in file {i}")
+                
+            self.logger.info("Generating synthetic data...")
+            time.sleep(2)
+            self.logger.info("Synthetic data generation completed successfully!")
+            
+            # Expand output and result sections
+            QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
+            QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
+            QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
+            
+        else:
+            self.logger.warning("No input files found. Please upload files before generating data.")
+            QMessageBox.warning(
+                self,
+                'No Files',
+                "No input files uploaded to generate synthetic data",
+                QMessageBox.Ok
+            )
     
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
@@ -201,6 +232,7 @@ class Workplace(QtWidgets.QWidget):
         self.scroll_layout.addWidget(self.collapsible_widget_process_log)
 
         self.process_log_widget = ProcessLogWidget(self)
+        self.logger = self.process_log_widget.get_logger() 
         self.collapsible_widget_process_log.add_widget(self.process_log_widget)
 
     def setup_output_collapsible(self):
