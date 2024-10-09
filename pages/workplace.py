@@ -12,6 +12,7 @@ from components.button.DragDrop_Button import DragDrop_Button
 from components.widget.result_preview_widget import SVCpreview
 import os
 import time
+import shutil
 
 class Workplace(QtWidgets.QWidget):
 
@@ -83,11 +84,34 @@ class Workplace(QtWidgets.QWidget):
         self.gridLayout.addLayout(button_layout, 1, 0)
         
     def on_generate_data(self):
-        print("Synthetic data generated.")
+        # Generate a timestamp for the folder name
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        folder_name = f"SyntheticData_{timestamp}"
         
+        # Set the path where the folder will be created (you can customize this path)
+        output_dir = os.path.join(os.path.dirname(__file__), '../uploads', folder_name)
+        
+        # Create the folder if it doesn't exist
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # Copy each uploaded file to the new folder
+        for file_path in self.uploaded_files:
+            if os.path.exists(file_path):
+                file_name = os.path.basename(file_path)
+                destination_path = os.path.join(output_dir, file_name)
+                shutil.copy(file_path, destination_path)
+                print(f"Copied {file_name} to {destination_path}")
+            else:
+                print(f"File {file_path} does not exist and was skipped.")
+
+        print(f"Files have been copied to {output_dir}")
+
+        # Trigger the expanding of collapsible widgets (as before)
         QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
         QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
         QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
+
     
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
