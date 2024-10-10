@@ -15,6 +15,22 @@ import os
 import time
 import shutil
 
+import tensorflow as tf
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
+import random
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+from sklearn.model_selection import KFold
+from sklearn.metrics import accuracy_score
+from tensorflow.keras.models import load_model
+from keras.utils import custom_object_scope
+
 class Workplace(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
@@ -147,13 +163,215 @@ class Workplace(QtWidgets.QWidget):
                 QMessageBox.Ok
             )
         print(self.uploaded_files)
-        self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames = scbetavaegan.upload_and_process_files(self.uploaded_files)
+
+        self.num_files_to_use = 1
+        self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames = scbetavaegan.upload_and_process_files(self.uploaded_files, self.num_files_to_use)
 
         # # Store the name of the first file for use in Cell 4
         self.input_filename = self.input_filenames[0] if self.input_filenames else 'processed_data'
         print(f"Number of processed files: {len(self.processed_data)}") ##dito sa processed data naka_store
         print(f"Average number of data points: {self.avg_data_points}")
-    
+
+        for df_idx in range(len(self.data_frames)):
+            df = self.data_frames[df_idx]  # Using each DataFrame in the list
+
+            # Convert the 'timestamp' column to numeric for calculations (if not already done)
+            df['timestamp'] = pd.to_numeric(df['timestamp'])
+
+            # Sort the DataFrame by timestamp (should already be sorted in the function)
+            df.sort_values('timestamp', inplace=True)
+
+            # Calculate the differences between consecutive timestamps (optional for gap finding)
+            df['time_diff'] = df['timestamp'].diff()
+
+            # Identify the indices where the time difference is greater than 30,000 milliseconds
+            gap_indices = df.index[df['time_diff'] > 8].tolist()
+
+            # Create an empty list to hold the new rows
+            new_rows = []
+
+            # Fill in the gaps with 70 milliseconds intervals
+            for idx in gap_indices:
+                # Check if the next index is valid
+                if idx + 1 < len(df):
+                    # Get the current and next timestamps
+                    current_timestamp = df.at[idx, 'timestamp']
+                    next_timestamp = df.at[idx + 1, 'timestamp']
+
+                    # Calculate how many entries we need to fill in
+                    num_fill_entries = (next_timestamp - current_timestamp) // 7
+
+                    # Generate the timestamps to fill the gap
+                    for i in range(1, num_fill_entries + 1):
+                        new_timestamp = current_timestamp + i * 7
+
+                        # Create a new row to fill in with NaN for x and y
+                        new_row = {
+                            'x': np.nan,  # Set x to NaN
+                            'y': np.nan,  # Set y to NaN
+                            'timestamp': new_timestamp,
+                            'pen_status': 0,        # You can set this to your desired value
+                            'azimuth': df.at[idx, 'azimuth'],   # Use the current azimuth value
+                            'altitude': df.at[idx, 'altitude'], # Use the current altitude value
+                            'pressure': df.at[idx, 'pressure']  # Use the current pressure value
+                        }
+
+                        # Append the new row to the list of new rows
+                        new_rows.append(new_row)
+
+            # Create a DataFrame from the new rows
+            new_rows_df = pd.DataFrame(new_rows)
+
+            # Concatenate the original DataFrame with the new rows DataFrame
+            df = pd.concat([df, new_rows_df], ignore_index=True)
+
+            # Sort the DataFrame by timestamp to maintain order
+            df.sort_values('timestamp', inplace=True)
+
+            # Reset index after sorting
+            df.reset_index(drop=True, inplace=True)
+
+
+            # Check for NaN entries before interpolation
+            if df[['x', 'y']].isnull().any().any():
+                df[['x', 'y']] = df[['x', 'y']].interpolate(method='linear')
+
+            # Drop the 'time_diff' column after processing
+            df.drop(columns=['time_diff'], inplace=True)
+
+            # Update the processed data
+            self.data_frames[df_idx] = df
+
+        # Update processed data for all DataFrames
+        self.processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
+                        for df, scaler in zip(self.data_frames, self.scalers)]
+        self.avg_data_points = int(np.mean([df.shape[0] for df in self.data_frames]))
+
+        self.processed_dataframes = []
+
+        for input_filename, df in zip(self.input_filenames, self.data_frames):
+            # Convert all numeric columns to integers
+            df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
+            
+            # Append the processed DataFrame to the list
+            self.processed_dataframes.append(df)
+
+            print(f"Processed DataFrame for: {input_filename}")
+
+        # Use the processed_dataframes directly
+        self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.original_filenames = scbetavaegan.process_dataframes(self.processed_dataframes, self.num_files_to_use)
+        print(f"Number of processed files: {len(self.processed_data)}")
+        print(f"Average number of data points: {self.avg_data_points}")
+
+        # Parameters for VAE
+        self.latent_dim = 128
+        self.beta = 0.0001
+        self.learning_rate = 0.001
+
+        self.vae = scbetavaegan.VAE(self.latent_dim, self.beta) 
+        self.optimizer = scbetavaegan.tf.keras.optimizers.Adam(self.learning_rate)
+
+        # Initialize LSTM discriminator and optimizer
+        self.lstm_discriminator = scbetavaegan.LSTMDiscriminator()
+        self.lstm_optimizer = scbetavaegan.tf.keras.optimizers.Adam(self.learning_rate)
+
+        self.batch_size = 512
+        self.train_datasets = [scbetavaegan.tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(self.batch_size) for data in self.processed_data]
+
+        # Set up alternating epochs
+        self.vae_epochs = 200
+        self.lstm_interval = 50
+        self.epochs = 5
+        self.num_augmented_files = 1
+
+        self.generator_loss_history = []
+        self.reconstruction_loss_history = []
+        self.kl_loss_history = []
+        self.nrmse_history = []
+
+        self.save_dir = "vae_models"
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+
+        for epoch in range(self.epochs):
+            self.generator_loss = 0 
+            self.reconstruction_loss_sum = 0
+            self.kl_loss_sum = 0
+            self.num_batches = sum(len(dataset) for dataset in self.train_datasets)
+
+            with scbetavaegan.tqdm(total=self.num_batches, desc=f'Epoch {epoch+1}/{self.epochs}', unit='batch') as pbar:
+                for dataset in self.train_datasets:
+                    for batch in dataset:
+                        self.use_lstm = epoch >= self.vae_epochs and (epoch - self.vae_epochs) % self.lstm_interval == 0
+                        self.generator_loss_batch, self.reconstruction_loss, self.kl_loss = scbetavaegan.train_vae_step(self.vae, batch, self.optimizer, self.lstm_discriminator if self.use_lstm else None)
+                        self.generator_loss += self.generator_loss_batch
+                        self.reconstruction_loss_sum += self.reconstruction_loss
+                        self.kl_loss_sum += self.kl_loss
+                        pbar.update(1)
+                        pbar.set_postfix({'Generator Loss': float(self.generator_loss_batch), 'Reconstruction Loss': float(self.reconstruction_loss), 'KL Loss': float(self.kl_loss)})
+
+            # Train LSTM every `lstm_interval` epochs after `vae_epochs`
+            if epoch >= self.vae_epochs and (epoch - self.vae_epochs) % self.lstm_interval == 0:
+                for data in self.processed_data:
+                    self.augmented_data = self.vae.decode(scbetavaegan.tf.random.normal(shape=(data.shape[0], self.latent_dim))).numpy()
+                    self.real_data = scbetavaegan.tf.expand_dims(data, axis=0)
+                    self.generated_data = scbetavaegan.tf.expand_dims(self.augmented_data, axis=0)
+                    self.lstm_loss = scbetavaegan.train_lstm_step(self.lstm_discriminator, self.real_data, self.generated_data, self.lstm_optimizer)
+                print(f'LSTM training at epoch {epoch+1}: Discriminator Loss = {self.lstm_loss.numpy()}')
+
+
+            self.avg_generator_loss = self.generator_loss / self.num_batches  # Update the average calculation
+            self.avg_reconstruction_loss = self.reconstruction_loss_sum / self.num_batches
+            self.avg_kl_loss = self.kl_loss_sum / self.num_batches
+
+            self.generator_loss_history.append(self.avg_generator_loss)  # Update history list
+            self.reconstruction_loss_history.append(self.avg_reconstruction_loss)
+            self.kl_loss_history.append(self.avg_kl_loss)
+
+            # Calculate NRMSE
+            self.nrmse_sum = 0
+            for data in self.processed_data:
+                self.augmented_data = self.vae.decode(scbetavaegan.tf.random.normal(shape=(data.shape[0], self.latent_dim))).numpy()
+                self.rmse = np.sqrt(mean_squared_error(data[:, :2], self.augmented_data[:, :2]))
+                self.nrmse = self.rmse / (data[:, :2].max() - data[:, :2].min())
+                self.nrmse_sum += self.nrmse
+            
+            self.nrmse_avg = self.nrmse_sum / len(self.processed_data)
+
+            self.nrmse_history.append(self.nrmse_avg)
+
+            print(f"Epoch {epoch+1}: Generator Loss = {self.avg_generator_loss:.6f}, Reconstruction Loss = {self.avg_reconstruction_loss:.6f}, KL Divergence Loss = {self.avg_kl_loss:.6f}")
+            print(f"NRMSE = {self.nrmse_avg:.6f}")
+
+
+
+
+
+        self.vae.save('pentab_saved_model.h5')
+        print("Final VAE model saved.")
+
+        # Plot generator loss history
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.generator_loss_history, label='Generator Loss')  # Update label
+        plt.plot(self.reconstruction_loss_history, label='Reconstruction Loss')
+        plt.plot(self.kl_loss_history, label='KL Divergence Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.title('Training Loss Over Epochs')
+        plt.legend()
+        plt.show()
+
+        # Plot NRMSE history
+        plt.subplot(1, 3, 3)
+        plt.plot(self.nrmse_history, label='NRMSE')
+        plt.xlabel('Epoch')
+        plt.ylabel('NRMSE')
+        plt.title('Normalized Root Mean Squared Error Over Epochs')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()
+
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
         font = QtGui.QFont()

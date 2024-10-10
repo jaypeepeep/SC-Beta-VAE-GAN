@@ -176,7 +176,7 @@ def compute_loss(model, x):
 
 
 # Cell 7 (modified)
-def generate_augmented_data(model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
+def generate_augmented_data(data_frames, model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
     augmented_datasets = []
     num_input_files = len(processed_data)
     
