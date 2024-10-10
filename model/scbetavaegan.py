@@ -29,6 +29,10 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
     if num_files == 1:
         axs = [axs]
 
+     # Create the folder if it doesn't exist
+    output_folder = 'original_absolute'
+    os.makedirs(output_folder, exist_ok=True)
+
     for i, file_path in enumerate(uploaded_files):
         filename = os.path.basename(file_path)  # Extract the filename from the path
         input_filenames.append(filename)  # Store the filename
@@ -39,6 +43,9 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
         # Modify timestamp to start from 0
         df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
         
+        save_path = os.path.join(output_folder, filename)
+        df.to_csv(save_path, sep=' ', index=False, header=False)
+
         # Keep a copy of the original data before scaling
         original_data_frames.append(df.copy())  # Save the original unmodified data
         
@@ -255,6 +262,23 @@ def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
     return total_loss
 
 
+def repeat_backwards(original_paa, augmented_length):
+    # Calculate how many rows need to be filled
+    repeat_count = augmented_length - len(original_paa)
+
+    # If no rows need to be filled, return the original data
+    if repeat_count <= 0:
+        return original_paa
+
+    # Repeat the original data backwards row by row
+    backwards_rows = np.empty((0, original_paa.shape[1]))
+    for i in range(repeat_count):
+        row_to_repeat = original_paa[-(i + 1)]  # Get the i-th row from the end
+        backwards_rows = np.vstack((backwards_rows, row_to_repeat))
+
+    # Append the backward-repeated rows to the original data
+    return np.vstack((original_paa, backwards_rows))
+
 def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, axs):
     all_augmented_data = []  # List to store augmented datasets after scaling back
 
@@ -271,12 +295,9 @@ def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, 
         # Prepare pressure, azimuth, altitude data from original data
         original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
         
-        # If augmented data is longer, extend original_paa by repeating the last row
+        # If augmented data is longer, fill the original data by repeating values backwards
         if len(augmented_data) > len(original_paa):
-            last_row = original_paa[-1:]
-            repeat_count = len(augmented_data) - len(original_paa)
-            extended_rows = np.tile(last_row, (repeat_count, 1))
-            original_paa = np.vstack((original_paa, extended_rows))
+            original_paa = repeat_backwards(original_paa, len(augmented_data))
         
         # Round pressure, azimuth, altitude to integers
         original_paa_int = np.rint(original_paa).astype(int)
@@ -326,11 +347,9 @@ def download_augmented_data_as_integers(augmented_datasets, scalers, original_da
         original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
         
         # If augmented data is longer, extend original_paa by repeating the last row
+        # If augmented data is longer, fill the original data by repeating values backwards
         if len(augmented_data) > len(original_paa):
-            last_row = original_paa[-1:]
-            repeat_count = len(augmented_data) - len(original_paa)
-            extended_rows = np.tile(last_row, (repeat_count, 1))
-            original_paa = np.vstack((original_paa, extended_rows))
+            original_paa = repeat_backwards(original_paa, len(augmented_data))
         
         # Round pressure, azimuth, altitude to integers
         original_paa_int = np.rint(original_paa).astype(int)
