@@ -68,3 +68,288 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
     avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
 
     return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames  # Return original data
+
+def process_dataframes(dataframes, num_files_to_use=None):
+    if num_files_to_use:
+        dataframes = dataframes[:num_files_to_use]
+
+    data_frames = []
+    scalers = []
+
+    for i, df in enumerate(dataframes):
+        # Modify timestamp to start from 0
+        df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
+        
+        data_frames.append(df)
+        scaler = MinMaxScaler()
+        scaler.fit(df[['x', 'y', 'timestamp']])  # Fit the scaler
+        scalers.append(scaler)
+
+        # Print the first few rows of the timestamp column
+        # print(f"Modified timestamps for DataFrame {i + 1}:")
+        # print(df['timestamp'].head())
+        # print("\n")
+
+    processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
+                      for df, scaler in zip(data_frames, scalers)]
+    avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
+
+    return data_frames, processed_data, scalers, avg_data_points, [f"DataFrame_{i+1}" for i in range(len(dataframes))]
+
+class VAE(tf.keras.Model):
+    def __init__(self, latent_dim, beta=1.0, **kwargs):  # Added **kwargs to handle extra arguments
+        super(VAE, self).__init__(**kwargs)  # Pass kwargs to the parent class
+        self.latent_dim = latent_dim
+        self.beta = beta
+        self.encoder = tf.keras.Sequential([
+            tf.keras.layers.InputLayer(input_shape=(4,)),  # 4 for x, y, timestamp, pen_status
+            tf.keras.layers.Dense(128, activation='relu'),
+            tf.keras.layers.Dense(64, activation='relu'),
+            tf.keras.layers.Dense(32, activation='relu'),
+            tf.keras.layers.Dense(latent_dim * 2)
+        ])
+        self.decoder = tf.keras.Sequential([
+            tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
+            tf.keras.layers.Dense(32, activation='relu'),
+            tf.keras.layers.Dense(64, activation='relu'),
+            tf.keras.layers.Dense(128, activation='relu'),
+            tf.keras.layers.Dense(4)  # 4 for x, y, timestamp, pen_status
+        ])
+
+    def encode(self, x):
+        mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
+        return mean, logvar
+
+    def reparameterize(self, mean, logvar):
+        eps = tf.random.normal(shape=mean.shape)
+        return eps * tf.exp(logvar * .5) + mean
+
+    def decode(self, z):
+        decoded = self.decoder(z)
+        xy_timestamp = tf.sigmoid(decoded[:, :3])  # x, y, and timestamp
+        pen_status = tf.sigmoid(decoded[:, 3])
+        return tf.concat([xy_timestamp, tf.expand_dims(pen_status, -1)], axis=1)
+
+    def call(self, inputs):
+        mean, logvar = self.encode(inputs)
+        z = self.reparameterize(mean, logvar)
+        return self.decode(z), mean, logvar
+
+    @classmethod
+    def from_config(cls, config):
+        # Handle any unexpected keys like 'trainable' by removing them
+        config.pop('trainable', None)
+        config.pop('dtype', None)  # Also remove 'dtype' if included
+        return cls(**config)
+
+    def get_config(self):
+        config = super(VAE, self).get_config()
+        # Add the VAE-specific arguments
+        config.update({
+            'latent_dim': self.latent_dim,
+            'beta': self.beta
+        })
+        return config
+
+
+# New: LSTM Discriminator for GAN
+class LSTMDiscriminator(tf.keras.Model):
+    def __init__(self):
+        super(LSTMDiscriminator, self).__init__()
+        self.model = Sequential()
+        self.model.add(LSTM(64, return_sequences=True, input_shape=(None, 4)))  # LSTM for sequence learning
+        self.model.add(LSTM(32))
+        self.model.add(Dense(1, activation='sigmoid'))  # Binary classification
+
+    def call(self, x):
+        return self.model(x)
+
+
+# Function to compute VAE loss
+def compute_loss(model, x):
+    x_reconstructed, mean, logvar = model(x)
+    reconstruction_loss_xy_timestamp = tf.reduce_mean(tf.keras.losses.mse(x[:, :3], x_reconstructed[:, :3]))
+    reconstruction_loss_pen = tf.reduce_mean(tf.keras.losses.binary_crossentropy(x[:, 3], x_reconstructed[:, 3]))
+    kl_loss = -0.5 * tf.reduce_mean(1 + logvar - tf.square(mean) - tf.exp(logvar))
+    return reconstruction_loss_xy_timestamp + reconstruction_loss_pen, kl_loss, model.beta * kl_loss
+
+
+
+# Cell 7 (modified)
+def generate_augmented_data(model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
+    augmented_datasets = []
+    num_input_files = len(processed_data)
+    
+    for i in range(num_augmented_files):
+        selected_data = processed_data[i % num_input_files]
+        
+        # Retain original columns for pressure, azimuth, and altitude
+        original_data = data_frames[i % num_input_files]  # Use original unprocessed data
+        pressure_azimuth_altitude = original_data[['pressure', 'azimuth', 'altitude']].values
+        
+        # Determine the number of points for this augmented dataset
+        # num_points = int(avg_data_points * (1 + np.random.uniform(-length_variability, length_variability)))
+        latent_variability = base_latent_variability * np.random.uniform(latent_variability_range[0], latent_variability_range[1])
+        
+        # Encode and reparameterize
+        mean, logvar = model.encode(tf.convert_to_tensor(selected_data, dtype=tf.float32))
+        z = model.reparameterize(mean, logvar * latent_variability)
+        
+        augmented_data = model.decode(z).numpy()
+
+        # Post-process pen status
+        augmented_data[:, 3] = post_process_pen_status(augmented_data[:, 3])
+        
+        # Ensure timestamps are in sequence
+        augmented_data[:, 2] = np.sort(augmented_data[:, 2])
+        
+        # Append the pressure, azimuth, and altitude columns from the original data
+        augmented_data = np.column_stack((augmented_data, pressure_azimuth_altitude[:augmented_data.shape[0]]))
+        
+        augmented_datasets.append(augmented_data)
+
+    return augmented_datasets
+
+# The post_process_pen_status function remains unchanged
+def post_process_pen_status(pen_status, threshold=0.5, min_segment_length=5):
+    binary_pen_status = (pen_status > threshold).astype(int)
+    
+    # Smooth out rapid changes
+    for i in range(len(binary_pen_status) - min_segment_length):
+        if np.all(binary_pen_status[i:i+min_segment_length] == binary_pen_status[i]):
+            binary_pen_status[i:i+min_segment_length] = binary_pen_status[i]
+    
+    return binary_pen_status
+
+#Cell 8
+@tf.function
+def train_vae_step(model, x, optimizer, lstm_discriminator=None):
+    with tf.GradientTape() as tape:
+        x_reconstructed, mean, logvar = model(x)
+        reconstruction_loss, kl_loss, total_kl_loss = compute_loss(model, x)
+        
+        # Add LSTM discriminator loss if available
+        if lstm_discriminator is not None:
+            real_predictions = lstm_discriminator(tf.expand_dims(x, axis=0))
+            fake_predictions = lstm_discriminator(tf.expand_dims(x_reconstructed, axis=0))
+            discriminator_loss = tf.reduce_mean(tf.keras.losses.binary_crossentropy(tf.ones_like(real_predictions), real_predictions) +
+                                                tf.keras.losses.binary_crossentropy(tf.zeros_like(fake_predictions), fake_predictions))
+            generator_loss = reconstruction_loss + total_kl_loss + 0.1 * discriminator_loss  # Adjust the weight as needed
+        else:
+            generator_loss = reconstruction_loss + total_kl_loss
+    
+    gradients = tape.gradient(generator_loss, model.trainable_variables)
+    optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+    return generator_loss, reconstruction_loss, kl_loss
+
+@tf.function
+def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
+    with tf.GradientTape() as tape:
+        real_predictions = lstm_model(real_data)
+        generated_predictions = lstm_model(generated_data)
+        real_loss = tf.keras.losses.binary_crossentropy(tf.ones_like(real_predictions), real_predictions)
+        generated_loss = tf.keras.losses.binary_crossentropy(tf.zeros_like(generated_predictions), generated_predictions)
+        total_loss = real_loss + generated_loss
+    gradients = tape.gradient(total_loss, lstm_model.trainable_variables)
+    optimizer.apply_gradients(zip(gradients, lstm_model.trainable_variables))
+    return total_loss
+
+
+def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, axs):
+    all_augmented_data = []  # List to store augmented datasets after scaling back
+
+    for i, (augmented_data, scaler, original_df) in enumerate(zip(augmented_datasets, scalers, original_data_frames)):
+        # Inverse transform the augmented data
+        augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
+        
+        # Round to integers
+        augmented_xyz_int = np.rint(augmented_xyz).astype(int)
+        
+        # Get pen status from augmented data
+        pen_status = augmented_data[:, 3].astype(int)
+        
+        # Prepare pressure, azimuth, altitude data from original data
+        original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
+        
+        # If augmented data is longer, extend original_paa by repeating the last row
+        if len(augmented_data) > len(original_paa):
+            last_row = original_paa[-1:]
+            repeat_count = len(augmented_data) - len(original_paa)
+            extended_rows = np.tile(last_row, (repeat_count, 1))
+            original_paa = np.vstack((original_paa, extended_rows))
+        
+        # Round pressure, azimuth, altitude to integers
+        original_paa_int = np.rint(original_paa).astype(int)
+        
+        # Combine all data
+        augmented_data_original_scale = np.column_stack((
+            augmented_xyz_int,
+            pen_status,
+            original_paa_int[:len(augmented_data)]
+        ))
+        
+        # Store the augmented data for later use
+        all_augmented_data.append(augmented_data_original_scale)
+        
+        # Visualization of the augmented data (after inverse scaling)
+        augmented_on_paper = augmented_data_original_scale[augmented_data_original_scale[:, 3] == 1]
+        augmented_in_air = augmented_data_original_scale[augmented_data_original_scale[:, 3] == 0]
+
+        # Scatter plot for the augmented data, with rotated axes
+        axs[i + len(original_data_frames)].scatter(augmented_on_paper[:, 1], augmented_on_paper[:, 0], c='b', s=1, label='On Paper')  # y -> x, x -> y
+        axs[i + len(original_data_frames)].scatter(augmented_in_air[:, 1], augmented_in_air[:, 0], c='r', s=1, label='In Air')  # y -> x, x -> y
+        axs[i + len(original_data_frames)].set_title(f'Augmented Data {i + 1}')
+        axs[i + len(original_data_frames)].set_xlabel('y')  # Previously 'x'
+        axs[i + len(original_data_frames)].set_ylabel('x')  # Previously 'y'
+        axs[i + len(original_data_frames)].set_aspect('equal')
+        axs[i + len(original_data_frames)].invert_xaxis()  # Flip the horizontal axis (y-axis)
+        axs[i + len(original_data_frames)].legend()
+
+    return all_augmented_data  # Return the list of augmented datasets after scaling back
+
+# Cell 10 (modified to retain augmented data length)
+def download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, original_filenames, directory='augmented_data'):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    for i, (augmented_data, scaler, original_df, original_filename) in enumerate(zip(augmented_datasets, scalers, original_data_frames, original_filenames)):
+        # Inverse transform the augmented data
+        augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
+        
+        # Round to integers
+        augmented_xyz_int = np.rint(augmented_xyz).astype(int)
+        
+        # Get pen status from augmented data
+        pen_status = augmented_data[:, 3].astype(int)
+        
+        # Prepare pressure, azimuth, altitude data
+        original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
+        
+        # If augmented data is longer, extend original_paa by repeating the last row
+        if len(augmented_data) > len(original_paa):
+            last_row = original_paa[-1:]
+            repeat_count = len(augmented_data) - len(original_paa)
+            extended_rows = np.tile(last_row, (repeat_count, 1))
+            original_paa = np.vstack((original_paa, extended_rows))
+        
+        # Round pressure, azimuth, altitude to integers
+        original_paa_int = np.rint(original_paa).astype(int)
+        
+        # Combine all data
+        augmented_data_original_scale = np.column_stack((
+            augmented_xyz_int,
+            pen_status,
+            original_paa_int[:len(augmented_data)]
+        ))
+
+        # Construct the new file name to match the original file name
+        augmented_filename = f"augmented_{original_filename}"
+        augmented_file_path = os.path.join(directory, augmented_filename)
+
+        # Save the augmented data to a file
+        np.savetxt(augmented_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
+
+        print(f"Augmented data saved to {augmented_file_path}")
+        print(f"Shape of augmented data for {original_filename}: {augmented_data_original_scale.shape}")
+
+

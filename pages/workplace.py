@@ -147,7 +147,7 @@ class Workplace(QtWidgets.QWidget):
                 QMessageBox.Ok
             )
         print(self.uploaded_files)
-        self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, original_data_frames = scbetavaegan.upload_and_process_files(self.uploaded_files)
+        self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames = scbetavaegan.upload_and_process_files(self.uploaded_files)
 
         # # Store the name of the first file for use in Cell 4
         self.input_filename = self.input_filenames[0] if self.input_filenames else 'processed_data'
