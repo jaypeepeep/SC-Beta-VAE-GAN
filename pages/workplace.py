@@ -282,6 +282,7 @@ class Workplace(QtWidgets.QWidget):
         self.vae_epochs = 200
         self.lstm_interval = 50
         self.epochs = 5
+        self.visual_per_num_epoch = 5
         self.num_augmented_files = 1
 
         self.generator_loss_history = []
@@ -345,7 +346,56 @@ class Workplace(QtWidgets.QWidget):
 
 
 
+            # Cell 5 (visualization part)
+            if (epoch + 1) % self.visual_per_num_epoch == 0:
+                self.base_latent_variability = 100.0
+                self.latent_variability_range = (0.1, 5.0)
+                self.num_augmented_files = 3
 
+                self.augmented_datasets = scbetavaegan.generate_augmented_data(self.data_frames, self.vae, self.num_augmented_files, self.avg_data_points, self.processed_data, 
+                                                            self.base_latent_variability, self.latent_variability_range)
+
+                # Calculate actual latent variabilities and lengths used
+                self.latent_variabilities = [self.base_latent_variability * np.random.uniform(self.latent_variability_range[0], self.latent_variability_range[1]) for _ in range(self.num_augmented_files)]
+                self.augmented_lengths = [len(data) for data in self.augmented_datasets]
+
+                fig, axs = plt.subplots(1, self.num_augmented_files + len(self.original_data_frames), figsize=(6*(self.num_augmented_files + len(self.original_data_frames)), 6))
+
+                for i, original_data in enumerate(self.original_data_frames):
+                    self.original_on_paper = original_data[original_data['pen_status'] == 1]
+                    self.original_in_air = original_data[original_data['pen_status'] == 0]
+
+                    axs[i].scatter(self.original_on_paper['y'], self.original_on_paper['x'], c='b', s=1, label='On Paper')
+                    axs[i].scatter(self.original_in_air['y'], self.original_in_air['x'], c='r', s=1, label='In Air')
+                    axs[i].set_title(f'Original Data {i+1}')
+                    axs[i].invert_xaxis()
+
+                # Set consistent axis limits for square aspect ratio for both original and augmented data
+                self.x_min = min(data[:, 0].min() for data in self.processed_data)
+                self.x_max = max(data[:, 0].max() for data in self.processed_data)
+                self.y_min = min(data[:, 1].min() for data in self.processed_data)
+                self.y_max = max(data[:, 1].max() for data in self.processed_data)
+
+                for i, (self.augmented_data, self.latent_var, self.length) in enumerate(zip(self.augmented_datasets, self.latent_variabilities, self.augmented_lengths)):
+                    self.augmented_on_paper = self.augmented_data[self.augmented_data[:, 3] == 1]
+                    self.augmented_in_air = self.augmented_data[self.augmented_data[:, 3] == 0]
+
+                    axs[i+len(self.original_data_frames)].scatter(self.augmented_on_paper[:, 1], self.augmented_on_paper[:, 0], c='b', s=1, label='On Paper')
+                    axs[i+len(self.original_data_frames)].scatter(self.augmented_in_air[:, 1], self.augmented_in_air[:, 0], c='r', s=1, label='In Air')
+                    axs[i+len(self.original_data_frames)].invert_xaxis()
+                    axs[i+len(self.original_data_frames)].set_xlim(self.y_max, self.y_min)
+                    axs[i+len(self.original_data_frames)].set_ylim(self.x_min, self.x_max)
+
+                plt.tight_layout()
+                plt.show()
+                # Save VAE model after each epoch, directly into the `vae_models` folder
+                self.model_save_path = os.path.join(self.save_dir, f"epoch_{epoch+1}_model.h5")
+                self.vae.save(self.model_save_path)
+                print(f"VAE model saved for epoch {epoch+1} at {self.model_save_path}.")
+
+        # Final output and plots
+        plt.ioff()
+        plt.show()
 
         self.vae.save('pentab_saved_model.h5')
         print("Final VAE model saved.")
@@ -371,6 +421,9 @@ class Workplace(QtWidgets.QWidget):
 
         plt.tight_layout()
         plt.show()
+
+        # Example call to the function
+        scbetavaegan.download_augmented_data_as_integers(self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames)
 
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
