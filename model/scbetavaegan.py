@@ -67,8 +67,6 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
         axs[i].legend()
         axs[i].set_aspect('equal')
 
-    plt.show()
-
     # Process the data
     processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
                       for df, scaler in zip(data_frames, scalers)]
