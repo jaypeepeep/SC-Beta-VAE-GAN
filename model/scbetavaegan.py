@@ -183,7 +183,7 @@ def compute_loss(model, x):
 
 
 # Cell 7 (modified)
-def generate_augmented_data(model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
+def generate_augmented_data(data_frames, model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
     augmented_datasets = []
     num_input_files = len(processed_data)
     
@@ -329,7 +329,7 @@ def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, 
     return all_augmented_data  # Return the list of augmented datasets after scaling back
 
 # Cell 10 (modified to retain augmented data length)
-def download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, original_filenames, directory='augmented_data'):
+def download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, original_filenames, directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
