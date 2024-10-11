@@ -358,7 +358,7 @@ class GenerateDataWorker(QThread):
             
             # Start error
             with custom_object_scope({'VAE': scbetavaegan.VAE}):
-                self.vae_pretrained = load_model('../model/vae_models/epoch_200_model.h5')
+                self.vae_pretrained = load_model('model/vae_models/epoch_200_model.h5')
             print("Pretrained VAE model loaded.")
 
             # Base latent variability settings
