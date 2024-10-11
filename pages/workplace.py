@@ -51,6 +51,7 @@ class GenerateDataWorker(QThread):
 
     def run(self):
         try:
+            self.progress.emit("Starting data generation process...")
             # Move all the generation logic here
             timestamp = time.strftime("%Y%m%d-%H%M%S")
             folder_name = f"SyntheticData_{timestamp}"
@@ -60,13 +61,14 @@ class GenerateDataWorker(QThread):
 
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
+                self.progress.emit(f"Created output directory: {folder_name}")
 
+            self.progress.emit("Copying input files...")
             for file_path in self.uploaded_files:
                 if os.path.exists(file_path):
                     file_name = os.path.basename(file_path)
                     destination_path = os.path.join(output_dir, file_name)
                     shutil.copy(file_path, destination_path)
-                    self.progress.emit(f"Copied {file_name} to {destination_path}")
 
             self.progress.emit("Starting synthetic data generation...")
 
@@ -94,9 +96,7 @@ class GenerateDataWorker(QThread):
                 )
 
             else:
-                self.logger.warning(
-                    "No input files found. Please upload files before generating data."
-                )
+                self.progress.emit("Error: No input files found. Please upload files before generating data.")
                 QMessageBox.warning(
                     self,
                     "No Files",
@@ -105,6 +105,7 @@ class GenerateDataWorker(QThread):
                 )
             print(self.uploaded_files)
 
+            self.progress.emit("Starting data preprocessing...")
             self.num_files_to_use = len(self.uploaded_files)
             (
                 self.data_frames,
@@ -116,6 +117,7 @@ class GenerateDataWorker(QThread):
             ) = scbetavaegan.upload_and_process_files(
                 self.uploaded_files, self.num_files_to_use
             )
+            self.progress.emit(f"Preprocessed {len(self.processed_data)} files")
 
             # # Store the name of the first file for use in Cell 4
             self.input_filename = (
@@ -126,7 +128,9 @@ class GenerateDataWorker(QThread):
             )  ##dito sa processed data naka_store
             print(f"Average number of data points: {self.avg_data_points}")
 
+            self.progress.emit("Processing time series data and filling gaps...")
             for self.df_idx in range(len(self.data_frames)):
+                self.progress.emit(f"Processing file {self.df_idx + 1}/{len(self.data_frames)}")
                 self.df = self.data_frames[
                     self.df_idx
                 ]  # Using each DataFrame in the list
@@ -269,6 +273,9 @@ class GenerateDataWorker(QThread):
             print(f"Number of processed files: {len(self.processed_data)}")
             print(f"Average number of data points: {self.avg_data_points}")
 
+            self.progress.emit("Completed gap filling and interpolation")
+            self.progress.emit("Initializing VAE and LSTM models...")
+
             self.latent_dim = 128
             self.beta = 0.0001
             self.learning_rate = 0.001
@@ -296,7 +303,7 @@ class GenerateDataWorker(QThread):
             self.lstm_interval = 50
             self.epochs = 5
             self.visual_per_num_epoch = 5
-            self.num_augmented_files = 1
+            self.num_augmented_files = len(self.uploaded_files)
 
             self.generator_loss_history = []
             self.reconstruction_loss_history = []
@@ -307,7 +314,10 @@ class GenerateDataWorker(QThread):
             if not os.path.exists(self.save_dir):
                 os.makedirs(self.save_dir)
 
+            self.progress.emit("Starting model training...")
+
             for self.epoch in range(self.epochs):
+                self.progress.emit(f"Training epoch {self.epoch + 1}/{self.epochs}")
                 self.generator_loss = 0
                 self.reconstruction_loss_sum = 0
                 self.kl_loss_sum = 0
@@ -417,9 +427,10 @@ class GenerateDataWorker(QThread):
 
                 # Cell 5 (visualization part)
                 if (self.epoch + 1) % self.visual_per_num_epoch == 0:
+                    self.progress.emit(f"Generating visualizations for epoch {self.epoch + 1}")
                     self.base_latent_variability = 100.0
                     self.latent_variability_range = (0.1, 5.0)
-                    self.num_augmented_files = 3
+                    self.num_augmented_files = len(self.uploaded_files)
 
                     self.augmented_datasets = scbetavaegan.generate_augmented_data(
                         self.data_frames,
@@ -554,17 +565,20 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
 
+            self.progress.emit("Loading pretrained VAE model...")
             with custom_object_scope({"VAE": scbetavaegan.VAE}):
                 self.vae_pretrained = load_model("model/vae_models/epoch_200_model.h5")
             print("Pretrained VAE model loaded.")
+            self.progress.emit("Pretrained model loaded successfully")
 
 
             # Base latent variability settings
             self.base_latent_variability = 100.0
             self.latent_variability_range = (0.99, 1.01)
-            self.num_augmented_files = 3
+            self.num_augmented_files = len(self.uploaded_files)
 
             # Generate augmented data using the pretrained model
+            self.progress.emit("Generating synthetic data...")
             self.augmented_datasets = scbetavaegan.generate_augmented_data(
                 self.data_frames,
                 self.vae_pretrained,
@@ -574,6 +588,7 @@ class GenerateDataWorker(QThread):
                 self.base_latent_variability,
                 self.latent_variability_range,
             )
+            self.progress.emit(f"Generated {self.num_augmented_files} synthetic datasets")
 
             # Calculate actual latent variabilities and lengths used
             self.latent_variabilities = [
@@ -648,8 +663,7 @@ class GenerateDataWorker(QThread):
                 self.data["y"].max() for self.data in self.original_data_frames
             )
 
-            
-            # Start error
+        
 
             # Plot the augmented data with the same 90-degree left rotation and horizontal flip
             self.all_augmented_data = scbetavaegan.visualize_augmented_data(
@@ -661,10 +675,12 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
 
+            self.progress.emit("Saving augmented data...")
             self.all_augmented_filenames = scbetavaegan.download_augmented_data_with_modified_timestamp(self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames)
 
-            # End error
-            
+            self.progress.emit("Successfully saved all augmented data files")
+            self.progress.emit("Data generation process completed successfully!")
+
             self.finished.emit()
 
         except Exception as e:
