@@ -77,20 +77,6 @@ class GenerateDataWorker(QThread):
             if self.uploaded_files:
                 self.progress.emit(f"Found {len(self.uploaded_files)} files to process")
 
-                for i, file in enumerate(self.uploaded_files, 1):
-                    self.progress.emit(f"Processing file {i}: {os.path.basename(file)}")
-                    time.sleep(0.5)
-
-                    # Simulate some potential warnings or errors
-                    if i % 3 == 0:
-                        self.logger.warning(
-                            f"Warning: File {i} may contain inconsistent data"
-                        )
-                    if i % 5 == 0:
-                        self.logger.error(
-                            f"Error: Could not process some sections in file {i}"
-                        )
-
                 self.progress.emit("Generating synthetic data...")
                 time.sleep(2)
                 self.progress.emit("Synthetic data generation completed successfully!")
@@ -119,7 +105,7 @@ class GenerateDataWorker(QThread):
                 )
             print(self.uploaded_files)
 
-            self.num_files_to_use = 1
+            self.num_files_to_use = len(self.uploaded_files)
             (
                 self.data_frames,
                 self.processed_data,
@@ -175,7 +161,7 @@ class GenerateDataWorker(QThread):
 
                         # Generate the timestamps to fill the gap
                         for self.i in range(1, self.num_fill_entries + 1):
-                            self.new_timestamp = self.current_timestamp + i * 7
+                            self.new_timestamp = self.current_timestamp + self.i * 7
 
                             # Create a new row to fill in with NaN for x and y
                             self.new_row = {
@@ -289,17 +275,17 @@ class GenerateDataWorker(QThread):
             self.lambda_shift = 0.5
 
             self.vae = scbetavaegan.VAE(self.latent_dim, self.beta)
-            self.optimizer = scbetavaegan.tf.keras.optimizers.Adam(self.learning_rate)
+            self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
             # Initialize LSTM discriminator and optimizer
             self.lstm_discriminator = scbetavaegan.LSTMDiscriminator()
-            self.lstm_optimizer = scbetavaegan.tf.keras.optimizers.Adam(
+            self.lstm_optimizer = tf.keras.optimizers.Adam(
                 self.learning_rate
             )
 
             self.batch_size = 512
             self.train_datasets = [
-                scbetavaegan.tf.data.Dataset.from_tensor_slices(data)
+                tf.data.Dataset.from_tensor_slices(data)
                 .shuffle(10000)
                 .batch(self.batch_size)
                 for data in self.processed_data
@@ -372,12 +358,12 @@ class GenerateDataWorker(QThread):
                 ):
                     for self.data in self.processed_data:
                         self.augmented_data = self.vae.decode(
-                            scbetavaegan.tf.random.normal(
+                            tf.random.normal(
                                 shape=(self.data.shape[0], self.latent_dim)
                             )
                         ).numpy()
-                        self.real_data = scbetavaegan.tf.expand_dims(self.data, axis=0)
-                        self.generated_data = scbetavaegan.tf.expand_dims(
+                        self.real_data = tf.expand_dims(self.data, axis=0)
+                        self.generated_data = tf.expand_dims(
                             self.augmented_data, axis=0
                         )
                         self.lstm_loss = scbetavaegan.train_lstm_step(
@@ -408,7 +394,7 @@ class GenerateDataWorker(QThread):
                 self.nrmse_sum = 0
                 for self.data in self.processed_data:
                     self.augmented_data = self.vae.decode(
-                        scbetavaegan.tf.random.normal(
+                        tf.random.normal(
                             shape=(self.data.shape[0], self.latent_dim)
                         )
                     ).numpy()
@@ -481,30 +467,30 @@ class GenerateDataWorker(QThread):
                             self.original_data["pen_status"] == 0
                         ]
 
-                        self.axs[i].scatter(
+                        self.axs[self.i].scatter(
                             self.original_on_paper["y"],
                             self.original_on_paper["x"],
                             c="b",
                             s=1,
                             label="On Paper",
                         )
-                        self.axs[i].scatter(
+                        self.axs[self.i].scatter(
                             self.original_in_air["y"],
                             self.original_in_air["x"],
                             c="r",
                             s=1,
                             label="In Air",
                         )
-                        self.axs[i].set_title(f"Original Data {i+1}")
-                        self.axs[i].invert_xaxis()
+                        self.axs[self.i].set_title(f"Original Data {self.i+1}")
+                        self.axs[self.i].invert_xaxis()
 
                     # Set consistent axis limits for square aspect ratio for both original and augmented data
-                    self.x_min = min(data[:, 0].min() for data in self.processed_data)
-                    self.x_max = max(data[:, 0].max() for data in self.processed_data)
-                    self.y_min = min(data[:, 1].min() for data in self.processed_data)
-                    self.y_max = max(data[:, 1].max() for data in self.processed_data)
+                    self.x_min = min(self.data[:, 0].min() for self.data in self.processed_data)
+                    self.x_max = max(self.data[:, 0].max() for self.data in self.processed_data)
+                    self.y_min = min(self.data[:, 1].min() for self.data in self.processed_data)
+                    self.y_max = max(self.data[:, 1].max() for self.data in self.processed_data)
 
-                    for i, (
+                    for self.i, (
                         self.augmented_data,
                         self.latent_var,
                         self.length,
@@ -522,44 +508,29 @@ class GenerateDataWorker(QThread):
                             self.augmented_data[:, 3] == 0
                         ]
 
-                        self.axs[i + len(self.original_data_frames)].scatter(
+                        self.axs[self.i + len(self.original_data_frames)].scatter(
                             self.augmented_on_paper[:, 1],
                             self.augmented_on_paper[:, 0],
                             c="b",
                             s=1,
                             label="On Paper",
                         )
-                        self.axs[i + len(self.original_data_frames)].scatter(
+                        self.axs[self.i + len(self.original_data_frames)].scatter(
                             self.augmented_in_air[:, 1],
                             self.augmented_in_air[:, 0],
                             c="r",
                             s=1,
                             label="In Air",
                         )
-                        self.axs[i + len(self.original_data_frames)].invert_xaxis()
-                        self.axs[i + len(self.original_data_frames)].set_xlim(
+                        self.axs[self.i + len(self.original_data_frames)].invert_xaxis()
+                        self.axs[self.i + len(self.original_data_frames)].set_xlim(
                             self.y_max, self.y_min
                         )
-                        self.axs[i + len(self.original_data_frames)].set_ylim(
+                        self.axs[self.i + len(self.original_data_frames)].set_ylim(
                             self.x_min, self.x_max
                         )
 
                     plt.tight_layout()
-
-                    # Save VAE model after each epoch, directly into the `vae_models` folder
-                    self.model_save_path = os.path.join(
-                        self.save_dir, f"epoch_{self.epoch+1}_model.h5"
-                    )
-                    self.vae.save(self.model_save_path)
-                    print(
-                        f"VAE model saved for epoch {self.epoch+1} at {self.model_save_path}."
-                    )
-
-            # Final output and plots
-            plt.ioff()
-
-            self.vae.save("pentab_saved_model.h5")
-            print("Final VAE model saved.")
 
             # Plot generator loss history
             plt.figure(figsize=(10, 5))
@@ -583,10 +554,10 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
 
-            # Start error
             with custom_object_scope({"VAE": scbetavaegan.VAE}):
                 self.vae_pretrained = load_model("model/vae_models/epoch_200_model.h5")
             print("Pretrained VAE model loaded.")
+
 
             # Base latent variability settings
             self.base_latent_variability = 100.0
@@ -638,29 +609,29 @@ class GenerateDataWorker(QThread):
                 ]
 
                 # Scatter plot for the original data (before imputation), with rotated axes
-                self.axs[i].scatter(
+                self.axs[self.i].scatter(
                     self.original_on_paper["y"],
                     self.original_on_paper["x"],
                     c="b",
                     s=1,
                     label="On Paper",
                 )  # y -> x, x -> y
-                self.axs[i].scatter(
+                self.axs[self.i].scatter(
                     self.original_in_air["y"],
                     self.original_in_air["x"],
                     c="r",
                     s=1,
                     label="In Air",
                 )  # y -> x, x -> y
-                self.axs[i].set_title(f"Original Data {i + 1}")
-                self.axs[i].set_xlabel("y")  # Previously 'x'
-                self.axs[i].set_ylabel("x")  # Previously 'y'
-                self.axs[i].set_aspect("equal")
-                self.axs[i].legend()
+                self.axs[self.i].set_title(f"Original Data {self.i + 1}")
+                self.axs[self.i].set_xlabel("y")  # Previously 'x'
+                self.axs[self.i].set_ylabel("x")  # Previously 'y'
+                self.axs[self.i].set_aspect("equal")
+                self.axs[self.i].legend()
 
                 # Flip the horizontal axis (y-axis)
                 self.axs[
-                    i
+                    self.i
                 ].invert_xaxis()  # This reverses the 'y' axis to flip the plot horizontally
 
             # Set consistent axis limits for square aspect ratio for both original and augmented data
@@ -677,6 +648,9 @@ class GenerateDataWorker(QThread):
                 self.data["y"].max() for self.data in self.original_data_frames
             )
 
+            
+            # Start error
+
             # Plot the augmented data with the same 90-degree left rotation and horizontal flip
             self.all_augmented_data = scbetavaegan.visualize_augmented_data(
                 self.augmented_datasets,
@@ -687,8 +661,10 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
 
-            # End error
+            self.all_augmented_filenames = scbetavaegan.download_augmented_data_with_modified_timestamp(self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames)
 
+            # End error
+            
             self.finished.emit()
 
         except Exception as e:
