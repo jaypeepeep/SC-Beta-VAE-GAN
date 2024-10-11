@@ -186,28 +186,18 @@ def generate_augmented_data(data_frames, model, num_augmented_files, avg_data_po
     
     for i in range(num_augmented_files):
         selected_data = processed_data[i % num_input_files]
-        
-        # Retain original columns for pressure, azimuth, and altitude
-        original_data = data_frames[i % num_input_files]  # Use original unprocessed data
+        original_data = data_frames[i % num_input_files]
         pressure_azimuth_altitude = original_data[['pressure', 'azimuth', 'altitude']].values
         
-        # Determine the number of points for this augmented dataset
-        # num_points = int(avg_data_points * (1 + np.random.uniform(-length_variability, length_variability)))
         latent_variability = base_latent_variability * np.random.uniform(latent_variability_range[0], latent_variability_range[1])
         
-        # Encode and reparameterize
         mean, logvar = model.encode(tf.convert_to_tensor(selected_data, dtype=tf.float32))
         z = model.reparameterize(mean, logvar * latent_variability)
         
         augmented_data = model.decode(z).numpy()
 
-        # Post-process pen status
         augmented_data[:, 3] = post_process_pen_status(augmented_data[:, 3])
-        
-        # Ensure timestamps are in sequence
         augmented_data[:, 2] = np.sort(augmented_data[:, 2])
-        
-        # Append the pressure, azimuth, and altitude columns from the original data
         augmented_data = np.column_stack((augmented_data, pressure_azimuth_altitude[:augmented_data.shape[0]]))
         
         augmented_datasets.append(augmented_data)
