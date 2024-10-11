@@ -678,7 +678,7 @@ class GenerateDataWorker(QThread):
             plt.tight_layout()
 
             self.progress.emit("Saving augmented data...")
-            self.all_augmented_filenames = scbetavaegan.download_augmented_data_with_modified_timestamp(self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames)
+            self.all_augmented_filepaths = scbetavaegan.download_augmented_data_with_modified_timestamp(self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames)
 
             self.progress.emit("Successfully saved all augmented data files")
             self.progress.emit("Data generation process completed successfully!")
@@ -792,6 +792,8 @@ class Workplace(QtWidgets.QWidget):
         # Re-enable the generate button
         self.generate_data_button.setEnabled(True)
         self.generate_data_button.setText("Generate Synthetic Data")
+
+        self.update_output_file_display(self.worker.all_augmented_filepaths)
 
         # Clean up
         if self.worker:
@@ -1018,6 +1020,14 @@ class Workplace(QtWidgets.QWidget):
         # Automatically expand the preview collapsible widget if there are files
         if has_files:
             self.collapsible_widget_preview.toggle_container(True)
+
+
+    def update_output_file_display(self, all_augmented_filepaths):
+        """Update the display of files based on newly generated augmented files."""
+        for file_path in all_augmented_filepaths:
+            # Verify the file still exists before displaying it
+            if os.path.exists(file_path):
+                self.svc_preview.display_file_contents(file_path, 1)
 
     def add_more_files(self):
         self.file_upload_widget.open_file_dialog()
