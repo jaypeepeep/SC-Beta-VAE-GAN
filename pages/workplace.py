@@ -876,7 +876,7 @@ class Workplace(QtWidgets.QWidget):
         # Create a scrollable area to hold the file widgets
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
-        self.file_scroll_area.setMinimumHeight(150)
+        self.file_scroll_area.setMinimumHeight(0)
 
         # Create a container to hold the file widgets and its layout
         self.file_container_widget = QtWidgets.QWidget(self)
@@ -924,6 +924,19 @@ class Workplace(QtWidgets.QWidget):
     def setup_output_collapsible(self):
         self.collapsible_widget_output = CollapsibleWidget("Output", self)
         self.scroll_layout.addWidget(self.collapsible_widget_output)
+
+        # Create a scroll area for output files
+        self.output_scroll_area = QtWidgets.QScrollArea(self)
+        self.output_scroll_area.setWidgetResizable(True)
+
+
+        # Create a container to hold the file widgets and its layout
+        self.output_file_container_widget = QtWidgets.QWidget(self)
+        self.output_file_container_layout = QtWidgets.QVBoxLayout(self.output_file_container_widget)
+
+        # Add the output file container widget to the scroll area
+        self.output_scroll_area.setWidget(self.output_file_container_widget)
+        self.collapsible_widget_output.add_widget(self.output_scroll_area)
 
         self.output_widget = OutputWidget(self)
         self.output_widget.clearUI.connect(self.clear_all_ui)
@@ -1024,10 +1037,28 @@ class Workplace(QtWidgets.QWidget):
 
     def update_output_file_display(self, all_augmented_filepaths):
         """Update the display of files based on newly generated augmented files."""
+        # Clear existing widgets in the output file container layout
+        for i in reversed(range(self.output_file_container_layout.count())):
+            widget = self.output_file_container_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
+                self.output_file_container_layout.removeWidget(widget)
+
         for file_path in all_augmented_filepaths:
             # Verify the file still exists before displaying it
             if os.path.exists(file_path):
+                new_output_file_container = FileContainerWidget(file_path, self)
+                new_output_file_container.hide_retry_button()
+                new_output_file_container.hide_remove_button()
+                self.output_file_container_layout.addWidget(new_output_file_container)
+                
                 self.svc_preview.display_file_contents(file_path, 1)
+
+        # Ensure the output scroll area is visible
+        self.output_scroll_area.setVisible(True)
+
+        # Automatically expand the output collapsible widget
+        self.collapsible_widget_output.toggle_container(True)
 
     def add_more_files(self):
         self.file_upload_widget.open_file_dialog()

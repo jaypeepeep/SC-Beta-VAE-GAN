@@ -360,7 +360,7 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
         ))
 
         # Construct the new file name to match the original file name
-        augmented_filename = f"augmented_{original_filename}"
+        augmented_filename = f"synthetic_{original_filename}"
         augmented_file_path = os.path.join(directory, augmented_filename)
 
         all_augmented_filepath.append(augmented_file_path)
