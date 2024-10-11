@@ -771,6 +771,7 @@ class Workplace(QtWidgets.QWidget):
         self.gridLayout.addLayout(button_layout, 1, 0)
 
     def on_generate_data(self):
+        self.collapsible_widget_process_log.toggle_container(True)
         # Disable the generate button and change text
         self.generate_data_button.setEnabled(False)
         self.generate_data_button.setText("Generating...")
@@ -801,9 +802,6 @@ class Workplace(QtWidgets.QWidget):
             self.worker = None
 
         # Expand relevant sections
-        QtCore.QTimer.singleShot(
-            0, lambda: self.collapsible_widget_process_log.toggle_container(True)
-        )
         QtCore.QTimer.singleShot(
             3000, lambda: self.collapsible_widget_output.toggle_container(True)
         )
@@ -1032,6 +1030,7 @@ class Workplace(QtWidgets.QWidget):
 
         # Automatically expand the preview collapsible widget if there are files
         if has_files:
+            self.collapsible_model_container.toggle_container(True)
             self.collapsible_widget_preview.toggle_container(True)
 
 
