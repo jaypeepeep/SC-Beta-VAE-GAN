@@ -2,7 +2,11 @@ import subprocess
 import requests
 import os
 import sys
+import time
+import shutil
+import zipfile
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
@@ -14,8 +18,54 @@ from components.widget.file_container_widget import FileContainerWidget
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.spin_box_widget import SpinBoxWidget
 from components.widget.result_preview_widget import SVCpreview
-import time
-import shutil
+from pages.local import Local
+from model.scbetavaegan_pentab import (
+    upload_and_process_files,
+    generate_augmented_datasets,
+    load_pretrained_vae,
+    download_augmented_data_as_integers
+)
+
+class ModelTrainingThread(QThread):
+    finished = pyqtSignal()
+    log_signal = pyqtSignal(str)  # Signal to send log updates
+
+    def __init__(self, model, processed_data, data_frames, num_augmented_files, avg_data_points, scalers, original_data_frames, input_filenames, output_dir):
+        super().__init__()
+        self.model = model
+        self.processed_data = processed_data
+        self.data_frames = data_frames
+        self.num_augmented_files = num_augmented_files
+        self.avg_data_points = avg_data_points
+        self.scalers = scalers
+        self.original_data_frames = original_data_frames
+        self.input_filenames = input_filenames
+        self.output_dir = output_dir
+
+    def run(self):
+        self.log_signal.emit("Starting synthetic data generation...")
+        
+        # Generate augmented datasets
+        augmented_datasets = generate_augmented_datasets(
+            self.model, self.processed_data, self.data_frames, 
+            self.num_augmented_files, self.avg_data_points
+        )
+        self.log_signal.emit("Augmented datasets generated successfully.")
+        
+        # Save the augmented datasets to the uploads folder
+        download_augmented_data_as_integers(
+            augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames, directory=self.output_dir
+        )
+        
+        # Zip the augmented data
+        zip_path = os.path.join(self.output_dir, 'augmented_data.zip')
+        with zipfile.ZipFile(zip_path, 'w') as zipf:
+            for root, dirs, files in os.walk(self.output_dir):
+                for file in files:
+                    zipf.write(os.path.join(root, file), arcname=file)
+
+        self.log_signal.emit(f"Augmented data saved and zipped at {zip_path}")
+        self.finished.emit()
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -356,11 +406,44 @@ class Handwriting(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
         
     def on_generate_data(self):
-        print("Synthetic data generated.")
+        """Generate synthetic data and update the UI"""
+        num_augmented_files = self.spin_box_widget.value()  # Get number of augmented files
+
+        # Load the pre-trained VAE model
+        vae_model = load_pretrained_vae('../model/pentab_vae_models/final_vae_model.h5')
+
+        # Use the dynamic directory for file access
+        svc_directory = self.local_page.current_directory
+
+        # Start model training thread
+        self.model_thread = ModelTrainingThread(
+            vae_model, processed_data, data_frames,
+            num_augmented_files, avg_data_points,
+            scalers, original_data_frames, input_filenames
+        )
         
-        QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
-        QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
-        QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
+        self.model_thread.log_signal.connect(self.process_log_widget.append)  # Update process log
+        self.model_thread.finished.connect(self.on_training_finished)
+        self.model_thread.start()
+
+        self.generate_button.setEnabled(False)
+
+    def on_training_finished(self):
+        self.generate_button.setEnabled(True)
+
+        # Full path to the zip file
+        zip_path = os.path.join(self.local_page.current_directory, 'augmented_data.zip')
+
+        self.output_widget.setText(f"Synthetic data generated. Download here: {zip_path}")
+        self.process_log_widget.append(f"Synthetic data saved at {zip_path}")
+        self.update_results_widget(zip_path)
+
+    def update_results_widget(self, zip_path):
+        """Display the contents of the zip file in the Results widget."""
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            files = zip_ref.namelist()
+            for file in files:
+                self.results_widget.addItem(f"File: {file}")
 
 
     def show_reset_confirmation_dialog(self):
