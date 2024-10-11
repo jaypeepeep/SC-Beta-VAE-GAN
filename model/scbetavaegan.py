@@ -67,8 +67,6 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
         axs[i].legend()
         axs[i].set_aspect('equal')
 
-    plt.show()
-
     # Process the data
     processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
                       for df, scaler in zip(data_frames, scalers)]
@@ -104,12 +102,13 @@ def process_dataframes(dataframes, num_files_to_use=None):
     return data_frames, processed_data, scalers, avg_data_points, [f"DataFrame_{i+1}" for i in range(len(dataframes))]
 
 class VAE(tf.keras.Model):
-    def __init__(self, latent_dim, beta=1.0, **kwargs):  # Added **kwargs to handle extra arguments
-        super(VAE, self).__init__(**kwargs)  # Pass kwargs to the parent class
+    def __init__(self, latent_dim, beta=1.0, lambda_shift=0.01, **kwargs):
+        super(VAE, self).__init__(**kwargs)
         self.latent_dim = latent_dim
         self.beta = beta
+        self.lambda_shift = lambda_shift
         self.encoder = tf.keras.Sequential([
-            tf.keras.layers.InputLayer(input_shape=(4,)),  # 4 for x, y, timestamp, pen_status
+            tf.keras.layers.InputLayer(input_shape=(4,)),
             tf.keras.layers.Dense(128, activation='relu'),
             tf.keras.layers.Dense(64, activation='relu'),
             tf.keras.layers.Dense(32, activation='relu'),
@@ -120,7 +119,7 @@ class VAE(tf.keras.Model):
             tf.keras.layers.Dense(32, activation='relu'),
             tf.keras.layers.Dense(64, activation='relu'),
             tf.keras.layers.Dense(128, activation='relu'),
-            tf.keras.layers.Dense(4)  # 4 for x, y, timestamp, pen_status
+            tf.keras.layers.Dense(4)
         ])
 
     def encode(self, x):
@@ -129,11 +128,12 @@ class VAE(tf.keras.Model):
 
     def reparameterize(self, mean, logvar):
         eps = tf.random.normal(shape=mean.shape)
-        return eps * tf.exp(logvar * .5) + mean
+        # Apply shift correction
+        return eps * tf.exp(logvar * .5) + (mean + self.lambda_shift * tf.exp(logvar * .5))
 
     def decode(self, z):
         decoded = self.decoder(z)
-        xy_timestamp = tf.sigmoid(decoded[:, :3])  # x, y, and timestamp
+        xy_timestamp = tf.sigmoid(decoded[:, :3])
         pen_status = tf.sigmoid(decoded[:, 3])
         return tf.concat([xy_timestamp, tf.expand_dims(pen_status, -1)], axis=1)
 
@@ -144,17 +144,16 @@ class VAE(tf.keras.Model):
 
     @classmethod
     def from_config(cls, config):
-        # Handle any unexpected keys like 'trainable' by removing them
         config.pop('trainable', None)
-        config.pop('dtype', None)  # Also remove 'dtype' if included
+        config.pop('dtype', None)
         return cls(**config)
 
     def get_config(self):
         config = super(VAE, self).get_config()
-        # Add the VAE-specific arguments
         config.update({
             'latent_dim': self.latent_dim,
-            'beta': self.beta
+            'beta': self.beta,
+            'lambda_shift': self.lambda_shift
         })
         return config
 
@@ -180,10 +179,8 @@ def compute_loss(model, x):
     kl_loss = -0.5 * tf.reduce_mean(1 + logvar - tf.square(mean) - tf.exp(logvar))
     return reconstruction_loss_xy_timestamp + reconstruction_loss_pen, kl_loss, model.beta * kl_loss
 
-
-
 # Cell 7 (modified)
-def generate_augmented_data(model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
+def generate_augmented_data(data_frames, model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
     augmented_datasets = []
     num_input_files = len(processed_data)
     
@@ -329,7 +326,7 @@ def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, 
     return all_augmented_data  # Return the list of augmented datasets after scaling back
 
 # Cell 10 (modified to retain augmented data length)
-def download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, original_filenames, directory='augmented_data'):
+def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
@@ -346,15 +343,24 @@ def download_augmented_data_as_integers(augmented_datasets, scalers, original_da
         # Prepare pressure, azimuth, altitude data
         original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
         
-        # If augmented data is longer, extend original_paa by repeating the last row
-        # If augmented data is longer, fill the original data by repeating values backwards
         if len(augmented_data) > len(original_paa):
             original_paa = repeat_backwards(original_paa, len(augmented_data))
         
         # Round pressure, azimuth, altitude to integers
         original_paa_int = np.rint(original_paa).astype(int)
         
-        # Combine all data
+        # Generate new timestamps: start at 0, alternately incrementing by 7 and 8
+        new_timestamps = np.zeros(len(augmented_data), dtype=int)
+        increment_sequence = [7, 8]
+        current_time = 0
+        for idx in range(len(augmented_data)):
+            new_timestamps[idx] = current_time
+            current_time += increment_sequence[idx % 2]  # Alternate between 7 and 8
+
+        # Replace the timestamp in the 3rd column of augmented_xyz_int
+        augmented_xyz_int[:, 2] = new_timestamps
+
+        # Combine all data: XYZ, pen status, pressure, azimuth, altitude
         augmented_data_original_scale = np.column_stack((
             augmented_xyz_int,
             pen_status,

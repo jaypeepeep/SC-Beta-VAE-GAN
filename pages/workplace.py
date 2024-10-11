@@ -15,12 +15,410 @@ import os
 import time
 import shutil
 
+import tensorflow as tf
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
+import random
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+from sklearn.model_selection import KFold
+from sklearn.metrics import accuracy_score
+from tensorflow.keras.models import load_model
+from keras.utils import custom_object_scope
+
+from PyQt5.QtCore import QThread, pyqtSignal
+import traceback
+
+class GenerateDataWorker(QThread):
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+    progress = pyqtSignal(str)  # For logging progress
+    
+    def __init__(self, workplace):
+        super().__init__()
+        self.workplace = workplace
+        self.uploaded_files = workplace.uploaded_files
+        
+    def run(self):
+        try:
+            # Move all the generation logic here
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            folder_name = f"SyntheticData_{timestamp}"
+            output_dir = os.path.join(os.path.dirname(__file__), '../uploads', folder_name)
+            
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            for file_path in self.uploaded_files:
+                if os.path.exists(file_path):
+                    file_name = os.path.basename(file_path)
+                    destination_path = os.path.join(output_dir, file_name)
+                    shutil.copy(file_path, destination_path)
+                    self.progress.emit(f"Copied {file_name} to {destination_path}")
+
+            self.progress.emit("Starting synthetic data generation...")
+            
+            # Simulate some processing steps with different log levels
+            self.progress.emit("Checking input files...")
+            time.sleep(1) 
+            
+            if self.uploaded_files:
+                self.progress.emit(f"Found {len(self.uploaded_files)} files to process")
+                
+                for i, file in enumerate(self.uploaded_files, 1):
+                    self.progress.emit(f"Processing file {i}: {os.path.basename(file)}")
+                    time.sleep(0.5)
+                    
+                    # Simulate some potential warnings or errors
+                    if i % 3 == 0:
+                        self.logger.warning(f"Warning: File {i} may contain inconsistent data")
+                    if i % 5 == 0:
+                        self.logger.error(f"Error: Could not process some sections in file {i}")
+                    
+                self.progress.emit("Generating synthetic data...")
+                time.sleep(2)
+                self.progress.emit("Synthetic data generation completed successfully!")
+                
+                # Expand output and result sections
+                QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
+                QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
+                QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
+                
+            else:
+                self.logger.warning("No input files found. Please upload files before generating data.")
+                QMessageBox.warning(
+                    self,
+                    'No Files',
+                    "No input files uploaded to generate synthetic data",
+                    QMessageBox.Ok
+                )
+            print(self.uploaded_files)
+
+            self.num_files_to_use = 1
+            self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames = scbetavaegan.upload_and_process_files(self.uploaded_files, self.num_files_to_use)
+
+            # # Store the name of the first file for use in Cell 4
+            self.input_filename = self.input_filenames[0] if self.input_filenames else 'processed_data'
+            print(f"Number of processed files: {len(self.processed_data)}") ##dito sa processed data naka_store
+            print(f"Average number of data points: {self.avg_data_points}")
+
+            for self.df_idx in range(len(self.data_frames)):
+                self.df = self.data_frames[self.df_idx]  # Using each DataFrame in the list
+
+                # Convert the 'timestamp' column to numeric for calculations (if not already done)
+                self.df['timestamp'] = pd.to_numeric(self.df['timestamp'])
+
+                # Sort the DataFrame by timestamp (should already be sorted in the function)
+                self.df.sort_values('timestamp', inplace=True)
+
+                # Calculate the differences between consecutive timestamps (optional for gap finding)
+                self.df['time_diff'] = self.df['timestamp'].diff()
+
+                # Identify the indices where the time difference is greater than 30,000 milliseconds
+                self.gap_indices = self.df.index[self.df['time_diff'] > 8].tolist()
+
+                # Create an empty list to hold the new rows
+                self.new_rows = []
+
+                # Fill in the gaps with 70 milliseconds intervals
+                for self.idx in self.gap_indices:
+                    # Check if the next index is valid
+                    if self.idx + 1 < len(self.df):
+                        # Get the current and next timestamps
+                        self.current_timestamp = self.df.at[self.idx, 'timestamp']
+                        self.next_timestamp = self.df.at[self.idx + 1, 'timestamp']
+
+                        # Calculate how many entries we need to fill in
+                        self.num_fill_entries = (self.next_timestamp - self.current_timestamp) // 7
+
+                        # Generate the timestamps to fill the gap
+                        for self.i in range(1, self.num_fill_entries + 1):
+                            self.new_timestamp = self.current_timestamp + i * 7
+
+                            # Create a new row to fill in with NaN for x and y
+                            self.new_row = {
+                                'x': np.nan,  # Set x to NaN
+                                'y': np.nan,  # Set y to NaN
+                                'timestamp': self.new_timestamp,
+                                'pen_status': 0,        # You can set this to your desired value
+                                'azimuth': self.df.at[self.idx, 'azimuth'],   # Use the current azimuth value
+                                'altitude': self.df.at[self.idx, 'altitude'], # Use the current altitude value
+                                'pressure': self.df.at[self.idx, 'pressure']  # Use the current pressure value
+                            }
+
+                            # Append the new row to the list of new rows
+                            self.new_rows.append(self.new_row)
+
+                # Create a DataFrame from the new rows
+                self.new_rows_df = pd.DataFrame(self.new_rows)
+
+                # Concatenate the original DataFrame with the new rows DataFrame
+                self.df = pd.concat([self.df, self.new_rows_df], ignore_index=True)
+
+                # Sort the DataFrame by timestamp to maintain order
+                self.df.sort_values('timestamp', inplace=True)
+
+                # Reset index after sorting
+                self.df.reset_index(drop=True, inplace=True)
+
+
+                # Check for NaN entries before interpolation
+                if self.df[['x', 'y']].isnull().any().any():
+                    self.df[['x', 'y']] = self.df[['x', 'y']].interpolate(method='linear')
+
+                # Drop the 'time_diff' column after processing
+                self.df.drop(columns=['time_diff'], inplace=True)
+
+                # Update the processed data
+                self.data_frames[self.df_idx] = self.df
+
+            # Update processed data for all DataFrames
+            self.processed_data = [np.column_stack((self.scaler.transform(self.df[['x', 'y', 'timestamp']]), self.df['pen_status'].values)) 
+                            for self.df, self.scaler in zip(self.data_frames, self.scalers)]
+            self.avg_data_points = int(np.mean([self.df.shape[0] for self.df in self.data_frames]))
+
+            self.processed_dataframes = []
+
+            for self.input_filename, self.df in zip(self.input_filenames, self.data_frames):
+                # Convert all numeric columns to integers
+                self.df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = self.df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
+                
+                # Append the processed DataFrame to the list
+                self.processed_dataframes.append(self.df)
+
+                print(f"Processed DataFrame for: {self.input_filename}")
+
+            # Use the processed_dataframes directly
+            self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.original_filenames = scbetavaegan.process_dataframes(self.processed_dataframes, self.num_files_to_use)
+            print(f"Number of processed files: {len(self.processed_data)}")
+            print(f"Average number of data points: {self.avg_data_points}")
+
+            self.latent_dim = 128
+            self.beta = 0.0001
+            self.learning_rate = 0.001
+            self.lambda_shift = 0.5
+
+            self.vae = scbetavaegan.VAE(self.latent_dim, self.beta)
+            self.optimizer = scbetavaegan.tf.keras.optimizers.Adam(self.learning_rate)
+
+            # Initialize LSTM discriminator and optimizer
+            self.lstm_discriminator = scbetavaegan.LSTMDiscriminator()
+            self.lstm_optimizer = scbetavaegan.tf.keras.optimizers.Adam(self.learning_rate)
+
+            self.batch_size = 512
+            self.train_datasets = [scbetavaegan.tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(self.batch_size) for data in self.processed_data]
+
+            # Set up alternating epochs
+            self.vae_epochs = 200
+            self.lstm_interval = 50
+            self.epochs = 5
+            self.visual_per_num_epoch = 5
+            self.num_augmented_files = 1
+
+            self.generator_loss_history = []
+            self.reconstruction_loss_history = []
+            self.kl_loss_history = []
+            self.nrmse_history = []
+
+            self.save_dir = "vae_models"
+            if not os.path.exists(self.save_dir):
+                os.makedirs(self.save_dir)
+
+            for self.epoch in range(self.epochs):
+                self.generator_loss = 0 
+                self.reconstruction_loss_sum = 0
+                self.kl_loss_sum = 0
+                self.num_batches = sum(len(self.dataset) for self.dataset in self.train_datasets)
+
+                with scbetavaegan.tqdm(total=self.num_batches, desc=f'Epoch {self.epoch+1}/{self.epochs}', unit='batch') as pbar:
+                    for dataset in self.train_datasets:
+                        for self.batch in dataset:
+                            self.use_lstm = self.epoch >= self.vae_epochs and (self.epoch - self.vae_epochs) % self.lstm_interval == 0
+                            self.generator_loss_batch, self.reconstruction_loss, self.kl_loss = scbetavaegan.train_vae_step(self.vae, self.batch, self.optimizer, self.lstm_discriminator if self.use_lstm else None)
+                            self.generator_loss += self.generator_loss_batch
+                            self.reconstruction_loss_sum += self.reconstruction_loss
+                            self.kl_loss_sum += self.kl_loss
+                            pbar.update(1)
+                            pbar.set_postfix({'Generator Loss': float(self.generator_loss_batch), 'Reconstruction Loss': float(self.reconstruction_loss), 'KL Loss': float(self.kl_loss)})
+
+                # Train LSTM every `lstm_interval` epochs after `vae_epochs`
+                if self.epoch >= self.vae_epochs and (self.epoch - self.vae_epochs) % self.lstm_interval == 0:
+                    for self.data in self.processed_data:
+                        self.augmented_data = self.vae.decode(scbetavaegan.tf.random.normal(shape=(self.data.shape[0], self.latent_dim))).numpy()
+                        self.real_data = scbetavaegan.tf.expand_dims(self.data, axis=0)
+                        self.generated_data = scbetavaegan.tf.expand_dims(self.augmented_data, axis=0)
+                        self.lstm_loss = scbetavaegan.train_lstm_step(self.lstm_discriminator, self.real_data, self.generated_data, self.lstm_optimizer)
+                    print(f'LSTM training at epoch {self.epoch+1}: Discriminator Loss = {self.lstm_loss.numpy()}')
+
+
+                self.avg_generator_loss = self.generator_loss / self.num_batches  # Update the average calculation
+                self.avg_reconstruction_loss = self.reconstruction_loss_sum / self.num_batches
+                self.avg_kl_loss = self.kl_loss_sum / self.num_batches
+
+                self.generator_loss_history.append(self.avg_generator_loss)  # Update history list
+                self.reconstruction_loss_history.append(self.avg_reconstruction_loss)
+                self.kl_loss_history.append(self.avg_kl_loss)
+
+                # Calculate NRMSE
+                self.nrmse_sum = 0
+                for self.data in self.processed_data:
+                    self.augmented_data = self.vae.decode(scbetavaegan.tf.random.normal(shape=(self.data.shape[0], self.latent_dim))).numpy()
+                    self.rmse = np.sqrt(mean_squared_error(self.data[:, :2], self.augmented_data[:, :2]))
+                    self.nrmse = self.rmse / (self.data[:, :2].max() - self.data[:, :2].min())
+                    self.nrmse_sum += self.nrmse
+                
+                self.nrmse_avg = self.nrmse_sum / len(self.processed_data)
+
+                self.nrmse_history.append(self.nrmse_avg)
+
+                print(f"Epoch {self.epoch+1}: Generator Loss = {self.avg_generator_loss:.6f}, Reconstruction Loss = {self.avg_reconstruction_loss:.6f}, KL Divergence Loss = {self.avg_kl_loss:.6f}")
+                print(f"NRMSE = {self.nrmse_avg:.6f}")
+
+
+
+                # Cell 5 (visualization part)
+                if (self.epoch + 1) % self.visual_per_num_epoch == 0:
+                    self.base_latent_variability = 100.0
+                    self.latent_variability_range = (0.1, 5.0)
+                    self.num_augmented_files = 3
+
+                    self.augmented_datasets = scbetavaegan.generate_augmented_data(self.data_frames, self.vae, self.num_augmented_files, self.avg_data_points, self.processed_data, 
+                                                                self.base_latent_variability, self.latent_variability_range)
+
+                    # Calculate actual latent variabilities and lengths used
+                    self.latent_variabilities = [self.base_latent_variability * np.random.uniform(self.latent_variability_range[0], self.latent_variability_range[1]) for _ in range(self.num_augmented_files)]
+                    self.augmented_lengths = [len(self.data) for self.data in self.augmented_datasets]
+
+                    self.fig, self.axs = plt.subplots(1, self.num_augmented_files + len(self.original_data_frames), figsize=(6*(self.num_augmented_files + len(self.original_data_frames)), 6))
+
+                    for self.i, self.original_data in enumerate(self.original_data_frames):
+                        self.original_on_paper = self.original_data[self.original_data['pen_status'] == 1]
+                        self.original_in_air = self.original_data[self.original_data['pen_status'] == 0]
+
+                        self.axs[i].scatter(self.original_on_paper['y'], self.original_on_paper['x'], c='b', s=1, label='On Paper')
+                        self.axs[i].scatter(self.original_in_air['y'], self.original_in_air['x'], c='r', s=1, label='In Air')
+                        self.axs[i].set_title(f'Original Data {i+1}')
+                        self.axs[i].invert_xaxis()
+
+                    # Set consistent axis limits for square aspect ratio for both original and augmented data
+                    self.x_min = min(data[:, 0].min() for data in self.processed_data)
+                    self.x_max = max(data[:, 0].max() for data in self.processed_data)
+                    self.y_min = min(data[:, 1].min() for data in self.processed_data)
+                    self.y_max = max(data[:, 1].max() for data in self.processed_data)
+
+                    for i, (self.augmented_data, self.latent_var, self.length) in enumerate(zip(self.augmented_datasets, self.latent_variabilities, self.augmented_lengths)):
+                        self.augmented_on_paper = self.augmented_data[self.augmented_data[:, 3] == 1]
+                        self.augmented_in_air = self.augmented_data[self.augmented_data[:, 3] == 0]
+
+                        self.axs[i+len(self.original_data_frames)].scatter(self.augmented_on_paper[:, 1], self.augmented_on_paper[:, 0], c='b', s=1, label='On Paper')
+                        self.axs[i+len(self.original_data_frames)].scatter(self.augmented_in_air[:, 1], self.augmented_in_air[:, 0], c='r', s=1, label='In Air')
+                        self.axs[i+len(self.original_data_frames)].invert_xaxis()
+                        self.axs[i+len(self.original_data_frames)].set_xlim(self.y_max, self.y_min)
+                        self.axs[i+len(self.original_data_frames)].set_ylim(self.x_min, self.x_max)
+
+                    plt.tight_layout()
+                    
+                    # Save VAE model after each epoch, directly into the `vae_models` folder
+                    self.model_save_path = os.path.join(self.save_dir, f"epoch_{self.epoch+1}_model.h5")
+                    self.vae.save(self.model_save_path)
+                    print(f"VAE model saved for epoch {self.epoch+1} at {self.model_save_path}.")
+
+            # Final output and plots
+            plt.ioff()
+            
+
+            self.vae.save('pentab_saved_model.h5')
+            print("Final VAE model saved.")
+
+            # Plot generator loss history
+            plt.figure(figsize=(10, 5))
+            plt.plot(self.generator_loss_history, label='Generator Loss')  # Update label
+            plt.plot(self.reconstruction_loss_history, label='Reconstruction Loss')
+            plt.plot(self.kl_loss_history, label='KL Divergence Loss')
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.title('Training Loss Over Epochs')
+            plt.legend()
+            
+
+            # Plot NRMSE history
+            plt.subplot(1, 3, 3)
+            plt.plot(self.nrmse_history, label='NRMSE')
+            plt.xlabel('Epoch')
+            plt.ylabel('NRMSE')
+            plt.title('Normalized Root Mean Squared Error Over Epochs')
+            plt.legend()
+
+            plt.tight_layout()
+            
+            # Start error
+            with custom_object_scope({'VAE': scbetavaegan.VAE}):
+                self.vae_pretrained = load_model('../model/vae_models/epoch_200_model.h5')
+            print("Pretrained VAE model loaded.")
+
+            # Base latent variability settings
+            self.base_latent_variability = 100.0
+            self.latent_variability_range = (0.99, 1.01)
+            self.num_augmented_files = 3
+
+            # Generate augmented data using the pretrained model
+            self.augmented_datasets = scbetavaegan.generate_augmented_data(self.vae_pretrained, self.num_augmented_files, self.avg_data_points, self.processed_data, 
+                                                        self.base_latent_variability, self.latent_variability_range)
+
+            # Calculate actual latent variabilities and lengths used
+            self.latent_variabilities = [self.base_latent_variability * np.random.uniform(self.latent_variability_range[0], self.latent_variability_range[1]) for _ in range(self.num_augmented_files)]
+            self.augmented_lengths = [len(self.data) for self.data in self.augmented_datasets]
+
+            # Visualize the original and augmented data side by side
+            self.fig, self.axs = plt.subplots(1, self.num_augmented_files + len(self.original_data_frames), figsize=(6 * (self.num_augmented_files + len(self.original_data_frames)), 6))
+
+            # Plot the original data before imputation, with a 90-degree left rotation and horizontal flip
+            for self.i, self.original_data in enumerate(self.original_data_frames):  # Use original_data_frames for raw data visualization
+                self.original_on_paper = self.original_data[self.original_data['pen_status'] == 1]
+                self.original_in_air = self.original_data[self.original_data['pen_status'] == 0]
+                
+                # Scatter plot for the original data (before imputation), with rotated axes
+                self.axs[i].scatter(self.original_on_paper['y'], self.original_on_paper['x'], c='b', s=1, label='On Paper')  # y -> x, x -> y
+                self.axs[i].scatter(self.original_in_air['y'], self.original_in_air['x'], c='r', s=1, label='In Air')  # y -> x, x -> y
+                self.axs[i].set_title(f'Original Data {i + 1}')
+                self.axs[i].set_xlabel('y')  # Previously 'x'
+                self.axs[i].set_ylabel('x')  # Previously 'y'
+                self.axs[i].set_aspect('equal')
+                self.axs[i].legend()
+                
+                # Flip the horizontal axis (y-axis)
+                self.axs[i].invert_xaxis()  # This reverses the 'y' axis to flip the plot horizontally
+
+            # Set consistent axis limits for square aspect ratio for both original and augmented data
+            self.x_min = min(self.data['x'].min() for self.data in self.original_data_frames)
+            self.x_max = max(self.data['x'].max() for self.data in self.original_data_frames)
+            self.y_min = min(self.data['y'].min() for self.data in self.original_data_frames)
+            self.y_max = max(self.data['y'].max() for self.data in self.original_data_frames)
+
+            # Plot the augmented data with the same 90-degree left rotation and horizontal flip
+            self.all_augmented_data = scbetavaegan.visualize_augmented_data(self.augmented_datasets, self.scalers, self.original_data_frames, self.axs)
+
+            plt.tight_layout()
+            
+            # End error
+                
+            self.finished.emit()
+            
+        except Exception as e:
+            self.error.emit(str(e) + "\n" + traceback.format_exc())
+
 class Workplace(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super(Workplace, self).__init__(parent)
         self.uploaded_files = []
         self.setupUi()
+        self.worker = None
         
 
     def setupUi(self):
@@ -85,75 +483,56 @@ class Workplace(QtWidgets.QWidget):
         self.gridLayout.addLayout(button_layout, 1, 0)
         
     def on_generate_data(self):
-        # Generate a timestamp for the folder name
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        folder_name = f"SyntheticData_{timestamp}"
+        # Disable the generate button and change text
+        self.generate_data_button.setEnabled(False)
+        self.generate_data_button.setText("Generating...")
         
-        # Set the path where the folder will be created (you can customize this path)
-        output_dir = os.path.join(os.path.dirname(__file__), '../uploads', folder_name)
+        # Create and start the worker thread
+        self.worker = GenerateDataWorker(self)
         
-        # Create the folder if it doesn't exist
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        # Copy each uploaded file to the new folder
-        for file_path in self.uploaded_files:
-            if os.path.exists(file_path):
-                file_name = os.path.basename(file_path)
-                destination_path = os.path.join(output_dir, file_name)
-                shutil.copy(file_path, destination_path)
-                print(f"Copied {file_name} to {destination_path}")
-            else:
-                print(f"File {file_path} does not exist and was skipped.")
-
-        print(f"Files have been copied to {output_dir}")
+        # Connect signals
+        self.worker.finished.connect(self.on_generation_complete)
+        self.worker.error.connect(self.on_generation_error)
+        self.worker.progress.connect(self.logger.info)  # Connect directly to logger.info
         
-        
-
-        self.logger.info("Starting synthetic data generation...")
-        
-        # Simulate some processing steps with different log levels
-        self.logger.info("Checking input files...")
-        time.sleep(1) 
-        
-        if self.uploaded_files:
-            self.logger.info(f"Found {len(self.uploaded_files)} files to process")
-            
-            for i, file in enumerate(self.uploaded_files, 1):
-                self.logger.info(f"Processing file {i}: {os.path.basename(file)}")
-                time.sleep(0.5)
-                
-                # Simulate some potential warnings or errors
-                if i % 3 == 0:
-                    self.logger.warning(f"Warning: File {i} may contain inconsistent data")
-                if i % 5 == 0:
-                    self.logger.error(f"Error: Could not process some sections in file {i}")
-                
-            self.logger.info("Generating synthetic data...")
-            time.sleep(2)
-            self.logger.info("Synthetic data generation completed successfully!")
-            
-            # Expand output and result sections
-            QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
-            QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
-            QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
-            
-        else:
-            self.logger.warning("No input files found. Please upload files before generating data.")
-            QMessageBox.warning(
-                self,
-                'No Files',
-                "No input files uploaded to generate synthetic data",
-                QMessageBox.Ok
-            )
-        print(self.uploaded_files)
-        self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames = scbetavaegan.upload_and_process_files(self.uploaded_files)
-
-        # # Store the name of the first file for use in Cell 4
-        self.input_filename = self.input_filenames[0] if self.input_filenames else 'processed_data'
-        print(f"Number of processed files: {len(self.processed_data)}") ##dito sa processed data naka_store
-        print(f"Average number of data points: {self.avg_data_points}")
+        # Start the thread
+        self.worker.start()
     
+    def on_generation_complete(self):
+        # Re-enable the generate button
+        self.generate_data_button.setEnabled(True)
+        self.generate_data_button.setText("Generate Synthetic Data")
+        
+        # Clean up
+        if self.worker:
+            self.worker.deleteLater()
+            self.worker = None
+        
+        # Expand relevant sections
+        QtCore.QTimer.singleShot(0, lambda: self.collapsible_widget_process_log.toggle_container(True))
+        QtCore.QTimer.singleShot(3000, lambda: self.collapsible_widget_output.toggle_container(True))
+        QtCore.QTimer.singleShot(4000, lambda: self.collapsible_widget_result.toggle_container(True))
+        
+    def on_generation_error(self, error_message):
+        # Re-enable the generate button
+        self.generate_data_button.setEnabled(True)
+        self.generate_data_button.setText("Generate Synthetic Data")
+        
+        # Show error message
+        self.logger.error(f"Error during generation: {error_message}")
+        
+        # Clean up
+        if self.worker:
+            self.worker.deleteLater()
+            self.worker = None
+        
+        QMessageBox.critical(
+            self,
+            'Generation Error',
+            f"An error occurred during data generation:\n{error_message}",
+            QMessageBox.Ok
+        )
+
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
         font = QtGui.QFont()
