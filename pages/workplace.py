@@ -273,7 +273,7 @@ class GenerateDataWorker(QThread):
             print(f"Number of processed files: {len(self.processed_data)}")
             print(f"Average number of data points: {self.avg_data_points}")
 
-            self.progress.emit("Completed gap filling and interpolation")
+            self.progress.emit("Completed gap masking process...")
             self.progress.emit("Initializing VAE and LSTM models...")
 
             self.latent_dim = 128
@@ -317,7 +317,6 @@ class GenerateDataWorker(QThread):
             self.progress.emit("Starting model training...")
 
             for self.epoch in range(self.epochs):
-                self.progress.emit(f"Training epoch {self.epoch + 1}/{self.epochs}")
                 self.generator_loss = 0
                 self.reconstruction_loss_sum = 0
                 self.kl_loss_sum = 0
@@ -382,6 +381,9 @@ class GenerateDataWorker(QThread):
                             self.generated_data,
                             self.lstm_optimizer,
                         )
+                    self.progress.emit(
+                        f"LSTM training at epoch {self.epoch+1}: Discriminator Loss = {self.lstm_loss.numpy()}"
+                    )
                     print(
                         f"LSTM training at epoch {self.epoch+1}: Discriminator Loss = {self.lstm_loss.numpy()}"
                     )
@@ -419,15 +421,15 @@ class GenerateDataWorker(QThread):
                 self.nrmse_avg = self.nrmse_sum / len(self.processed_data)
 
                 self.nrmse_history.append(self.nrmse_avg)
-
                 print(
                     f"Epoch {self.epoch+1}: Generator Loss = {self.avg_generator_loss:.6f}, Reconstruction Loss = {self.avg_reconstruction_loss:.6f}, KL Divergence Loss = {self.avg_kl_loss:.6f}"
                 )
+                self.progress.emit(f"Training Epoch {self.epoch+1}: Generator Loss = {self.avg_generator_loss:.6f}, Reconstruction Loss = {self.avg_reconstruction_loss:.6f}, KL Divergence Loss = {self.avg_kl_loss:.6f}")
+
                 print(f"NRMSE = {self.nrmse_avg:.6f}")
 
                 # Cell 5 (visualization part)
                 if (self.epoch + 1) % self.visual_per_num_epoch == 0:
-                    self.progress.emit(f"Generating visualizations for epoch {self.epoch + 1}")
                     self.base_latent_variability = 100.0
                     self.latent_variability_range = (0.1, 5.0)
                     self.num_augmented_files = len(self.uploaded_files)
