@@ -201,6 +201,7 @@ class GenerateDataWorker(QThread):
             self.latent_dim = 128
             self.beta = 0.0001
             self.learning_rate = 0.001
+            self.lambda_shift = 0.5
 
             self.vae = scbetavaegan.VAE(self.latent_dim, self.beta)
             self.optimizer = scbetavaegan.tf.keras.optimizers.Adam(self.learning_rate)
@@ -355,8 +356,7 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
             
-
-            """
+            # Start error
             with custom_object_scope({'VAE': scbetavaegan.VAE}):
                 self.vae_pretrained = load_model('../model/vae_models/epoch_200_model.h5')
             print("Pretrained VAE model loaded.")
@@ -405,7 +405,7 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
             
-            """
+            # End error
                 
             self.finished.emit()
             

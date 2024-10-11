@@ -102,12 +102,13 @@ def process_dataframes(dataframes, num_files_to_use=None):
     return data_frames, processed_data, scalers, avg_data_points, [f"DataFrame_{i+1}" for i in range(len(dataframes))]
 
 class VAE(tf.keras.Model):
-    def __init__(self, latent_dim, beta=1.0, **kwargs):  # Added **kwargs to handle extra arguments
-        super(VAE, self).__init__(**kwargs)  # Pass kwargs to the parent class
+    def __init__(self, latent_dim, beta=1.0, lambda_shift=0.01, **kwargs):
+        super(VAE, self).__init__(**kwargs)
         self.latent_dim = latent_dim
         self.beta = beta
+        self.lambda_shift = lambda_shift
         self.encoder = tf.keras.Sequential([
-            tf.keras.layers.InputLayer(input_shape=(4,)),  # 4 for x, y, timestamp, pen_status
+            tf.keras.layers.InputLayer(input_shape=(4,)),
             tf.keras.layers.Dense(128, activation='relu'),
             tf.keras.layers.Dense(64, activation='relu'),
             tf.keras.layers.Dense(32, activation='relu'),
@@ -118,7 +119,7 @@ class VAE(tf.keras.Model):
             tf.keras.layers.Dense(32, activation='relu'),
             tf.keras.layers.Dense(64, activation='relu'),
             tf.keras.layers.Dense(128, activation='relu'),
-            tf.keras.layers.Dense(4)  # 4 for x, y, timestamp, pen_status
+            tf.keras.layers.Dense(4)
         ])
 
     def encode(self, x):
@@ -127,11 +128,12 @@ class VAE(tf.keras.Model):
 
     def reparameterize(self, mean, logvar):
         eps = tf.random.normal(shape=mean.shape)
-        return eps * tf.exp(logvar * .5) + mean
+        # Apply shift correction
+        return eps * tf.exp(logvar * .5) + (mean + self.lambda_shift * tf.exp(logvar * .5))
 
     def decode(self, z):
         decoded = self.decoder(z)
-        xy_timestamp = tf.sigmoid(decoded[:, :3])  # x, y, and timestamp
+        xy_timestamp = tf.sigmoid(decoded[:, :3])
         pen_status = tf.sigmoid(decoded[:, 3])
         return tf.concat([xy_timestamp, tf.expand_dims(pen_status, -1)], axis=1)
 
@@ -142,17 +144,16 @@ class VAE(tf.keras.Model):
 
     @classmethod
     def from_config(cls, config):
-        # Handle any unexpected keys like 'trainable' by removing them
         config.pop('trainable', None)
-        config.pop('dtype', None)  # Also remove 'dtype' if included
+        config.pop('dtype', None)
         return cls(**config)
 
     def get_config(self):
         config = super(VAE, self).get_config()
-        # Add the VAE-specific arguments
         config.update({
             'latent_dim': self.latent_dim,
-            'beta': self.beta
+            'beta': self.beta,
+            'lambda_shift': self.lambda_shift
         })
         return config
 
@@ -177,8 +178,6 @@ def compute_loss(model, x):
     reconstruction_loss_pen = tf.reduce_mean(tf.keras.losses.binary_crossentropy(x[:, 3], x_reconstructed[:, 3]))
     kl_loss = -0.5 * tf.reduce_mean(1 + logvar - tf.square(mean) - tf.exp(logvar))
     return reconstruction_loss_xy_timestamp + reconstruction_loss_pen, kl_loss, model.beta * kl_loss
-
-
 
 # Cell 7 (modified)
 def generate_augmented_data(data_frames, model, num_augmented_files, avg_data_points, processed_data, base_latent_variability=1.0, latent_variability_range=(0.5, 2.0)):
