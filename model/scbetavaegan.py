@@ -317,7 +317,7 @@ def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, 
 
 # Cell 10 (modified to retain augmented data length)
 def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory='model/augmented_data'):
-    all_augmented_filenames = []
+    all_augmented_filepath = []
 
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -363,7 +363,7 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
         augmented_filename = f"augmented_{original_filename}"
         augmented_file_path = os.path.join(directory, augmented_filename)
 
-        all_augmented_filenames.append(augmented_filename)
+        all_augmented_filepath.append(augmented_file_path)
 
         # Save the augmented data to a file
         np.savetxt(augmented_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
@@ -371,6 +371,6 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
         print(f"Augmented data saved to {augmented_file_path}")
         print(f"Shape of augmented data for {original_filename}: {augmented_data_original_scale.shape}")
 
-    return all_augmented_filenames
+    return all_augmented_filepath
 
 
