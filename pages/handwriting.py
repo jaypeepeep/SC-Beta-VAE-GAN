@@ -135,6 +135,9 @@ class Handwriting(QtWidgets.QWidget):
                 data = response.json()
                 filename = data.get('filename')
                 self.show_done_page(filename)  # Pass the filename to the next page
+                self.file_list.append(filename)
+                if hasattr(self, 'file_preview_widget'):
+                    self.file_preview_widget.set_uploaded_files(self.file_list)
             else:
                 print("File not uploaded yet, retrying...")
                 QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Retry after delay
@@ -295,6 +298,7 @@ class Handwriting(QtWidgets.QWidget):
         self.collapsible_widget_file_preview = CollapsibleWidget("File Preview", self)
         scroll_layout.addWidget(self.collapsible_widget_file_preview)
         self.file_preview_widget = FilePreviewWidget(self)
+        self.file_preview_widget.set_uploaded_files(self.file_list)
         self.collapsible_widget_file_preview.add_widget(self.file_preview_widget)
 
         # Add the Process Log Widget
