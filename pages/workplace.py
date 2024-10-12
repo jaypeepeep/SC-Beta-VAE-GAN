@@ -314,7 +314,7 @@ class GenerateDataWorker(QThread):
             self.kl_loss_history = []
             self.nrmse_history = []
 
-            self.save_dir = "vae_models"
+            self.save_dir = "pre-trained"
             if not os.path.exists(self.save_dir):
                 os.makedirs(self.save_dir)
 
@@ -571,12 +571,33 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
 
+
+            # Get the number of files in the 'pre-trained' folder
+            self.num_files_pretrained = len([name for name in os.listdir(self.save_dir) if os.path.isfile(os.path.join(self.save_dir, name))])
+
+            # Save VAE model after each epoch, directly into the `vae_models` folder
+            self.model_save_path = os.path.join(self.save_dir, f"Pretrained_Model_{self.num_files_pretrained+1}.h5")
+            self.vae.save(self.model_save_path)
+            print(f"VAE model saved at {self.model_save_path}.")
+
+            self.generate_synthetic_data(os.path.basename(self.model_save_path))
+
+        except Exception as e:
+            self.error.emit(str(e) + "\n" + traceback.format_exc())
+        
+    def generate_synthetic_data(self, pretrained_filename):
+        try:
+            # Load pretrained VAE model
             self.progress.emit("Loading pretrained VAE model...")
+            # Set the path to the pretrained model using the passed filename
+            self.pretrained_filepath = os.path.join("pre-trained", pretrained_filename)
+            
+            # Use custom_object_scope if required for loading the custom VAE class
             with custom_object_scope({"VAE": scbetavaegan.VAE}):
-                self.vae_pretrained = load_model("pre-trained/EMOTHAW.h5")
+                # Load the pretrained VAE model
+                self.vae_pretrained = scbetavaegan.load_model(self.pretrained_filepath)
             print("Pretrained VAE model loaded.")
             self.progress.emit("Pretrained model loaded successfully")
-
 
             # Base latent variability settings
             self.base_latent_variability = 100.0
@@ -604,9 +625,7 @@ class GenerateDataWorker(QThread):
                 )
                 for _ in range(self.num_augmented_files)
             ]
-            self.augmented_lengths = [
-                len(self.data) for self.data in self.augmented_datasets
-            ]
+            self.augmented_lengths = [len(self.data) for self.data in self.augmented_datasets]
 
             # Visualize the original and augmented data side by side
             self.fig, self.axs = plt.subplots(
@@ -619,15 +638,9 @@ class GenerateDataWorker(QThread):
             )
 
             # Plot the original data before imputation, with a 90-degree left rotation and horizontal flip
-            for self.i, self.original_data in enumerate(
-                self.original_data_frames
-            ):  # Use original_data_frames for raw data visualization
-                self.original_on_paper = self.original_data[
-                    self.original_data["pen_status"] == 1
-                ]
-                self.original_in_air = self.original_data[
-                    self.original_data["pen_status"] == 0
-                ]
+            for self.i, self.original_data in enumerate(self.original_data_frames):
+                self.original_on_paper = self.original_data[self.original_data["pen_status"] == 1]
+                self.original_in_air = self.original_data[self.original_data["pen_status"] == 0]
 
                 # Scatter plot for the original data (before imputation), with rotated axes
                 self.axs[self.i].scatter(
@@ -636,45 +649,33 @@ class GenerateDataWorker(QThread):
                     c="b",
                     s=1,
                     label="On Paper",
-                )  # y -> x, x -> y
+                )
                 self.axs[self.i].scatter(
                     self.original_in_air["y"],
                     self.original_in_air["x"],
                     c="r",
                     s=1,
                     label="In Air",
-                )  # y -> x, x -> y
+                )
                 self.axs[self.i].set_title(f"Original Data {self.i + 1}")
-                self.axs[self.i].set_xlabel("y")  # Previously 'x'
-                self.axs[self.i].set_ylabel("x")  # Previously 'y'
+                self.axs[self.i].set_xlabel("y")
+                self.axs[self.i].set_ylabel("x")
                 self.axs[self.i].set_aspect("equal")
                 self.axs[self.i].legend()
 
                 # Flip the horizontal axis (y-axis)
-                self.axs[
-                    self.i
-                ].invert_xaxis()  # This reverses the 'y' axis to flip the plot horizontally
+                self.axs[self.i].invert_xaxis()
 
             # Set consistent axis limits for square aspect ratio for both original and augmented data
-            self.x_min = min(
-                self.data["x"].min() for self.data in self.original_data_frames
-            )
-            self.x_max = max(
-                self.data["x"].max() for self.data in self.original_data_frames
-            )
-            self.y_min = min(
-                self.data["y"].min() for self.data in self.original_data_frames
-            )
-            self.y_max = max(
-                self.data["y"].max() for self.data in self.original_data_frames
-            )
-
-        
+            self.x_min = min(self.data["x"].min() for self.data in self.original_data_frames)
+            self.x_max = max(self.data["x"].max() for self.data in self.original_data_frames)
+            self.y_min = min(self.data["y"].min() for self.data in self.original_data_frames)
+            self.y_max = max(self.data["y"].max() for self.data in self.original_data_frames)
 
             # Plot the augmented data with the same 90-degree left rotation and horizontal flip
             self.all_augmented_data = scbetavaegan.visualize_augmented_data(
                 self.augmented_datasets,
-                self.scalers,
+                self.scalers,  # Assuming self.scalers is available
                 self.original_data_frames,
                 self.axs,
             )
@@ -682,13 +683,14 @@ class GenerateDataWorker(QThread):
             plt.tight_layout()
 
             self.progress.emit("Saving augmented data...")
-            self.all_augmented_filepaths = scbetavaegan.download_augmented_data_with_modified_timestamp(self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames)
+            self.all_augmented_filepaths = scbetavaegan.download_augmented_data_with_modified_timestamp(
+                self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames
+            )
 
             self.progress.emit("Successfully saved all augmented data files")
             self.progress.emit("Data generation process completed successfully!")
 
             self.finished.emit()
-
         except Exception as e:
             self.error.emit(str(e) + "\n" + traceback.format_exc())
 
@@ -774,7 +776,7 @@ class Workplace(QtWidgets.QWidget):
         # Adding the button to the main layout
         self.gridLayout.addLayout(button_layout, 1, 0)
 
-    def on_generate_data(self):
+    def train_vae(self):
         self.collapsible_widget_process_log.toggle_container(True)
         # Disable the generate button and change text
         self.generate_data_button.setEnabled(False)
@@ -792,6 +794,15 @@ class Workplace(QtWidgets.QWidget):
 
         # Start the thread
         self.worker.start()
+
+    def on_generate_data(self):
+        self.collapsible_widget_process_log.toggle_container(True)
+        # Disable the generate button and change text
+        self.generate_data_button.setEnabled(False)
+        self.generate_data_button.setText("Generating...")
+
+        # Create and start the worker thread
+        self.worker = GenerateDataWorker(self)
 
     def on_generation_complete(self):
         # Re-enable the generate button
@@ -904,6 +915,7 @@ class Workplace(QtWidgets.QWidget):
         self.scroll_layout.addWidget(self.collapsible_model_container)
 
         self.model_widget = ModelWidget(self)
+        self.model_widget.train_button.clicked.connect(self.train_vae)
         self.collapsible_model_container.add_widget(self.model_widget)
 
     def setup_preview_collapsible(self):
