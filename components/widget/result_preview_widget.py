@@ -13,6 +13,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.setupUi()
         self.uploaded_files = []
         self.augmented_files = []
+        self.original_absolute_files = []
         if input:
             self.display_file_contents(input, 0)  # Display content in the first text preview
             self.display_graph_contents(input, 0)
@@ -240,17 +241,24 @@ class SVCpreview(QtWidgets.QWidget):
 
             plt.legend(loc='upper right', fontsize='small')  # Use 'small' or a specific size like 8
 
-            # Clear any previous graphs
-            for i in self.output_graph_container.children():
-                i.deleteLater()
+            if preview_index == 0:
+                for i in self.input_graph_container.children():
+                    i.deleteLater()
+                layout = QtWidgets.QVBoxLayout(self.input_graph_container)
+                canvas = FigureCanvas(fig)  # Use FigureCanvas from matplotlib.backends.backend_qt5agg
+                layout.addWidget(canvas)
 
-            # Create a QVBoxLayout for the graph container
-            layout = QtWidgets.QVBoxLayout(self.input_graph_container if preview_index == 0 else self.output_graph_container)
-            canvas = FigureCanvas(fig)  # Use FigureCanvas from matplotlib.backends.backend_qt5agg
-            layout.addWidget(canvas)
+                # Show the plot
+                canvas.draw()
+            else:
+                for i in self.output_graph_container.children():
+                    i.deleteLater()
+                layout = QtWidgets.QVBoxLayout(self.output_graph_container)
+                canvas = FigureCanvas(fig)  # Use FigureCanvas from matplotlib.backends.backend_qt5agg
+                layout.addWidget(canvas)
 
-            # Show the plot
-            canvas.draw()
+                # Show the plot
+                canvas.draw()
 
         except Exception as e:
             error_message = f"Error reading or displaying graph: {str(e)}"
@@ -361,9 +369,22 @@ class SVCpreview(QtWidgets.QWidget):
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             selected_file = list_widget.currentItem().text()
             # Find the full path of the selected file
-            full_path = next(f for f in self.uploaded_files if os.path.basename(f) == selected_file)
+            full_path = next(f for f in self.original_absolute_files if os.path.basename(f) == selected_file)
             self.display_file_contents(full_path, 0)
+            self.display_graph_contents(full_path, 0)
 
+            QtCore.QTimer.singleShot(100, lambda: self.render_graph1(full_path))
+
+    def render_graph1(self, full_path):
+        self.display_graph_contents(full_path, 0)
+        self.input_graph_container.update()
+        self.input_graph_container.repaint()
+        self.input_graph_container.layout().update()
+        self.input_graph_container.setVisible(True)
+        QtWidgets.QApplication.processEvents()
+
+    def set_original_absolute_files(self, files):
+        self.original_absolute_files = files
 
     def set_augmented_files(self, files):
         """Set the list of uploaded files and display the first one."""

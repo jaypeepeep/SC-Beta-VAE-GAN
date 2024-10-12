@@ -23,6 +23,7 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
     original_data_frames = []  # Save the original unscaled data
     scalers = []
     input_filenames = []  # List to store input filenames
+    original_absolute_files = []
 
     num_files = len(uploaded_files)
     fig, axs = plt.subplots(1, num_files, figsize=(6*num_files, 6), constrained_layout=True)
@@ -44,6 +45,7 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
         df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
         
         save_path = os.path.join(output_folder, filename)
+        original_absolute_files.append(save_path)
         df.to_csv(save_path, sep=' ', index=False, header=False)
 
         # Keep a copy of the original data before scaling
@@ -72,7 +74,7 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
                       for df, scaler in zip(data_frames, scalers)]
     avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
 
-    return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames  # Return original data
+    return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames, original_absolute_files  # Return original data
 
 def process_dataframes(dataframes, num_files_to_use=None):
     if num_files_to_use:
