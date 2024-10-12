@@ -1023,7 +1023,7 @@ class Workplace(QtWidgets.QWidget):
                     self.svc_preview.display_file_contents(file_path, 0)
 
                     # Get absolute original for graph of input
-                    absolute_file_path = os.path.join(os.path.dirname(__file__), "../original_absolute", file_name)
+                    absolute_file_path = os.path.join(os.path.dirname(__file__), "../model/original_absolute", file_name)
                     self.svc_preview.display_graph_contents(absolute_file_path, 0)
 
 

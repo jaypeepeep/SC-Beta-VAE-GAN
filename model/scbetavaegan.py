@@ -30,7 +30,7 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
         axs = [axs]
 
      # Create the folder if it doesn't exist
-    output_folder = 'original_absolute'
+    output_folder = os.path.join('model', 'original_absolute')
     os.makedirs(output_folder, exist_ok=True)
 
     for i, file_path in enumerate(uploaded_files):
