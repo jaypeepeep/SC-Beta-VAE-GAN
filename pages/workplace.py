@@ -45,11 +45,14 @@ class GenerateDataWorker(QThread):
     progress = pyqtSignal(str)  # For logging progress
 
     def __init__(self, workplace):
+
         super().__init__()
         self.workplace = workplace
         self.uploaded_files = workplace.uploaded_files
 
     def run(self):
+        plt.close('all')
+        tf.keras.backend.clear_session()
         try:
             self.progress.emit("Starting data generation process...")
             # Move all the generation logic here
@@ -570,7 +573,7 @@ class GenerateDataWorker(QThread):
 
             self.progress.emit("Loading pretrained VAE model...")
             with custom_object_scope({"VAE": scbetavaegan.VAE}):
-                self.vae_pretrained = load_model("pre-trained/epoch_200_model.h5")
+                self.vae_pretrained = load_model("pre-trained/EMOTHAW.h5")
             print("Pretrained VAE model loaded.")
             self.progress.emit("Pretrained model loaded successfully")
 
@@ -684,37 +687,6 @@ class GenerateDataWorker(QThread):
             self.progress.emit("Successfully saved all augmented data files")
             self.progress.emit("Data generation process completed successfully!")
 
-            self.nrmse_values = []
-
-            # Using all_augmented_data from Cell 9
-            for self.i, (self.original, self.augmented) in enumerate(zip(self.data_frames, self.all_augmented_data)):
-                self.original_array = self.original[['x', 'y', 'timestamp', 'pen_status']].values
-                self.augmented_array = self.augmented[:, :4]  # Assuming first 4 columns match original data structure
-
-                self.nrmse = scbetavaegan.calculate_nrmse(self.original_array, self.augmented_array)
-                self.nrmse_values.append(self.nrmse)
-
-            # Print results
-            for self.i, self.nrmse in enumerate(self.nrmse_values):
-                print(f"NRMSE for dataset {self.i+1}: {self.nrmse:.4f}")
-
-            # Calculate average NRMSE
-            self.average_nrmse = np.mean(self.nrmse_values)
-            print(f"Average NRMSE: {self.average_nrmse:.4f}")
-
-            # Assuming 'processed_data' contains the real data and 'augmented_datasets' contains the synthetic data
-            self.real_data = np.concatenate(self.processed_data, axis=0)
-            self.synthetic_data = np.concatenate(self.augmented_datasets, axis=0)
-
-            print(f"Real data shape: {self.real_data.shape}")
-            print(f"Synthetic data shape: {self.synthetic_data.shape}")
-
-            self.mean_accuracy, self.std_accuracy = scbetavaegan.post_hoc_discriminative_score(self.real_data, self.synthetic_data)
-
-            print(f"\nPost-Hoc Discriminative Score Results:")
-            print(f"Mean Accuracy: {self.mean_accuracy:.4f}")
-            print(f"Standard Deviation: {self.std_accuracy:.4f}")
-
             self.finished.emit()
 
         except Exception as e:
@@ -758,8 +730,8 @@ class Workplace(QtWidgets.QWidget):
 
         # Call functions to set up collapsible components
         self.setup_input_collapsible()
-        self.setup_model_collapsible()
         self.setup_preview_collapsible()
+        self.setup_model_collapsible()
         self.setup_process_log_collapsible()
         self.setup_output_collapsible()
         self.setup_result_collapsible()
@@ -920,6 +892,7 @@ class Workplace(QtWidgets.QWidget):
 
         # Open the collapsible widget by default
         self.collapsible_widget_input.toggle_container(True)
+
 
     def show_other_components(self, show=True):
         """Show or hide other components based on file upload."""
