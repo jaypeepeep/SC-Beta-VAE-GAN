@@ -202,7 +202,7 @@ class ModelWidget(QtWidgets.QWidget):
             self.files_table.setCellWidget(index, 3, button_widget)
 
         # Adjust table height based on content
-        total_height = ((len(files) + 1) * row_height) + self.files_table.horizontalHeader().height()
+        total_height = (len(files) * row_height) + self.files_table.horizontalHeader().height()
         self.files_table.setMinimumHeight(total_height)
     def show_file_options(self, file):
         menu = QtWidgets.QMenu(self)
