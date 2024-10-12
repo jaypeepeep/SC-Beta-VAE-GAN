@@ -802,12 +802,8 @@ class Workplace(QtWidgets.QWidget):
             self.worker = None
 
         # Expand relevant sections
-        QtCore.QTimer.singleShot(
-            2000, lambda: self.collapsible_widget_output.toggle_container(True)
-        )
-        QtCore.QTimer.singleShot(
-            2500, lambda: self.collapsible_widget_result.toggle_container(True)
-        )
+        self.collapsible_widget_output.toggle_container(True)
+        self.collapsible_widget_result.toggle_container(True)
 
     def on_generation_error(self, error_message):
         # Re-enable the generate button
@@ -1032,6 +1028,7 @@ class Workplace(QtWidgets.QWidget):
 
 
         self.file_preview_widget.set_uploaded_files(self.uploaded_files)
+        self.svc_preview.set_uploaded_files(self.uploaded_files)
 
         # Automatically expand the preview collapsible widget if there are files
         if has_files:
@@ -1060,6 +1057,8 @@ class Workplace(QtWidgets.QWidget):
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
+
+        self.svc_preview.set_augmented_files(all_augmented_filepaths)
 
 
         # Ensure the output scroll area is visible
