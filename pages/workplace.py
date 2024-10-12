@@ -45,11 +45,14 @@ class GenerateDataWorker(QThread):
     progress = pyqtSignal(str)  # For logging progress
 
     def __init__(self, workplace):
+
         super().__init__()
         self.workplace = workplace
         self.uploaded_files = workplace.uploaded_files
 
     def run(self):
+        plt.close('all')
+        tf.keras.backend.clear_session()
         try:
             self.progress.emit("Starting data generation process...")
             # Move all the generation logic here
@@ -114,6 +117,7 @@ class GenerateDataWorker(QThread):
                 self.avg_data_points,
                 self.input_filenames,
                 self.original_data_frames,
+                self.original_absolute_files,
             ) = scbetavaegan.upload_and_process_files(
                 self.uploaded_files, self.num_files_to_use
             )
@@ -569,7 +573,7 @@ class GenerateDataWorker(QThread):
 
             self.progress.emit("Loading pretrained VAE model...")
             with custom_object_scope({"VAE": scbetavaegan.VAE}):
-                self.vae_pretrained = load_model("model/vae_models/epoch_200_model.h5")
+                self.vae_pretrained = load_model("pre-trained/EMOTHAW.h5")
             print("Pretrained VAE model loaded.")
             self.progress.emit("Pretrained model loaded successfully")
 
@@ -726,8 +730,8 @@ class Workplace(QtWidgets.QWidget):
 
         # Call functions to set up collapsible components
         self.setup_input_collapsible()
-        self.setup_model_collapsible()
         self.setup_preview_collapsible()
+        self.setup_model_collapsible()
         self.setup_process_log_collapsible()
         self.setup_output_collapsible()
         self.setup_result_collapsible()
@@ -795,6 +799,7 @@ class Workplace(QtWidgets.QWidget):
         self.generate_data_button.setText("Generate Synthetic Data")
 
         self.update_output_file_display(self.worker.all_augmented_filepaths)
+        self.update_original_absolute_file_display(self.worker.original_absolute_files)
 
         # Clean up
         if self.worker:
@@ -802,12 +807,8 @@ class Workplace(QtWidgets.QWidget):
             self.worker = None
 
         # Expand relevant sections
-        QtCore.QTimer.singleShot(
-            3000, lambda: self.collapsible_widget_output.toggle_container(True)
-        )
-        QtCore.QTimer.singleShot(
-            4000, lambda: self.collapsible_widget_result.toggle_container(True)
-        )
+        self.collapsible_widget_output.toggle_container(True)
+        self.collapsible_widget_result.toggle_container(True)
 
     def on_generation_error(self, error_message):
         # Re-enable the generate button
@@ -891,6 +892,7 @@ class Workplace(QtWidgets.QWidget):
 
         # Open the collapsible widget by default
         self.collapsible_widget_input.toggle_container(True)
+
 
     def show_other_components(self, show=True):
         """Show or hide other components based on file upload."""
@@ -1007,7 +1009,7 @@ class Workplace(QtWidgets.QWidget):
                 self.file_container_layout.removeWidget(widget)
 
         # Re-add file containers for each uploaded file and update preview
-        for file_path in self.uploaded_files:
+        for index, file_path in enumerate(self.uploaded_files):
             file_name = os.path.basename(file_path)
 
             # Verify the file still exists before displaying it
@@ -1015,18 +1017,16 @@ class Workplace(QtWidgets.QWidget):
                 new_file_container = FileContainerWidget(file_path, self)
                 new_file_container.hide_download_button()
                 new_file_container.hide_retry_button()
-                new_file_container.remove_file_signal.connect(
-                    self.handle_file_removal
-                )  # Connect remove signal
+                new_file_container.remove_file_signal.connect(self.handle_file_removal)  # Connect remove signal
                 self.file_container_layout.addWidget(new_file_container)
 
-                # Display the file content in the file preview widget
-                self.file_preview_widget.display_file_contents(file_path)
-
-                # Display the file content in the result preview widget
-                self.svc_preview.display_file_contents(file_path, 0)
+                # Check if this is the first file
+                if index == 0:  # This means it's the first file
+                    # Display the file content in the file preview widget
+                    self.file_preview_widget.display_file_contents(file_path)
 
         self.file_preview_widget.set_uploaded_files(self.uploaded_files)
+        self.svc_preview.set_uploaded_files(self.uploaded_files)
 
         # Automatically expand the preview collapsible widget if there are files
         if has_files:
@@ -1043,21 +1043,38 @@ class Workplace(QtWidgets.QWidget):
                 widget.deleteLater()
                 self.output_file_container_layout.removeWidget(widget)
 
-        for file_path in all_augmented_filepaths:
+        for index, file_path in enumerate(all_augmented_filepaths):
             # Verify the file still exists before displaying it
             if os.path.exists(file_path):
                 new_output_file_container = FileContainerWidget(file_path, self)
                 new_output_file_container.hide_retry_button()
                 new_output_file_container.hide_remove_button()
                 self.output_file_container_layout.addWidget(new_output_file_container)
-                
-                self.svc_preview.display_file_contents(file_path, 1)
+
+                # Check if this is the first file
+                if index == 0:  # This means it's the first file
+                    self.svc_preview.display_file_contents(file_path, 1)
+                    self.svc_preview.display_graph_contents(file_path, 1)
+
+        self.svc_preview.set_augmented_files(all_augmented_filepaths)
 
         # Ensure the output scroll area is visible
         self.output_scroll_area.setVisible(True)
 
         # Automatically expand the output collapsible widget
         self.collapsible_widget_output.toggle_container(True)
+
+    def update_original_absolute_file_display(self, original_absolute_files):
+        """Update the display of original absolute files based on newly generated augmented files."""
+        for index, file_path in enumerate(original_absolute_files):
+            # Verify the file still exists before displaying it
+            if os.path.exists(file_path):
+                if index == 0:  # This means it's the first file
+                    self.svc_preview.display_file_contents(file_path, 0)
+                    self.svc_preview.display_graph_contents(file_path, 0)
+
+        
+        self.svc_preview.set_original_absolute_files(original_absolute_files)
 
     def add_more_files(self):
         self.file_upload_widget.open_file_dialog()

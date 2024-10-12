@@ -14,9 +14,6 @@ class ModelWidget(QtWidgets.QWidget):
             os.makedirs(self.pre_trained_path)
 
         self.setup_ui()
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.load_files)
-        self.timer.start(5000)
 
         self.load_files()
 
@@ -202,7 +199,7 @@ class ModelWidget(QtWidgets.QWidget):
             self.files_table.setCellWidget(index, 3, button_widget)
 
         # Adjust table height based on content
-        total_height = (len(files) * row_height) + self.files_table.horizontalHeader().height()
+        total_height = ((len(files) + 1) * row_height) + self.files_table.horizontalHeader().height()
         self.files_table.setMinimumHeight(total_height)
     def show_file_options(self, file):
         menu = QtWidgets.QMenu(self)
@@ -272,6 +269,11 @@ class ModelWidget(QtWidgets.QWidget):
             title="Train VAE",
             message=f"Training VAE model..."
         )
+
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.load_files)
+        self.timer.start(5000)
+
 
     def create_custom_message_box(self, title, message):
         """Create a custom message box"""

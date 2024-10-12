@@ -15,18 +15,19 @@ ctx.lineWidth = 2; // Width of the drawing line
 ctx.lineJoin = 'round'; // Smooth line joins
 ctx.lineCap = 'round'; // Smooth line caps
 
+// Altitude value
+const minVal = 490;
+const maxVal = 710;
+const valStep = 10;
+let altitudeDefault = minVal;
+let holdCounter = 10;
+
+
 // Scaling factor to amplify pixel coordinates
 const scalingFactor = 100; // Adjust this factor to achieve the desired range
 
 // Maximum value for pressure (based on reference values)
 const maxPressure = 255; // Adjust this value if needed
-
-// Function to convert altitude from radians to a scaled whole number
-function convertAltitude(radians) {
-    const degrees = radians * (180 / Math.PI); // Convert radians to degrees
-    const scaledAltitude = Math.round(degrees * 10); // Scale and round to achieve a value similar to 3 digits
-    return scaledAltitude;
-}
 
 // Function to convert pressure to a scaled whole number
 function convertPressure(pressure) {
@@ -55,7 +56,7 @@ function draw(x, y, pressure, azimuth, altitude) {
 
     const scaledX = Math.round(x * scalingFactor);
     const scaledY = Math.round(y * scalingFactor);
-    const scaledAltitude = convertAltitude(altitude);
+    const scaledAltitude = altitude;
     const scaledPressure = convertPressure(pressure);
     const computedAzimuth = computeAzimuth();
 
@@ -187,13 +188,38 @@ canvas.addEventListener('pointerup', () => {
     ctx.beginPath(); // Reset the path
 });
 
+// Function to generate simulated altitude values
+function generateAltitude() {
+    if (holdCounter > 0) {
+        holdCounter--;
+    } else {
+        const changeDirection = Math.random() < 0.5;
+
+        if (changeDirection) {
+            altitudeDefault += valStep;
+        } else {
+            altitudeDefault -= valStep;
+        }
+
+        if (altitudeDefault > maxVal) {
+            altitudeDefault = maxVal;
+        } else if (altitudeDefault < minVal) {
+            altitudeDefault = minVal;
+        }
+
+        holdCounter = 10;
+    }
+
+    return altitudeDefault;
+}
+
 // Draw on the canvas while the pen is moving
 canvas.addEventListener('pointermove', (e) => {
     const x = e.offsetX;
     const y = e.offsetY;
     const pressure = e.pressure || 0; // Default pressure to 0 if not available
     const azimuth = e.azimuthAngle || 0; // Default azimuth to 0 if not available
-    const altitude = e.altitudeAngle || 0; // Default altitude to 0 if not available
+    const altitude = generateAltitude(); // Default altitude to 0 if not available
     draw(x, y, pressure, azimuth, altitude);
 });
 
