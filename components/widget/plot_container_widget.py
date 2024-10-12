@@ -12,7 +12,7 @@ class PlotContainerWidget(QtWidgets.QWidget):
 
     def setupUi(self):
         # Add a layout for the plots
-        layout = QtWidgets.QVBoxLayout(self)
+        self.layout = QtWidgets.QVBoxLayout(self)
 
         # Create a Matplotlib figure and canvas
         self.figure = plt.figure()
@@ -24,9 +24,11 @@ class PlotContainerWidget(QtWidgets.QWidget):
         # Set a minimum height for the canvas
         self.canvas.setMinimumHeight(600)  # Adjust the height as needed
 
-        layout.addWidget(self.canvas)
+        # Add the canvas to the layout
+        self.layout.addWidget(self.canvas)
 
     def loadPlot(self, filename):
+        """Load and plot data from a .svc file."""
         # Construct the path to the uploads folder
         uploads_folder = os.path.join(os.path.dirname(__file__), "../../uploads")
         file_path = os.path.join(uploads_folder, filename)
@@ -38,6 +40,7 @@ class PlotContainerWidget(QtWidgets.QWidget):
             print(f"File not found: {filename}")
 
     def plot_data(self, file_path):
+        """Plot data from the .svc file."""
         # Clear the previous plot
         self.figure.clear()
 
@@ -84,3 +87,14 @@ class PlotContainerWidget(QtWidgets.QWidget):
 
         # Refresh the canvas
         self.canvas.draw()
+
+    # def load_plot_from_figure(self, figure):
+       # """Load and display a Matplotlib figure."""
+        # Clear the previous plot
+        # self.figure.clear()
+
+        # Use the provided figure for this canvas
+        # self.canvas.figure = figure
+
+        # Redraw the canvas with the new figure
+        # self.canvas.draw()

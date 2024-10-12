@@ -1,7 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import logging
 import queue
-import time
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, widget):
@@ -20,13 +19,14 @@ class QTextEditLogger(logging.Handler):
             try:
                 record = self.queue.get()
                 msg = self.format(record)
-                self.widget.append_log(msg + '\n')
+                if self.widget:  # Ensure widget exists
+                    self.widget.append_log(msg + '\n')
             except queue.Empty:
                 break
 
 class ProcessLogWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(ProcessLogWidget, self).__init__(parent)
         self.setup_ui()
         self.setup_logger()
 
@@ -78,13 +78,20 @@ class ProcessLogWidget(QtWidgets.QWidget):
         # Add handler to logger
         self.logger.addHandler(self.log_handler)
 
-    def append_log(self, text):
-        self.text_preview_log.moveCursor(QtGui.QTextCursor.End)
-        self.text_preview_log.insertPlainText(text)
-        self.text_preview_log.moveCursor(QtGui.QTextCursor.End)
+    def append_log(self, msg):
+        if not self.text_preview_log:  # Check if widget still exists
+            return
+        try:
+            if self.text_preview_log is not None:  # Add this check to ensure the widget exists
+                self.text_preview_log.append(msg)
+                self.text_preview_log.moveCursor(QtGui.QTextCursor.End)
+        except RuntimeError as e:
+            print(f"Error appending log: {e}")
+
 
     def clear(self):
         self.text_preview_log.clear()
 
     def get_logger(self):
+        """Return the actual logger, allowing use of .info(), .error(), etc."""
         return self.logger

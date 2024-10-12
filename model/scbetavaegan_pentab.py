@@ -11,10 +11,17 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # 1. Load and process the .svc file
-def upload_and_process_files(directory, num_files_to_use=None):
+def upload_and_process_files(path, num_files_to_use=None):
     """Upload and process .svc files for handwriting analysis."""
-    svc_files = [f for f in os.listdir(directory) if f.endswith('.svc')]
     
+    # Check if the path is a directory or a single file
+    if os.path.isdir(path):
+        svc_files = [f for f in os.listdir(path) if f.endswith('.svc')]
+        directory = path
+    else:
+        svc_files = [os.path.basename(path)]  # Only use the single file
+        directory = os.path.dirname(path)  # Get the directory from the file path
+
     # If num_files_to_use is specified, only take that many files sequentially
     if num_files_to_use:
         svc_files = svc_files[:num_files_to_use]  # Take the first num_files_to_use files
@@ -36,6 +43,7 @@ def upload_and_process_files(directory, num_files_to_use=None):
     for i, filename in enumerate(svc_files):
         file_path = os.path.join(directory, filename)
         input_filenames.append(filename)  # Store the filename
+        print(f"Reading file: {file_path}")
         df = pd.read_csv(file_path, skiprows=1, header=None, delim_whitespace=True)
         df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
         
@@ -71,8 +79,6 @@ def upload_and_process_files(directory, num_files_to_use=None):
         print(f"Modified timestamps for file {filename}:")
         print(df['timestamp'].head())
         print("\n")
-
-    plt.show()
 
     # Call gap filling and interpolation function
     data_frames = fill_gaps_and_interpolate(data_frames)
@@ -693,7 +699,8 @@ def save_model(vae, save_dir):
 # 17. Plotting function
 def plot_training_history(generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history):
     """Plot the training loss history and NRMSE."""
-    plt.figure(figsize=(10, 5))
+    
+    fig_loss = plt.figure(figsize=(10, 5))
     plt.plot(generator_loss_history, label='Generator Loss')
     plt.plot(reconstruction_loss_history, label='Reconstruction Loss')
     plt.plot(kl_loss_history, label='KL Divergence Loss')
@@ -701,15 +708,15 @@ def plot_training_history(generator_loss_history, reconstruction_loss_history, k
     plt.ylabel('Loss')
     plt.title('Training Loss Over Epochs')
     plt.legend()
-    plt.show()
 
-    plt.figure(figsize=(10, 5))
+    fig_nrmse = plt.figure(figsize=(10, 5))
     plt.plot(nrmse_history, label='NRMSE')
     plt.xlabel('Epoch')
     plt.ylabel('NRMSE')
     plt.title('Normalized Root Mean Squared Error Over Epochs')
     plt.legend()
-    plt.show()
+    
+    return fig_loss, fig_nrmse
 
 # 18. Latent space visualization
 def visualize_latent_space(model, data, perplexity=5, learning_rate=200, n_iter=250):
@@ -728,14 +735,15 @@ def visualize_latent_space(model, data, perplexity=5, learning_rate=200, n_iter=
     colors = cmap(norm(latent_means_np).sum(axis=1))  # Coloring based on the sum of latent variables
     
     # Plot the 2D t-SNE result with the color map
-    plt.figure(figsize=(16, 12))
+    fig_latent = plt.figure(figsize=(16, 12))
     scatter = plt.scatter(latent_2d[:, 0], latent_2d[:, 1], c=colors, s=5, alpha=0.6)
     plt.colorbar(scatter)  # Add a color bar for the gradient
     plt.title('Latent Space Visualization using t-SNE')
     plt.xlabel('t-SNE Component 1')
     plt.ylabel('t-SNE Component 2')
     plt.grid(True)
-    plt.show()
+
+    return fig_latent
 
 # Model parameters
 latent_dim = 512

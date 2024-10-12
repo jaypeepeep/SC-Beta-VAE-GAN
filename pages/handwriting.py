@@ -22,50 +22,112 @@ from pages.local import Local
 from model.scbetavaegan_pentab import (
     upload_and_process_files,
     generate_augmented_datasets,
-    load_pretrained_vae,
-    download_augmented_data_as_integers
+    save_model,
+    download_augmented_data_as_integers,
+    VAE,
+    LSTMDiscriminator,
+    train_models,
+    plot_training_history
 )
 
 class ModelTrainingThread(QThread):
     finished = pyqtSignal()
-    log_signal = pyqtSignal(str)  # Signal to send log updates
+    log_signal = pyqtSignal(str)
+    zip_ready = pyqtSignal(str)  # Signal to indicate the zip file is ready
+    # figures_ready = pyqtSignal(object, object)  # Signal to emit figures
 
-    def __init__(self, model, processed_data, data_frames, num_augmented_files, avg_data_points, scalers, original_data_frames, input_filenames, output_dir):
+    def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
         super().__init__()
-        self.model = model
-        self.processed_data = processed_data
-        self.data_frames = data_frames
+        self.uploads_dir = uploads_dir
+        self.selected_file = selected_file 
         self.num_augmented_files = num_augmented_files
-        self.avg_data_points = avg_data_points
-        self.scalers = scalers
-        self.original_data_frames = original_data_frames
-        self.input_filenames = input_filenames
-        self.output_dir = output_dir
+        self.epochs = epochs
+        self.logger = logger
+
+        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        self.synthetic_data_dir = os.path.join(uploads_dir, f'synthetic_data_{timestamp}')
+        os.makedirs(self.synthetic_data_dir, exist_ok=True)
+
+        self.model_output_dir = os.path.join('model', 'pentab_vae_models')
+        os.makedirs(self.model_output_dir, exist_ok=True)
 
     def run(self):
-        self.log_signal.emit("Starting synthetic data generation...")
-        
-        # Generate augmented datasets
-        augmented_datasets = generate_augmented_datasets(
-            self.model, self.processed_data, self.data_frames, 
-            self.num_augmented_files, self.avg_data_points
-        )
-        self.log_signal.emit("Augmented datasets generated successfully.")
-        
-        # Save the augmented datasets to the uploads folder
-        download_augmented_data_as_integers(
-            augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames, directory=self.output_dir
-        )
-        
-        # Zip the augmented data
-        zip_path = os.path.join(self.output_dir, 'augmented_data.zip')
-        with zipfile.ZipFile(zip_path, 'w') as zipf:
-            for root, dirs, files in os.walk(self.output_dir):
-                for file in files:
-                    zipf.write(os.path.join(root, file), arcname=file)
+        self.log("Starting the process for file: " + self.selected_file)
 
-        self.log_signal.emit(f"Augmented data saved and zipped at {zip_path}")
+        # Step 1: Load only the selected .svc file from the uploads directory
+        file_path = os.path.join(self.uploads_dir, self.selected_file)
+        self.log(f"Using file path: {file_path}")
+        try:
+            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
+            self.log("File loaded and processed successfully.")
+        except Exception as e:
+            self.log(f"Error processing file: {e}", level="ERROR")
+            self.finished.emit()
+            return
+
+        # Step 2: Initialize the VAE model and LSTM Discriminator
+        vae = VAE(latent_dim=512, beta=0.000001)
+        lstm_discriminator = LSTMDiscriminator()
+        self.log("VAE and LSTM Discriminator initialized.")
+
+        # Step 3: Train the model with uploaded data
+        self.log(f"Training started for {self.epochs} epochs...")
+        generator_loss_history = []
+        reconstruction_loss_history = []
+        kl_loss_history = []
+        nrmse_history = []
+
+        for epoch in range(self.epochs):
+            self.log(f"Epoch {epoch + 1}/{self.epochs} in progress...")
+            train_models(vae, lstm_discriminator, processed_data, epochs=1)
+            self.log(f"Epoch {epoch + 1} completed.")
+
+        self.log("Training completed.")
+
+        # Step 4: Save the trained model
+        model_output_path = os.path.join(self.model_output_dir, 'trained_vae_model.h5')
+        save_model(vae, model_output_path)
+        self.log(f"Model saved at {model_output_path}")
+
+        # Step 5: Generate augmented data
+        self.log("Generating augmented data...")
+        augmented_datasets = generate_augmented_datasets(vae, processed_data, data_frames, self.num_augmented_files, avg_data_points)
+        self.log("Synthetic data generation completed.")
+
+        # Step 6: Save augmented data as .svc files
+        download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
+        self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
+
+        # Step 7: Zip the synthetic data files
+        zip_file_path = self.create_zip(self.synthetic_data_dir)
+        self.log(f"Zipped synthetic data saved at {zip_file_path}")
+
+        # Notify the main thread that the zip file is ready
+        self.zip_ready.emit(zip_file_path)
+
+        # Step 8: Get the training loss and NRMSE figures
+        # fig_loss, fig_nrmse = plot_training_history(generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history)
+
+        # Notify completion
         self.finished.emit()
+
+    def create_zip(self, directory):
+        """Create a zip file from the generated synthetic data."""
+        zip_file_path = os.path.join(directory + ".zip")
+        with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+            for root, _, files in os.walk(directory):
+                for file in files:
+                    zipf.write(os.path.join(root, file), file)
+        return zip_file_path
+
+    def log(self, message, level="INFO"):
+        if self.logger:
+            if level == "ERROR":
+                self.logger.error(message)
+            else:
+                self.logger.info(message)
+        if self.log_signal:
+            self.log_signal.emit(message)
 
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -81,6 +143,35 @@ class Handwriting(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignTop)
         self.layout.setContentsMargins(50, 0, 50, 50)
+
+    def setupUi(self):
+        """Initial setup for the drawing page or Flask app depending on the file_list state."""
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.setAlignment(QtCore.Qt.AlignTop)
+        self.layout.setContentsMargins(50, 0, 50, 50)
+
+        # Initialize Process Log Widget
+        self.process_log_widget = ProcessLogWidget(self)
+        self.logger = self.process_log_widget.get_logger()
+        self.layout.addWidget(self.process_log_widget)
+
+        # Initialize Output Widget
+        self.output_widget = OutputWidget(self)
+        self.layout.addWidget(self.output_widget)
+
+        # Initialize Result Preview Widget
+        self.result_preview_widget = SVCpreview(self)
+        self.layout.addWidget(self.result_preview_widget)
+
+        # Initialize Plot Container Widget for training history plots
+        # self.plot_container = PlotContainerWidget(self)
+        # self.layout.addWidget(self.plot_container)
+
+        # Set widgets initially collapsed
+        self.process_log_widget.setVisible(False)
+        self.output_widget.setVisible(False)
+        self.result_preview_widget.setVisible(False)
+        self.plot_container.setVisible(False)
 
         # Check if there is existing handwriting data (i.e., file_list is not empty)
         if self.file_list:
@@ -99,6 +190,11 @@ class Handwriting(QtWidgets.QWidget):
             if item.layout():
                 self.clear_layout_recursively(item.layout())
             del item
+        
+        # Reset references to deleted widgets
+        self.process_log_widget = None
+        self.result_preview_widget = None
+        self.output_widget = None
 
     def clear_layout_recursively(self, layout):
         """Recursively clear all widgets and child layouts in the given layout."""
@@ -406,37 +502,46 @@ class Handwriting(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
         
     def on_generate_data(self):
-        """Generate synthetic data and update the UI"""
-        num_augmented_files = self.spin_box_widget.value()  # Get number of augmented files
+        """Start the process to generate synthetic data using the user's selected file."""
+        uploads_dir = 'uploads' 
+        num_augmented_files = 10
+        epochs = 10
 
-        # Load the pre-trained VAE model
-        vae_model = load_pretrained_vae('../model/pentab_vae_models/final_vae_model.h5')
+        selected_file = self.file_dropdown.currentText()
 
-        # Use the dynamic directory for file access
-        svc_directory = self.local_page.current_directory
+        if not selected_file:
+            self.process_log_widget.append_log("No file selected.")
+            return
 
-        # Start model training thread
-        self.model_thread = ModelTrainingThread(
-            vae_model, processed_data, data_frames,
-            num_augmented_files, avg_data_points,
-            scalers, original_data_frames, input_filenames
-        )
-        
-        self.model_thread.log_signal.connect(self.process_log_widget.append)  # Update process log
+        self.process_log_widget.setVisible(True)
+
+        self.generate_data_button.setEnabled(False)
+
+        # Start the model training thread with the selected file
+        self.model_thread = ModelTrainingThread(uploads_dir, selected_file, num_augmented_files, epochs, logger=self.logger)
+        self.model_thread.log_signal.connect(self.process_log_widget.append_log) 
+        self.model_thread.zip_ready.connect(self.on_zip_ready) 
+        # self.model_thread.figures_ready.connect(self.display_training_plots)
         self.model_thread.finished.connect(self.on_training_finished)
         self.model_thread.start()
 
-        self.generate_button.setEnabled(False)
+    # def display_training_plots(self, fig_loss, fig_nrmse):
+       # """Display the training loss and NRMSE plots in the result widget."""
+        # Use the PlotContainerWidget to display the training loss plot
+        # self.plot_container.load_plot_from_figure(fig_loss)  # Assuming you want to display fig_loss
+        # self.plot_container.setVisible(True)  # Make the plot container visible
+
+    def on_zip_ready(self, zip_file_path):
+        """Handle when the zip file is ready."""
+        QtCore.QMetaObject.invokeMethod(self.output_widget, "setVisible", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(bool, True))
+        QtCore.QMetaObject.invokeMethod(self.result_preview_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
+        QtCore.QMetaObject.invokeMethod(self.result_preview_widget, "setVisible", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(bool, True))
+
 
     def on_training_finished(self):
-        self.generate_button.setEnabled(True)
-
-        # Full path to the zip file
-        zip_path = os.path.join(self.local_page.current_directory, 'augmented_data.zip')
-
-        self.output_widget.setText(f"Synthetic data generated. Download here: {zip_path}")
-        self.process_log_widget.append(f"Synthetic data saved at {zip_path}")
-        self.update_results_widget(zip_path)
+        """Callback when training and data generation is finished."""
+        self.generate_data_button.setEnabled(True)
+        self.process_log_widget.append_log("Data generation finished.")
 
     def update_results_widget(self, zip_path):
         """Display the contents of the zip file in the Results widget."""

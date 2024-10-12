@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 import zipfile
+import sip
 
 class SVCpreview(QtWidgets.QWidget):
     def __init__(self, input=None, output=None, parent=None):
@@ -169,27 +170,29 @@ class SVCpreview(QtWidgets.QWidget):
     def set_zip_path(self, zip_path):
         """Handle the ZIP file, list contents, and possibly display relevant file contents."""
         if not zipfile.is_zipfile(zip_path):
-            self.results_text.setPlainText("Error: Invalid ZIP file.")
+            if self.results_text and not sip.isdeleted(self.results_text):
+                self.results_text.setPlainText("Error: Invalid ZIP file.")
             return
-        
+
         try:
-            # Open the ZIP file and display its contents
             with zipfile.ZipFile(zip_path, 'r') as zipf:
                 file_list = zipf.namelist()
 
-                # Set the first file content in preview 1 and the second in preview 2 (if they exist)
-                if len(file_list) > 0:
+                if len(file_list) > 0 and self.filename1 and not sip.isdeleted(self.filename1):
                     with zipf.open(file_list[0]) as file1:
                         content1 = file1.read().decode("utf-8", errors="ignore")
                         self.filename1.setText(file_list[0])
                         self.text_preview1.setPlainText(content1)
-                if len(file_list) > 1:
+
+                if len(file_list) > 1 and self.filename2 and not sip.isdeleted(self.filename2):
                     with zipf.open(file_list[1]) as file2:
                         content2 = file2.read().decode("utf-8", errors="ignore")
                         self.filename2.setText(file_list[1])
                         self.text_preview2.setPlainText(content2)
 
-                self.results_text.setPlainText("Results:")
+                if self.results_text and not sip.isdeleted(self.results_text):
+                    self.results_text.setPlainText("Results:")
 
         except Exception as e:
-            self.results_text.setPlainText(f"Error reading ZIP file: {str(e)}")
+            if self.results_text and not sip.isdeleted(self.results_text):
+                self.results_text.setPlainText(f"Error reading ZIP file: {str(e)}")
