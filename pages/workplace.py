@@ -114,13 +114,15 @@ class GenerateDataWorker(QThread):
                 self.scalers,
                 self.avg_data_points,
                 self.input_filenames,
-                self.original_data_frames,
-                self.original_absolute_files,
+                self.original_data_frames
             ) = scbetavaegan.upload_and_process_files(
                 self.output_dir, self.num_files_to_use
             )
 
             self.progress.emit(f"Preprocessed {len(self.processed_data)} files")
+
+
+            self.original_absolute_files = scbetavaegan.save_original_data(self.original_data_frames, self.input_filenames)
 
             # # Store the name of the first file for use in Cell 4
             self.input_filename = (

@@ -28,31 +28,20 @@ def upload_and_process_files(directory, num_files_to_use=None):
     original_data_frames = []  # Save the original unscaled data
     scalers = []
     input_filenames = []  # List to store input filenames
-    original_absolute_files = []
 
     num_files = len(svc_files)
     fig, axs = plt.subplots(1, num_files, figsize=(6*num_files, 6), constrained_layout=True)
     if num_files == 1:
         axs = [axs]
 
-    # Create the folder if it doesn't exist
-    output_folder = 'original_absolute'
-    os.makedirs(output_folder, exist_ok=True)
-
     for i, filename in enumerate(svc_files):
         file_path = os.path.join(directory, filename)
         input_filenames.append(filename)  # Store the filename
-        df = pd.read_csv(file_path, skiprows=1, header=None, sep='\s+')
+        df = pd.read_csv(file_path, skiprows=1, header=None, delim_whitespace=True)
         df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
         
         # Modify timestamp to start from 0
         df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
-        
-        # Save the modified data to the 'original_absolute' folder
-        save_path = os.path.join(output_folder, filename)
-        original_absolute_files.append(save_path)
-        
-        df.to_csv(save_path, sep=' ', index=False, header=False)
         
         # Keep a copy of the original data before scaling
         original_data_frames.append(df.copy())  # Save the original unmodified data
@@ -74,11 +63,22 @@ def upload_and_process_files(directory, num_files_to_use=None):
         axs[i].legend()
         axs[i].set_aspect('equal')
 
+
     processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
                       for df, scaler in zip(data_frames, scalers)]
     avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
 
-    return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames, original_absolute_files  # Return original data
+    return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames  # Return original data
+
+def save_original_data(data_frames, input_filenames, output_folder='original_absolute'):
+    original_absolute_files = []
+    os.makedirs(output_folder, exist_ok=True)
+    for df, filename in zip(data_frames, input_filenames):
+        save_path = os.path.join(output_folder, filename)
+        df.to_csv(save_path, sep=' ', index=False, header=False)
+        original_absolute_files.append(save_path)
+    return original_absolute_files
+
 
 def process_dataframes(dataframes, num_files_to_use=None):
     if num_files_to_use:
@@ -372,7 +372,7 @@ def nested_augmentation(all_augmented_data, num_augmentations, num_files_to_use,
         if iteration > 0:
             # Only update the data for subsequent iterations
             directory = 'augmented_data_nested'
-            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames, original_absolute_files = upload_and_process_files(directory, num_files_to_use)
+            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
         
         augmented_datasets = generate_augmented_data(data_frames, vae_pretrained, num_files_to_use, avg_data_points, processed_data, 
                                                      base_latent_variability, latent_variability_range)
