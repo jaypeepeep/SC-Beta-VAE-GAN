@@ -13,11 +13,16 @@ from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import load_model
 from keras.utils import custom_object_scope
+import shutil
 
-def upload_and_process_files(uploaded_files, num_files_to_use=None):
-    # If num_files_to_use is specified, only take that many files from the list
+all_augmented_filepaths = []
+
+def upload_and_process_files(directory, num_files_to_use=None):
+    svc_files = [f for f in os.listdir(directory) if f.endswith('.svc')]
+    
+    # If num_files_to_use is specified, only take that many files sequentially
     if num_files_to_use:
-        uploaded_files = uploaded_files[:num_files_to_use]  # Take the first num_files_to_use files
+        svc_files = svc_files[:num_files_to_use]  # Take the first num_files_to_use files
 
     data_frames = []  # Processed data after scaling
     original_data_frames = []  # Save the original unscaled data
@@ -25,29 +30,30 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
     input_filenames = []  # List to store input filenames
     original_absolute_files = []
 
-    num_files = len(uploaded_files)
+    num_files = len(svc_files)
     fig, axs = plt.subplots(1, num_files, figsize=(6*num_files, 6), constrained_layout=True)
     if num_files == 1:
         axs = [axs]
 
-     # Create the folder if it doesn't exist
-    output_folder = os.path.join('model', 'original_absolute')
+    # Create the folder if it doesn't exist
+    output_folder = 'original_absolute'
     os.makedirs(output_folder, exist_ok=True)
 
-    for i, file_path in enumerate(uploaded_files):
-        filename = os.path.basename(file_path)  # Extract the filename from the path
+    for i, filename in enumerate(svc_files):
+        file_path = os.path.join(directory, filename)
         input_filenames.append(filename)  # Store the filename
-        print(file_path)
-        df = pd.read_csv(file_path, skiprows=1, header=None, delim_whitespace=True)
+        df = pd.read_csv(file_path, skiprows=1, header=None, sep='\s+')
         df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
         
         # Modify timestamp to start from 0
         df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
         
+        # Save the modified data to the 'original_absolute' folder
         save_path = os.path.join(output_folder, filename)
         original_absolute_files.append(save_path)
+        
         df.to_csv(save_path, sep=' ', index=False, header=False)
-
+        
         # Keep a copy of the original data before scaling
         original_data_frames.append(df.copy())  # Save the original unmodified data
         
@@ -58,7 +64,6 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
         normalized_data = scaler.fit_transform(df[['x', 'y', 'timestamp']])
         scalers.append(scaler)
 
-        # Plot the data
         on_paper = df[df['pen_status'] == 1]
         in_air = df[df['pen_status'] == 0]
         axs[i].scatter(-on_paper['y'], on_paper['x'], c='blue', s=1, alpha=0.7, label='On Paper')
@@ -69,7 +74,6 @@ def upload_and_process_files(uploaded_files, num_files_to_use=None):
         axs[i].legend()
         axs[i].set_aspect('equal')
 
-    # Process the data
     processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
                       for df, scaler in zip(data_frames, scalers)]
     avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
@@ -252,126 +256,142 @@ def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
 
 
 def repeat_backwards(original_paa, augmented_length):
-    # Calculate how many rows need to be filled
     repeat_count = augmented_length - len(original_paa)
-
-    # If no rows need to be filled, return the original data
     if repeat_count <= 0:
         return original_paa
-
-    # Repeat the original data backwards row by row
     backwards_rows = np.empty((0, original_paa.shape[1]))
     for i in range(repeat_count):
-        row_to_repeat = original_paa[-(i + 1)]  # Get the i-th row from the end
+        row_to_repeat = original_paa[-(i % len(original_paa) + 1)]
         backwards_rows = np.vstack((backwards_rows, row_to_repeat))
-
-    # Append the backward-repeated rows to the original data
     return np.vstack((original_paa, backwards_rows))
 
-def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, axs):
-    all_augmented_data = []  # List to store augmented datasets after scaling back
+def visualize_augmented_data_from_directory(directory):
+    augmented_files = [f for f in os.listdir(directory) if f.startswith('augmented_') and f.endswith('.svc')]
+    num_files = len(augmented_files)
+    if num_files == 0:
+        print("No augmented data files found in the directory.")
+        return
+    
+    fig, axs = plt.subplots(1, num_files, figsize=(6 * num_files, 6), constrained_layout=True)
+    if num_files == 1:
+        axs = [axs]
+    
+    for i, filename in enumerate(augmented_files):
+        file_path = os.path.join(directory, filename)
+        df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+        df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+        
+        on_paper = df[df['pen_status'] == 1]
+        in_air = df[df['pen_status'] == 0]
 
-    for i, (augmented_data, scaler, original_df) in enumerate(zip(augmented_datasets, scalers, original_data_frames)):
-        # Inverse transform the augmented data
-        augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
-        
-        # Round to integers
-        augmented_xyz_int = np.rint(augmented_xyz).astype(int)
-        
-        # Get pen status from augmented data
-        pen_status = augmented_data[:, 3].astype(int)
-        
-        # Prepare pressure, azimuth, altitude data from original data
-        original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
-        
-        # If augmented data is longer, fill the original data by repeating values backwards
-        if len(augmented_data) > len(original_paa):
-            original_paa = repeat_backwards(original_paa, len(augmented_data))
-        
-        # Round pressure, azimuth, altitude to integers
-        original_paa_int = np.rint(original_paa).astype(int)
-        
-        # Combine all data
-        augmented_data_original_scale = np.column_stack((
-            augmented_xyz_int,
-            pen_status,
-            original_paa_int[:len(augmented_data)]
-        ))
-        
-        # Store the augmented data for later use
-        all_augmented_data.append(augmented_data_original_scale)
-        
-        # Visualization of the augmented data (after inverse scaling)
-        augmented_on_paper = augmented_data_original_scale[augmented_data_original_scale[:, 3] == 1]
-        augmented_in_air = augmented_data_original_scale[augmented_data_original_scale[:, 3] == 0]
+        axs[i].scatter(on_paper['y'], on_paper['x'], c='b', s=1, alpha=0.7, label='On Paper')
+        axs[i].scatter(in_air['y'], in_air['x'], c='r', s=1, alpha=0.7, label='In Air')
+        axs[i].set_title(f'Augmented Data {i + 1}')
+        axs[i].set_xlabel('y')
+        axs[i].set_ylabel('x')
+        axs[i].invert_xaxis()
+        axs[i].set_aspect('equal')
+        axs[i].legend()
+    
+def get_unique_filename(directory, filename):
+    base, extension = os.path.splitext(filename)
+    counter = 1
+    while os.path.exists(os.path.join(directory, filename)):
+        filename = f"{base}({counter}){extension}"
+        counter += 1
+    return filename
 
-        # Scatter plot for the augmented data, with rotated axes
-        axs[i + len(original_data_frames)].scatter(augmented_on_paper[:, 1], augmented_on_paper[:, 0], c='b', s=1, label='On Paper')  # y -> x, x -> y
-        axs[i + len(original_data_frames)].scatter(augmented_in_air[:, 1], augmented_in_air[:, 0], c='r', s=1, label='In Air')  # y -> x, x -> y
-        axs[i + len(original_data_frames)].set_title(f'Augmented Data {i + 1}')
-        axs[i + len(original_data_frames)].set_xlabel('y')  # Previously 'x'
-        axs[i + len(original_data_frames)].set_ylabel('x')  # Previously 'y'
-        axs[i + len(original_data_frames)].set_aspect('equal')
-        axs[i + len(original_data_frames)].invert_xaxis()  # Flip the horizontal axis (y-axis)
-        axs[i + len(original_data_frames)].legend()
+def download_augmented_data_with_modified_timestamp(all_augmented_data, augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data', directory2='augmented_data_nested'):
+    global all_augmented_filepaths
 
-    return all_augmented_data  # Return the list of augmented datasets after scaling back
-
-# Cell 10 (modified to retain augmented data length)
-def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory='model/augmented_data'):
-    all_augmented_filepath = []
-
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    if not os.path.exists(directory1):
+        os.makedirs(directory1)
+    
+    if not os.path.exists(directory2):
+        os.makedirs(directory2)
 
     for i, (augmented_data, scaler, original_df, original_filename) in enumerate(zip(augmented_datasets, scalers, original_data_frames, original_filenames)):
-        # Inverse transform the augmented data
         augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
-        
-        # Round to integers
         augmented_xyz_int = np.rint(augmented_xyz).astype(int)
-        
-        # Get pen status from augmented data
         pen_status = augmented_data[:, 3].astype(int)
-        
-        # Prepare pressure, azimuth, altitude data
         original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
         
         if len(augmented_data) > len(original_paa):
             original_paa = repeat_backwards(original_paa, len(augmented_data))
         
-        # Round pressure, azimuth, altitude to integers
         original_paa_int = np.rint(original_paa).astype(int)
         
-        # Generate new timestamps: start at 0, alternately incrementing by 7 and 8
         new_timestamps = np.zeros(len(augmented_data), dtype=int)
         increment_sequence = [7, 8]
         current_time = 0
         for idx in range(len(augmented_data)):
             new_timestamps[idx] = current_time
-            current_time += increment_sequence[idx % 2]  # Alternate between 7 and 8
+            current_time += increment_sequence[idx % 2]
 
-        # Replace the timestamp in the 3rd column of augmented_xyz_int
         augmented_xyz_int[:, 2] = new_timestamps
 
-        # Combine all data: XYZ, pen status, pressure, azimuth, altitude
         augmented_data_original_scale = np.column_stack((
             augmented_xyz_int,
             pen_status,
             original_paa_int[:len(augmented_data)]
         ))
 
-        # Construct the new file name to match the original file name
+        # Use the original filename for nested directory
+        nested_filename = original_filename
+        nested_file_path = os.path.join(directory2, nested_filename)
+
+        # For augmented_data directory, add 'augmented_' prefix and handle duplicates
         augmented_filename = f"synthetic_{original_filename}"
-        augmented_file_path = os.path.join(directory, augmented_filename)
+        augmented_filename = get_unique_filename(directory1, augmented_filename)
+        augmented_file_path = os.path.join(directory1, augmented_filename)
 
-        all_augmented_filepath.append(augmented_file_path)
+        all_augmented_filepaths.append(augmented_file_path)
 
-        # Save the augmented data to a file
         np.savetxt(augmented_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
+        np.savetxt(nested_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
+
+        # Only store augmented data from the augmented_data directory
+        all_augmented_data.append(augmented_data_original_scale)
 
         print(f"Augmented data saved to {augmented_file_path}")
+        print(f"Augmented data saved to {nested_file_path}")
         print(f"Shape of augmented data for {original_filename}: {augmented_data_original_scale.shape}")
 
-    return all_augmented_filepath
 
+def nested_augmentation(all_augmented_data, num_augmentations, num_files_to_use, pretrained_filename, base_latent_variability, latent_variability_range, data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames):
+    global all_augmented_filepaths
+
+    with custom_object_scope({'VAE': VAE}):
+        pretrained_filepath = os.path.join("pre-trained", pretrained_filename)
+        vae_pretrained = load_model(pretrained_filepath)
+    print("Pretrained VAE model loaded.")
+
+    for iteration in range(num_augmentations):
+        print(f"Starting augmentation iteration {iteration + 1}")
+        
+        if iteration > 0:
+            # Only update the data for subsequent iterations
+            directory = 'augmented_data_nested'
+            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames, original_absolute_files = upload_and_process_files(directory, num_files_to_use)
+        
+        augmented_datasets = generate_augmented_data(data_frames, vae_pretrained, num_files_to_use, avg_data_points, processed_data, 
+                                                     base_latent_variability, latent_variability_range)
+        
+        # Clear augmented_data_nested directory
+        if os.path.exists('augmented_data_nested'):
+            shutil.rmtree('augmented_data_nested')
+        os.makedirs('augmented_data_nested')
+        
+        download_augmented_data_with_modified_timestamp(all_augmented_data, augmented_datasets, scalers, original_data_frames, input_filenames)
+
+        print(f"Completed augmentation iteration {iteration + 1}")
+    
+    # Clear augmented_data_nested directory after the last iteration
+    if os.path.exists('augmented_data_nested'):
+        shutil.rmtree('augmented_data_nested')
+        print("Cleared augmented_data_nested directory after the final iteration.")
+    
+    print("Nested augmentation process completed.")
+    visualize_augmented_data_from_directory('augmented_data')
+
+    return all_augmented_filepaths
