@@ -38,6 +38,8 @@ from keras.utils import custom_object_scope
 from PyQt5.QtCore import QThread, pyqtSignal
 import traceback
 
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMessageBox
 
 class GenerateDataWorker(QThread):
     finished = pyqtSignal()
@@ -89,18 +91,6 @@ class GenerateDataWorker(QThread):
                 self.progress.emit("Generating synthetic data...")
                 time.sleep(2)
                 self.progress.emit("Synthetic data generation completed successfully!")
-
-                # Expand output and result sections
-                QtCore.QTimer.singleShot(
-                    0,
-                    lambda: self.collapsible_widget_process_log.toggle_container(True),
-                )
-                QtCore.QTimer.singleShot(
-                    3000, lambda: self.collapsible_widget_output.toggle_container(True)
-                )
-                QtCore.QTimer.singleShot(
-                    4000, lambda: self.collapsible_widget_result.toggle_container(True)
-                )
 
             else:
                 self.progress.emit("Error: No input files found. Please upload files before generating data.")
@@ -785,29 +775,37 @@ class Workplace(QtWidgets.QWidget):
         self.gridLayout.addLayout(button_layout, 1, 0)
 
     def train_vae(self):
-        self.process_log_widget.clear()
-        self.collapsible_widget_output.toggle_container(False)
-        self.collapsible_widget_result.toggle_container(False)
-        self.collapsible_widget_process_log.toggle_container(True)
-        self.collapsible_widget_process_log.toggle_container(True)
+        confirmation = self.model_widget.create_custom_message_box(
+            title="Train SC-β-VAE-GAN",
+            message=f"Are you sure you want to train a new model?"
+        )
+        
+        # Proceed only if the user confirms with 'Yes'
+        if confirmation:
+            self.process_log_widget.clear()
+            self.svc_preview.clear()
+            self.collapsible_widget_output.toggle_container(False)
+            self.collapsible_widget_result.toggle_container(False)
+            self.collapsible_widget_process_log.toggle_container(True)
 
-        # Disable the generate button and change text
-        self.generate_data_button.setEnabled(False)
-        self.generate_data_button.setText("Generating...")
+            # Disable the generate button and change text
+            self.generate_data_button.setEnabled(False)
+            self.generate_data_button.setText("Generating...")
 
-        # Create and start the worker thread
-        self.worker = GenerateDataWorker(self)
-        self.worker.set_model(None)
+            # Create and start the worker thread
+            self.worker = GenerateDataWorker(self)
+            self.worker.set_model(None)
 
-        # Connect signals
-        self.worker.finished.connect(self.on_generation_complete)
-        self.worker.error.connect(self.on_generation_error)
-        self.worker.progress.connect(
-            self.logger.info
-        )  # Connect directly to logger.info
+            # Connect signals
+            self.worker.finished.connect(self.on_generation_complete)
+            self.worker.error.connect(self.on_generation_error)
+            self.worker.progress.connect(
+                self.logger.info
+            )  # Connect directly to logger.info
 
-        # Start the thread
-        self.worker.start()
+            # Start the thread
+            self.worker.start()
+
 
     def on_generate_data(self):
         self.selected_model = self.model_widget.current_checked_file
@@ -818,6 +816,7 @@ class Workplace(QtWidgets.QWidget):
             self.show_error("Please select a pre-trained model first or train your own model")
         elif self.has_files is True and self.selected_model != None:
             self.process_log_widget.clear()
+            self.svc_preview.clear()
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
             self.collapsible_widget_process_log.toggle_container(True)
@@ -877,8 +876,14 @@ class Workplace(QtWidgets.QWidget):
     def show_error(self, message):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
+        msg.setText("Error")
         msg.setInformativeText(message)
         msg.setWindowTitle("Error")
+        
+        # Set custom icon
+        icon = QIcon("icon/icon.ico")
+        msg.setWindowIcon(icon)
+
         msg.exec_()
 
     def setup_input_collapsible(self):
@@ -1045,6 +1050,9 @@ class Workplace(QtWidgets.QWidget):
 
             # Update the file container layout to reflect the changes
             self.file_container_layout.update()
+            self.has_files = bool(self.uploaded_files)
+            if self.has_files == False:
+                self.clear_all_ui()
 
     def update_file_display(self, new_uploaded_files):
         """Update the display of files based on newly uploaded files."""
@@ -1162,9 +1170,10 @@ class Workplace(QtWidgets.QWidget):
         self.file_preview_widget.clear()
         self.process_log_widget.clear()
         self.svc_preview.clear()
-
+        
         # Collapse all widgets except Input
         self.collapsible_widget_preview.toggle_container(False)
+        self.collapsible_model_container.toggle_container(False)
         self.collapsible_widget_process_log.toggle_container(False)
         self.collapsible_widget_output.toggle_container(False)
         self.collapsible_widget_result.toggle_container(False)
