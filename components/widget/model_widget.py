@@ -1,6 +1,7 @@
 import os
 from components.widget.spin_box_widget import SpinBoxWidget
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtGui import QIcon
 
 
 class ModelWidget(QtWidgets.QWidget):
@@ -110,8 +111,6 @@ class ModelWidget(QtWidgets.QWidget):
         self.slider_widget = SpinBoxWidget(0)
         self.layout.addWidget(self.slider_widget)
 
-        self.train_button.clicked.connect(self.train_vae)
-
     def load_files(self, directory=None):
         if directory is None:
             directory = self.pre_trained_path
@@ -218,7 +217,7 @@ class ModelWidget(QtWidgets.QWidget):
                 self.current_checked_checkbox = None
                 print(f"Checkbox unchecked for file: {filename}")
                 filename = None
-                self.current_checked_file = filename
+                self.current_checked_file = filename            
 
     def show_file_options(self, file):
         menu = QtWidgets.QMenu(self)
@@ -283,20 +282,12 @@ class ModelWidget(QtWidgets.QWidget):
             except OSError as e:
                 QtWidgets.QMessageBox.critical(self, "Error", f"Failed to delete file: {str(e)}")
 
-    def train_vae(self):
-        self.create_custom_message_box(
-            title="Train VAE",
-            message=f"Training VAE model..."
-        )
-
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.load_files)
-        self.timer.start(5000)
-
 
     def create_custom_message_box(self, title, message):
         """Create a custom message box"""
         message_box = QtWidgets.QMessageBox()
+        icon = QIcon("icon/icon.ico")
+        message_box.setWindowIcon(icon)
         message_box.setWindowTitle(title)
         message_box.setText(message)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
