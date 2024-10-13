@@ -2,9 +2,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QMessageBox
 from PyQt5.QtGui import QColor
 import os
-import zipfile
 import shutil
-import tempfile
 
 class OutputWidget(QtWidgets.QWidget):
     clearUI = QtCore.pyqtSignal()
@@ -175,39 +173,20 @@ class OutputWidget(QtWidgets.QWidget):
                         QMessageBox.Ok
                     )
 
-    def create_output_zip(self):
+    def set_zip_path(self, zip_path):
+        """Set the ZIP file path for the OutputWidget."""
         try:
-            input_files = self.parent.uploaded_files if hasattr(self.parent, 'uploaded_files') else []
-            
-            if not input_files:
-                QMessageBox.warning(
-                    self,
-                    'No Input Files',
-                    "No input files found to create zip file",
-                    QMessageBox.Ok
-                )
-                return
+            if not os.path.exists(zip_path):
+                raise FileNotFoundError(f"ZIP file not found: {zip_path}")
 
-            # Create a temporary zip file
-            with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as temp_zip:
-                self.output_zip_path = temp_zip.name
-
-            # Create the zip file with input files
-            with zipfile.ZipFile(self.output_zip_path, 'w') as zipf:
-                for file_path in input_files:
-                    if os.path.exists(file_path):
-                        zipf.write(file_path, os.path.basename(file_path))
-            
-            if hasattr(self.parent, 'svc_preview'):
-                self.parent.svc_preview.set_zip_path(self.output_zip_path)
-
-            self.setVisible(True)  # Show widget after zip is created
-
+            self.output_zip_path = zip_path
+            self.file_label.setText(os.path.basename(zip_path))  # Update the label with the zip filename
+            self.setVisible(True)  # Ensure the widget is visible
+        except FileNotFoundError as e:
+            self.show_error_message(f"File error: {str(e)}")
         except Exception as e:
-            QMessageBox.warning(
-                self,
-                'Error',
-                f"Error creating zip file: {str(e)}",
-                QMessageBox.Ok
-            )
-            self.output_zip_path = None
+            self.show_error_message(f"Unexpected error: {str(e)}")
+
+    def show_error_message(self, message):
+        """Show a message box with the error message."""
+        QMessageBox.warning(self, 'Error', message, QMessageBox.Ok)

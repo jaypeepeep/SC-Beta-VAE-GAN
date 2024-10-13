@@ -171,7 +171,7 @@ class Handwriting(QtWidgets.QWidget):
         self.process_log_widget.setVisible(False)
         self.output_widget.setVisible(False)
         self.result_preview_widget.setVisible(False)
-        self.plot_container.setVisible(False)
+        # self.plot_container.setVisible(False)
 
         # Check if there is existing handwriting data (i.e., file_list is not empty)
         if self.file_list:
@@ -532,11 +532,15 @@ class Handwriting(QtWidgets.QWidget):
         # self.plot_container.setVisible(True)  # Make the plot container visible
 
     def on_zip_ready(self, zip_file_path):
-        """Handle when the zip file is ready."""
-        QtCore.QMetaObject.invokeMethod(self.output_widget, "setVisible", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(bool, True))
-        QtCore.QMetaObject.invokeMethod(self.result_preview_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
-        QtCore.QMetaObject.invokeMethod(self.result_preview_widget, "setVisible", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(bool, True))
+        if self.result_preview_widget and hasattr(self.result_preview_widget, 'set_zip_path'):
+            # Set the zip path for result preview widget
+            QtCore.QMetaObject.invokeMethod(self.result_preview_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
+            self.result_preview_widget.setVisible(True)
 
+        # Set the zip path for output widget
+        if hasattr(self.output_widget, 'set_zip_path'):
+            QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
+            self.output_widget.setVisible(True)
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
