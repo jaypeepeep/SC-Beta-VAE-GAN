@@ -52,9 +52,13 @@ class GenerateDataWorker(QThread):
         self.workplace = workplace
         self.uploaded_files = workplace.uploaded_files
         self.model = None
+        self.num_augmentations = 1
     
     def set_model(self, model):
         self.model = model
+
+    def set_num_augmentations(self, num_augmentations):
+        self.num_augmentations = num_augmentations
 
     def run(self):
         plt.close('all')
@@ -62,21 +66,21 @@ class GenerateDataWorker(QThread):
         try:
             self.progress.emit("Starting data generation process...")
             # Move all the generation logic here
-            timestamp = time.strftime("%Y%m%d-%H%M%S")
-            folder_name = f"SyntheticData_{timestamp}"
-            output_dir = os.path.join(
-                os.path.dirname(__file__), "../uploads", folder_name
+            self.timestamp = time.strftime("%Y%m%d-%H%M%S")
+            self.folder_name = f"SyntheticData_{self.timestamp}"
+            self.output_dir = os.path.join(
+                os.path.dirname(__file__), "../uploads", self.folder_name
             )
 
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
-                self.progress.emit(f"Created output directory: {folder_name}")
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
+                self.progress.emit(f"Created output directory: {self.folder_name}")
 
             self.progress.emit("Copying input files...")
             for file_path in self.uploaded_files:
                 if os.path.exists(file_path):
                     file_name = os.path.basename(file_path)
-                    destination_path = os.path.join(output_dir, file_name)
+                    destination_path = os.path.join(self.output_dir, file_name)
                     shutil.copy(file_path, destination_path)
 
             self.progress.emit("Starting synthetic data generation...")
@@ -113,8 +117,9 @@ class GenerateDataWorker(QThread):
                 self.original_data_frames,
                 self.original_absolute_files,
             ) = scbetavaegan.upload_and_process_files(
-                self.uploaded_files, self.num_files_to_use
+                self.output_dir, self.num_files_to_use
             )
+
             self.progress.emit(f"Preprocessed {len(self.processed_data)} files")
 
             # # Store the name of the first file for use in Cell 4
@@ -223,7 +228,22 @@ class GenerateDataWorker(QThread):
                 np.mean([self.df.shape[0] for self.df in self.data_frames])
             )
 
+            self.imputed_folder = 'imputed'
+            os.makedirs(self.imputed_folder, exist_ok=True)
+
             self.processed_dataframes = []
+
+            for self.input_filename, self.df in zip(self.input_filenames, self.data_frames):
+                # Convert all numeric columns to integers
+                self.df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = self.df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
+
+                # Save the processed DataFrame to the 'imputed' folder with the same input filename
+                self.save_path = os.path.join(self.imputed_folder, self.input_filename)
+                self.df.to_csv(self.save_path, sep=' ', index=False, header=False)  # Save without header and index
+                # Append the processed DataFrame to the list
+                self.processed_dataframes.append(self.df)
+
+                print(f"Processed DataFrame saved as: {self.input_filename}")
 
             for self.input_filename, self.df in zip(
                 self.input_filenames, self.data_frames
@@ -279,13 +299,13 @@ class GenerateDataWorker(QThread):
             self.learning_rate = 0.001
             self.lambda_shift = 0.5
 
-            self.vae = scbetavaegan.VAE(self.latent_dim, self.beta)
+            self.vae = scbetavaegan.VAE(self.latent_dim, self.beta, self.lambda_shift)
             self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
             if self.model is None:
                 self.train_model()
             else:
-                self.generate_synthetic_data(self.model)
+                self.generate_synthetic_data(self.model, self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames)
 
         except Exception as e:
             self.error.emit(str(e) + "\n" + traceback.format_exc())
@@ -412,32 +432,12 @@ class GenerateDataWorker(QThread):
                 self.reconstruction_loss_history.append(self.avg_reconstruction_loss)
                 self.kl_loss_history.append(self.avg_kl_loss)
 
-                # Calculate NRMSE
-                self.nrmse_sum = 0
-                for self.data in self.processed_data:
-                    self.augmented_data = self.vae.decode(
-                        tf.random.normal(
-                            shape=(self.data.shape[0], self.latent_dim)
-                        )
-                    ).numpy()
-                    self.rmse = np.sqrt(
-                        mean_squared_error(self.data[:, :2], self.augmented_data[:, :2])
-                    )
-                    self.nrmse = self.rmse / (
-                        self.data[:, :2].max() - self.data[:, :2].min()
-                    )
-                    self.nrmse_sum += self.nrmse
-
-                self.nrmse_avg = self.nrmse_sum / len(self.processed_data)
-
-                self.nrmse_history.append(self.nrmse_avg)
                 print(
                     f"Epoch {self.epoch+1}: Generator Loss = {self.avg_generator_loss:.6f}, Reconstruction Loss = {self.avg_reconstruction_loss:.6f}, KL Divergence Loss = {self.avg_kl_loss:.6f}"
                 )
                 self.progress.emit(f"Training Epoch {self.epoch+1}: Generator Loss = {self.avg_generator_loss:.6f}, Reconstruction Loss = {self.avg_reconstruction_loss:.6f}, KL Divergence Loss = {self.avg_kl_loss:.6f}")
 
-                print(f"NRMSE = {self.nrmse_avg:.6f}")
-
+            
                 # Cell 5 (visualization part)
                 if (self.epoch + 1) % self.visual_per_num_epoch == 0:
                     self.base_latent_variability = 100.0
@@ -577,116 +577,20 @@ class GenerateDataWorker(QThread):
             self.vae.save(self.model_save_path)
             print(f"VAE model saved at {self.model_save_path}.")
 
-            self.generate_synthetic_data(os.path.basename(self.model_save_path))
+            self.generate_synthetic_data(os.path.basename(self.model_save_path), self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frame)
 
         except Exception as e:
             self.error.emit(str(e) + "\n" + traceback.format_exc())
         
-    def generate_synthetic_data(self, pretrained_filename):
+    def generate_synthetic_data(self, pretrained_filename, data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames):
         try:
-            # Load pretrained VAE model
-            self.progress.emit("Loading pretrained VAE model...")
-            # Set the path to the pretrained model using the passed filename
-            self.pretrained_filepath = os.path.join("pre-trained", pretrained_filename)
-            
-            # Use custom_object_scope if required for loading the custom VAE class
-            with custom_object_scope({"VAE": scbetavaegan.VAE}):
-                # Load the pretrained VAE model
-                self.vae_pretrained = scbetavaegan.load_model(self.pretrained_filepath)
-            print("Pretrained VAE model loaded.")
-            self.progress.emit(f"{pretrained_filename} loaded successfully")
-
             # Base latent variability settings
             self.base_latent_variability = 100.0
             self.latent_variability_range = (0.99, 1.01)
-            self.num_augmented_files = len(self.uploaded_files)
+            self.all_augmented_data = [] 
 
-            # Generate augmented data using the pretrained model
-            self.progress.emit("Generating synthetic data...")
-            self.augmented_datasets = scbetavaegan.generate_augmented_data(
-                self.data_frames,
-                self.vae_pretrained,
-                self.num_augmented_files,
-                self.avg_data_points,
-                self.processed_data,
-                self.base_latent_variability,
-                self.latent_variability_range,
-            )
-            self.progress.emit(f"Generated {self.num_augmented_files} synthetic datasets")
-
-            # Calculate actual latent variabilities and lengths used
-            self.latent_variabilities = [
-                self.base_latent_variability
-                * np.random.uniform(
-                    self.latent_variability_range[0], self.latent_variability_range[1]
-                )
-                for _ in range(self.num_augmented_files)
-            ]
-            self.augmented_lengths = [len(self.data) for self.data in self.augmented_datasets]
-
-            # Visualize the original and augmented data side by side
-            self.fig, self.axs = plt.subplots(
-                1,
-                self.num_augmented_files + len(self.original_data_frames),
-                figsize=(
-                    6 * (self.num_augmented_files + len(self.original_data_frames)),
-                    6,
-                ),
-            )
-
-            # Plot the original data before imputation, with a 90-degree left rotation and horizontal flip
-            for self.i, self.original_data in enumerate(self.original_data_frames):
-                self.original_on_paper = self.original_data[self.original_data["pen_status"] == 1]
-                self.original_in_air = self.original_data[self.original_data["pen_status"] == 0]
-
-                # Scatter plot for the original data (before imputation), with rotated axes
-                self.axs[self.i].scatter(
-                    self.original_on_paper["y"],
-                    self.original_on_paper["x"],
-                    c="b",
-                    s=1,
-                    label="On Paper",
-                )
-                self.axs[self.i].scatter(
-                    self.original_in_air["y"],
-                    self.original_in_air["x"],
-                    c="r",
-                    s=1,
-                    label="In Air",
-                )
-                self.axs[self.i].set_title(f"Original Data {self.i + 1}")
-                self.axs[self.i].set_xlabel("y")
-                self.axs[self.i].set_ylabel("x")
-                self.axs[self.i].set_aspect("equal")
-                self.axs[self.i].legend()
-
-                # Flip the horizontal axis (y-axis)
-                self.axs[self.i].invert_xaxis()
-
-            # Set consistent axis limits for square aspect ratio for both original and augmented data
-            self.x_min = min(self.data["x"].min() for self.data in self.original_data_frames)
-            self.x_max = max(self.data["x"].max() for self.data in self.original_data_frames)
-            self.y_min = min(self.data["y"].min() for self.data in self.original_data_frames)
-            self.y_max = max(self.data["y"].max() for self.data in self.original_data_frames)
-
-            # Plot the augmented data with the same 90-degree left rotation and horizontal flip
-            self.all_augmented_data = scbetavaegan.visualize_augmented_data(
-                self.augmented_datasets,
-                self.scalers,  # Assuming self.scalers is available
-                self.original_data_frames,
-                self.axs,
-            )
-
-            plt.tight_layout()
-
-            self.progress.emit("Saving synthetic data...")
-            self.all_augmented_filepaths = scbetavaegan.download_augmented_data_with_modified_timestamp(
-                self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames
-            )
-
-            self.progress.emit("Successfully saved all synthetic data files")
-            self.progress.emit("Data generation process completed successfully!")
-
+            self.all_augmented_filepaths = scbetavaegan.nested_augmentation(self.all_augmented_data, self.num_augmentations, self.num_files_to_use, pretrained_filename, self.base_latent_variability, self.latent_variability_range, data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames)
+            
             self.finished.emit()
         except Exception as e:
             self.error.emit(str(e) + "\n" + traceback.format_exc())
@@ -795,6 +699,8 @@ class Workplace(QtWidgets.QWidget):
             # Create and start the worker thread
             self.worker = GenerateDataWorker(self)
             self.worker.set_model(None)
+            self.num_augmentations = self.model_widget.slider_widget.getValue()
+            self.worker.set_num_augmentations(self.num_augmentations)
 
             # Connect signals
             self.worker.finished.connect(self.on_generation_complete)
@@ -827,6 +733,8 @@ class Workplace(QtWidgets.QWidget):
             # Create and start the worker thread
             self.worker = GenerateDataWorker(self)
             self.worker.set_model(self.selected_model)
+            self.num_augmentations = self.model_widget.slider_widget.getValue()
+            self.worker.set_num_augmentations(self.num_augmentations)
 
             # Connect signals
             self.worker.finished.connect(self.on_generation_complete)
@@ -961,6 +869,7 @@ class Workplace(QtWidgets.QWidget):
         self.model_widget = ModelWidget(self)
         self.model_widget.train_button.clicked.connect(self.train_vae)
         self.selected_model = self.model_widget.current_checked_file
+        self.num_augmentations = self.model_widget.slider_widget.getValue()
         self.collapsible_model_container.add_widget(self.model_widget)
 
     def setup_preview_collapsible(self):
