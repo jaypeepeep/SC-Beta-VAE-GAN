@@ -173,6 +173,7 @@ class OutputWidget(QtWidgets.QWidget):
                         QMessageBox.Ok
                     )
 
+    @QtCore.pyqtSlot(str)
     def set_zip_path(self, zip_path):
         """Set the ZIP file path for the OutputWidget."""
         try:

@@ -45,7 +45,7 @@ class ModelTrainingThread(QThread):
         self.logger = logger
 
         timestamp = time.strftime('%Y%m%d_%H%M%S')
-        self.synthetic_data_dir = os.path.join(uploads_dir, f'synthetic_data_{timestamp}')
+        self.synthetic_data_dir = os.path.join(uploads_dir, f'SyntheticData_{timestamp}')
         os.makedirs(self.synthetic_data_dir, exist_ok=True)
 
         self.model_output_dir = os.path.join('model', 'pentab_vae_models')
@@ -85,7 +85,7 @@ class ModelTrainingThread(QThread):
         self.log("Training completed.")
 
         # Step 4: Save the trained model
-        model_output_path = os.path.join(self.model_output_dir, 'trained_vae_model.h5')
+        model_output_path = os.path.join(self.model_output_dir)
         save_model(vae, model_output_path)
         self.log(f"Model saved at {model_output_path}")
 
@@ -532,10 +532,10 @@ class Handwriting(QtWidgets.QWidget):
         # self.plot_container.setVisible(True)  # Make the plot container visible
 
     def on_zip_ready(self, zip_file_path):
-        if self.result_preview_widget and hasattr(self.result_preview_widget, 'set_zip_path'):
+        if self.svc_preview and hasattr(self.svc_preview, 'set_zip_path'):
             # Set the zip path for result preview widget
-            QtCore.QMetaObject.invokeMethod(self.result_preview_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
-            self.result_preview_widget.setVisible(True)
+            QtCore.QMetaObject.invokeMethod(self.svc_preview, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
+            self.svc_preview.setVisible(True)
 
         # Set the zip path for output widget
         if hasattr(self.output_widget, 'set_zip_path'):
