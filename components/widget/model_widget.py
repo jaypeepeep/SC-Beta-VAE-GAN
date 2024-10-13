@@ -17,6 +17,9 @@ class ModelWidget(QtWidgets.QWidget):
 
         self.load_files()
 
+        self.current_checked_checkbox = None
+        self.current_checked_file = None
+
     def setup_ui(self):
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignTop)
@@ -28,7 +31,7 @@ class ModelWidget(QtWidgets.QWidget):
         self.setFont(font)
 
         # Train VAE button
-        self.train_button = QtWidgets.QPushButton("Train VAE")
+        self.train_button = QtWidgets.QPushButton("Train Model")
         button_style = """
             QPushButton {
                 background-color: #003333; 
@@ -162,6 +165,7 @@ class ModelWidget(QtWidgets.QWidget):
                     border-radius: 3px;
                 }
             """)
+            checkbox.stateChanged.connect(lambda state, cb=checkbox, fn=file_name: self.checkbox_clicked(state, cb, fn))
             checkbox_layout.addWidget(checkbox)
             checkbox_layout.setAlignment(QtCore.Qt.AlignCenter)
             checkbox_layout.setContentsMargins(0, 0, 0, 0)
@@ -201,6 +205,21 @@ class ModelWidget(QtWidgets.QWidget):
         # Adjust table height based on content
         total_height = ((len(files) + 1) * row_height) + self.files_table.horizontalHeader().height()
         self.files_table.setMinimumHeight(total_height)
+            
+    def checkbox_clicked(self, state, checkbox, filename):
+        if state == QtCore.Qt.Checked:
+            if self.current_checked_checkbox and self.current_checked_checkbox != checkbox:
+                self.current_checked_checkbox.setChecked(False)
+            self.current_checked_checkbox = checkbox
+            print(f"Checkbox clicked for file: {filename}")
+            self.current_checked_file = filename
+        else:
+            if self.current_checked_checkbox == checkbox:
+                self.current_checked_checkbox = None
+                print(f"Checkbox unchecked for file: {filename}")
+                filename = None
+                self.current_checked_file = filename
+
     def show_file_options(self, file):
         menu = QtWidgets.QMenu(self)
         menu.setStyleSheet("""

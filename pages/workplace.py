@@ -49,6 +49,10 @@ class GenerateDataWorker(QThread):
         super().__init__()
         self.workplace = workplace
         self.uploaded_files = workplace.uploaded_files
+        self.model = None
+    
+    def set_model(self, model):
+        self.model = model
 
     def run(self):
         plt.close('all')
@@ -288,6 +292,18 @@ class GenerateDataWorker(QThread):
             self.vae = scbetavaegan.VAE(self.latent_dim, self.beta)
             self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
+            if self.model is None:
+                self.train_model()
+            else:
+                self.generate_synthetic_data(self.model)
+
+        except Exception as e:
+            self.error.emit(str(e) + "\n" + traceback.format_exc())
+
+
+
+    def train_model(self):
+        try:
             # Initialize LSTM discriminator and optimizer
             self.lstm_discriminator = scbetavaegan.LSTMDiscriminator()
             self.lstm_optimizer = tf.keras.optimizers.Adam(
@@ -296,10 +312,10 @@ class GenerateDataWorker(QThread):
 
             self.batch_size = 512
             self.train_datasets = [
-                tf.data.Dataset.from_tensor_slices(data)
+                tf.data.Dataset.from_tensor_slices(self.data)
                 .shuffle(10000)
                 .batch(self.batch_size)
-                for data in self.processed_data
+                for self.data in self.processed_data
             ]
 
             # Set up alternating epochs
@@ -561,16 +577,7 @@ class GenerateDataWorker(QThread):
             plt.title("Training Loss Over Epochs")
             plt.legend()
 
-            # Plot NRMSE history
-            plt.subplot(1, 3, 3)
-            plt.plot(self.nrmse_history, label="NRMSE")
-            plt.xlabel("Epoch")
-            plt.ylabel("NRMSE")
-            plt.title("Normalized Root Mean Squared Error Over Epochs")
-            plt.legend()
-
             plt.tight_layout()
-
 
             # Get the number of files in the 'pre-trained' folder
             self.num_files_pretrained = len([name for name in os.listdir(self.save_dir) if os.path.isfile(os.path.join(self.save_dir, name))])
@@ -597,7 +604,7 @@ class GenerateDataWorker(QThread):
                 # Load the pretrained VAE model
                 self.vae_pretrained = scbetavaegan.load_model(self.pretrained_filepath)
             print("Pretrained VAE model loaded.")
-            self.progress.emit("Pretrained model loaded successfully")
+            self.progress.emit(f"{pretrained_filename} loaded successfully")
 
             # Base latent variability settings
             self.base_latent_variability = 100.0
@@ -682,12 +689,12 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
 
-            self.progress.emit("Saving augmented data...")
+            self.progress.emit("Saving synthetic data...")
             self.all_augmented_filepaths = scbetavaegan.download_augmented_data_with_modified_timestamp(
                 self.augmented_datasets, self.scalers, self.original_data_frames, self.input_filenames
             )
 
-            self.progress.emit("Successfully saved all augmented data files")
+            self.progress.emit("Successfully saved all synthetic data files")
             self.progress.emit("Data generation process completed successfully!")
 
             self.finished.emit()
@@ -702,6 +709,7 @@ class Workplace(QtWidgets.QWidget):
         self.uploaded_files = []
         self.setupUi()
         self.worker = None
+        self.has_files = False
 
     def setupUi(self):
         self.gridLayout = QtWidgets.QGridLayout(self)
@@ -777,13 +785,19 @@ class Workplace(QtWidgets.QWidget):
         self.gridLayout.addLayout(button_layout, 1, 0)
 
     def train_vae(self):
+        self.process_log_widget.clear()
+        self.collapsible_widget_output.toggle_container(False)
+        self.collapsible_widget_result.toggle_container(False)
         self.collapsible_widget_process_log.toggle_container(True)
+        self.collapsible_widget_process_log.toggle_container(True)
+
         # Disable the generate button and change text
         self.generate_data_button.setEnabled(False)
         self.generate_data_button.setText("Generating...")
 
         # Create and start the worker thread
         self.worker = GenerateDataWorker(self)
+        self.worker.set_model(None)
 
         # Connect signals
         self.worker.finished.connect(self.on_generation_complete)
@@ -796,13 +810,32 @@ class Workplace(QtWidgets.QWidget):
         self.worker.start()
 
     def on_generate_data(self):
-        self.collapsible_widget_process_log.toggle_container(True)
-        # Disable the generate button and change text
-        self.generate_data_button.setEnabled(False)
-        self.generate_data_button.setText("Generating...")
+        self.selected_model = self.model_widget.current_checked_file
 
-        # Create and start the worker thread
-        self.worker = GenerateDataWorker(self)
+        if self.has_files is False:
+            self.show_error("Please upload a file first")
+        elif self.selected_model == None:
+            self.show_error("Please select a pre-trained model first or train your own model")
+        elif self.has_files is True and self.selected_model != None:
+            self.process_log_widget.clear()
+            self.collapsible_widget_output.toggle_container(False)
+            self.collapsible_widget_result.toggle_container(False)
+            self.collapsible_widget_process_log.toggle_container(True)
+            # Disable the generate button and change text
+            self.generate_data_button.setEnabled(False)
+            self.generate_data_button.setText("Generating...")
+
+            # Create and start the worker thread
+            self.worker = GenerateDataWorker(self)
+            self.worker.set_model(self.selected_model)
+
+            # Connect signals
+            self.worker.finished.connect(self.on_generation_complete)
+            self.worker.error.connect(self.on_generation_error)
+            self.worker.progress.connect(self.logger.info)  # Connect directly to logger.info
+
+            # Start the worker
+            self.worker.start()
 
     def on_generation_complete(self):
         # Re-enable the generate button
@@ -840,6 +873,13 @@ class Workplace(QtWidgets.QWidget):
             f"An error occurred during data generation:\n{error_message}",
             QMessageBox.Ok,
         )
+
+    def show_error(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setInformativeText(message)
+        msg.setWindowTitle("Error")
+        msg.exec_()
 
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
@@ -913,9 +953,9 @@ class Workplace(QtWidgets.QWidget):
     def setup_model_collapsible(self):
         self.collapsible_model_container = CollapsibleWidget("Models", self)
         self.scroll_layout.addWidget(self.collapsible_model_container)
-
         self.model_widget = ModelWidget(self)
         self.model_widget.train_button.clicked.connect(self.train_vae)
+        self.selected_model = self.model_widget.current_checked_file
         self.collapsible_model_container.add_widget(self.model_widget)
 
     def setup_preview_collapsible(self):
@@ -963,6 +1003,15 @@ class Workplace(QtWidgets.QWidget):
 
         self.svc_preview = SVCpreview(self)
         self.collapsible_widget_result.add_widget(self.svc_preview)
+    
+    def handle_checkbox_click(self, filename, state):
+        if state == QtCore.Qt.Checked:
+            self.selected_filename = filename
+            print(f"Selected file: {self.selected_filename}")
+        else:
+            if self.selected_filename == filename:
+                self.selected_filename = None
+            print(f"Deselected file: {filename}")
 
     def handle_file_removal(self, file_path, file_name):
         """Handle the file removal logic when a file is removed."""
@@ -1006,11 +1055,11 @@ class Workplace(QtWidgets.QWidget):
 
         print("Uploaded files:", self.uploaded_files)  # Debugging output
 
-        has_files = bool(self.uploaded_files)
-        self.show_other_components(has_files)
+        self.has_files = bool(self.uploaded_files)
+        self.show_other_components(self.has_files)
 
         # Hide the file upload widget if files are uploaded
-        self.file_upload_widget.setVisible(not has_files)
+        self.file_upload_widget.setVisible(not self.has_files)
 
         # Clear existing widgets in the file container layout
         for i in reversed(range(self.file_container_layout.count())):
@@ -1041,7 +1090,7 @@ class Workplace(QtWidgets.QWidget):
         self.svc_preview.set_uploaded_files(self.uploaded_files)
 
         # Automatically expand the preview collapsible widget if there are files
-        if has_files:
+        if self.has_files:
             self.collapsible_model_container.toggle_container(True)
             self.collapsible_widget_preview.toggle_container(True)
 
