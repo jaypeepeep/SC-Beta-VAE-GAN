@@ -6,7 +6,7 @@ import time
 import shutil
 import zipfile
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
@@ -18,12 +18,14 @@ from components.widget.file_container_widget import FileContainerWidget
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.spin_box_widget import SpinBoxWidget
 from components.widget.result_preview_widget import SVCpreview
-from pages.local import Local
 from model.scbetavaegan_pentab import (
     upload_and_process_files,
+    process_dataframes,
+    convert_and_store_dataframes,
     generate_augmented_datasets,
+    nested_augmentation,
     save_model,
-    download_augmented_data_as_integers,
+    download_augmented_data_with_modified_timestamp,
     VAE,
     LSTMDiscriminator,
     train_models,
@@ -54,23 +56,34 @@ class ModelTrainingThread(QThread):
     def run(self):
         self.log("Starting the process for file: " + self.selected_file)
 
-        # Step 1: Load only the selected .svc file from the uploads directory
+        # Step 1: Load and process the .svc file (including filling gaps and interpolation)
         file_path = os.path.join(self.uploads_dir, self.selected_file)
         self.log(f"Using file path: {file_path}")
+        
         try:
+            # Load and process the file, including gap filling
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
-            self.log("File loaded and processed successfully.")
+            self.log("File loaded, gaps filled, and processed successfully.")
+            
+            # Step 2: Process the dataframes further if needed (e.g., normalization or adjustments)
+            processed_data_frames, processed_data, scalers, avg_data_points, _ = process_dataframes(data_frames)
+            self.log("Data normalization and further processing completed.")
+            
+            # Step 3: Convert and store processed DataFrames into files
+            convert_and_store_dataframes(input_filenames, processed_data_frames)
+            self.log("Processed DataFrames stored successfully.")
+        
         except Exception as e:
             self.log(f"Error processing file: {e}", level="ERROR")
             self.finished.emit()
             return
 
-        # Step 2: Initialize the VAE model and LSTM Discriminator
+        # Step 4: Initialize the VAE model and LSTM Discriminator
         vae = VAE(latent_dim=512, beta=0.000001)
         lstm_discriminator = LSTMDiscriminator()
         self.log("VAE and LSTM Discriminator initialized.")
 
-        # Step 3: Train the model with uploaded data
+        # Step 5: Train the model with uploaded data
         self.log(f"Training started for {self.epochs} epochs...")
         generator_loss_history = []
         reconstruction_loss_history = []
@@ -84,41 +97,32 @@ class ModelTrainingThread(QThread):
 
         self.log("Training completed.")
 
-        # Step 4: Save the trained model
-        model_output_path = os.path.join(self.model_output_dir)
+        # Step 6: Save the trained model
+        model_output_path = os.path.join(self.model_output_dir, 'final_vae_model.h5')
         save_model(vae, model_output_path)
         self.log(f"Model saved at {model_output_path}")
 
-        # Step 5: Generate augmented data
-        self.log("Generating augmented data...")
-        augmented_datasets = generate_augmented_datasets(vae, processed_data, data_frames, self.num_augmented_files, avg_data_points)
-        self.log("Synthetic data generation completed.")
+        # Step 7: Generate augmented data based on the user's input from the spin box
+        self.log(f"Generating {self.num_augmented_files} augmented datasets...")
 
-        # Step 6: Save augmented data as .svc files
-        download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
-        self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
+        # Step 8: Perform nested augmentation
+        try:
+            augmented_datasets = nested_augmentation(self.num_augmented_files, len(processed_data), model_output_path)
+            self.log("Nested augmentation completed.")
 
-        # Step 7: Zip the synthetic data files
-        zip_file_path = self.create_zip(self.synthetic_data_dir)
-        self.log(f"Zipped synthetic data saved at {zip_file_path}")
+            zip_file_path = download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
+            self.log(f"Synthetic data saved and zipped at {zip_file_path}")
+        except Exception as e:
+            self.log(f"Error during nested augmentation: {e}", level="ERROR")
+            self.finished.emit()
+            return
+
 
         # Notify the main thread that the zip file is ready
         self.zip_ready.emit(zip_file_path)
 
-        # Step 8: Get the training loss and NRMSE figures
-        # fig_loss, fig_nrmse = plot_training_history(generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history)
-
         # Notify completion
         self.finished.emit()
-
-    def create_zip(self, directory):
-        """Create a zip file from the generated synthetic data."""
-        zip_file_path = os.path.join(directory + ".zip")
-        with zipfile.ZipFile(zip_file_path, 'w') as zipf:
-            for root, _, files in os.walk(directory):
-                for file in files:
-                    zipf.write(os.path.join(root, file), file)
-        return zip_file_path
 
     def log(self, message, level="INFO"):
         if self.logger:
@@ -499,13 +503,13 @@ class Handwriting(QtWidgets.QWidget):
         scroll_layout.addLayout(button_layout)
 
         # Automatically open file preview widget after 2 secs
-        QtCore.QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
+        QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
         
     def on_generate_data(self):
         """Start the process to generate synthetic data using the user's selected file."""
         uploads_dir = 'uploads' 
-        num_augmented_files = 10
-        epochs = 10
+        num_augmented_files = self.spin_box_widget.number_input.value()  # Fetch value from spin box
+        epochs = 10  # You can make this dynamic if needed
 
         selected_file = self.file_dropdown.currentText()
 
@@ -514,36 +518,34 @@ class Handwriting(QtWidgets.QWidget):
             return
 
         self.process_log_widget.setVisible(True)
+        self.collapsible_widget_process_log.toggle_container(True)
 
+        self.generate_data_button.setText("Generating...")
         self.generate_data_button.setEnabled(False)
 
-        # Start the model training thread with the selected file
+        # Start the model training thread with the selected file and number of augmented files
         self.model_thread = ModelTrainingThread(uploads_dir, selected_file, num_augmented_files, epochs, logger=self.logger)
         self.model_thread.log_signal.connect(self.process_log_widget.append_log) 
         self.model_thread.zip_ready.connect(self.on_zip_ready) 
-        # self.model_thread.figures_ready.connect(self.display_training_plots)
         self.model_thread.finished.connect(self.on_training_finished)
         self.model_thread.start()
-
-    # def display_training_plots(self, fig_loss, fig_nrmse):
-       # """Display the training loss and NRMSE plots in the result widget."""
-        # Use the PlotContainerWidget to display the training loss plot
-        # self.plot_container.load_plot_from_figure(fig_loss)  # Assuming you want to display fig_loss
-        # self.plot_container.setVisible(True)  # Make the plot container visible
 
     def on_zip_ready(self, zip_file_path):
         if self.svc_preview and hasattr(self.svc_preview, 'set_zip_path'):
             # Set the zip path for result preview widget
             QtCore.QMetaObject.invokeMethod(self.svc_preview, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
             self.svc_preview.setVisible(True)
+            QTimer.singleShot(2000, lambda: self.collapsible_widget_result.toggle_container(True))
 
         # Set the zip path for output widget
         if hasattr(self.output_widget, 'set_zip_path'):
             QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
             self.output_widget.setVisible(True)
+            QTimer.singleShot(2000, lambda: self.collapsible_widget_output.toggle_container(True))
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
+        self.generate_data_button.setText("Generate Synthetic Data")
         self.generate_data_button.setEnabled(True)
         self.process_log_widget.append_log("Data generation finished.")
 

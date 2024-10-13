@@ -9,6 +9,9 @@ from sklearn.manifold import TSNE
 import zipfile
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import shutil
+from keras.utils import custom_object_scope
+from tensorflow.keras.models import load_model
 
 # 1. Load and process the .svc file
 def upload_and_process_files(path, num_files_to_use=None):
@@ -139,16 +142,23 @@ def fill_gaps_and_interpolate(data_frames):
 
 def convert_and_store_dataframes(input_filenames, data_frames):
     """Convert numeric columns to integers and store processed DataFrames."""
+    imputed_folder = 'imputed'
+    os.makedirs(imputed_folder, exist_ok=True)
     processed_dataframes = []
 
     for input_filename, df in zip(input_filenames, data_frames):
         # Convert all numeric columns to integers
         df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
-        
+
+        #########Start
+        # Save the processed DataFrame to the 'imputed' folder with the same input filename
+        save_path = os.path.join(imputed_folder, input_filename)
+        df.to_csv(save_path, sep=' ', index=False, header=False)  # Save without header and index
+        ##########Emd
         # Append the processed DataFrame to the list
         processed_dataframes.append(df)
 
-        print(f"Processed DataFrame for: {input_filename}")
+        print(f"Processed DataFrame saved as: {input_filename}")
 
     return processed_dataframes
 
@@ -456,65 +466,152 @@ def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, 
 
     return all_augmented_data  # Return the list of augmented datasets after scaling back
 
+def visualize_augmented_data_from_directory(directory):
+    augmented_files = [f for f in os.listdir(directory) if f.startswith('augmented_') and f.endswith('.svc')]
+    num_files = len(augmented_files)
+    if num_files == 0:
+        print("No augmented data files found in the directory.")
+        return
+    
+    fig, axs = plt.subplots(1, num_files, figsize=(6 * num_files, 6), constrained_layout=True)
+    if num_files == 1:
+        axs = [axs]
+    
+    for i, filename in enumerate(augmented_files):
+        file_path = os.path.join(directory, filename)
+        df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+        df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+        
+        on_paper = df[df['pen_status'] == 1]
+        in_air = df[df['pen_status'] == 0]
+
+        axs[i].scatter(on_paper['y'], on_paper['x'], c='b', s=1, alpha=0.7, label='On Paper')
+        axs[i].scatter(in_air['y'], in_air['x'], c='r', s=1, alpha=0.7, label='In Air')
+        axs[i].set_title(f'Augmented Data {i + 1}')
+        axs[i].set_xlabel('y')
+        axs[i].set_ylabel('x')
+        axs[i].invert_xaxis()
+        axs[i].set_aspect('equal')
+        axs[i].legend()
+    
+    plt.show()
+
+def get_unique_filename(directory, filename):
+    base, extension = os.path.splitext(filename)
+    counter = 1
+    while os.path.exists(os.path.join(directory, filename)):
+        filename = f"{base}({counter}){extension}"
+        counter += 1
+    return filename
+
 # 9. Download augmented data function
-def download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, original_filenames, directory='augmented_data'):
-    """Download augmented datasets to the specified directory with integer values."""
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data'):
+    global all_augmented_data  # Access the global list
+
+    if not os.path.exists(directory1):
+        os.makedirs(directory1)
 
     for i, (augmented_data, scaler, original_df, original_filename) in enumerate(zip(augmented_datasets, scalers, original_data_frames, original_filenames)):
-        # Inverse transform the augmented data
         augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
-        
-        # Round to integers
         augmented_xyz_int = np.rint(augmented_xyz).astype(int)
-        
-        # Get pen status from augmented data
         pen_status = augmented_data[:, 3].astype(int)
-        
-        # Prepare pressure, azimuth, altitude data
         original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
         
-        # If augmented data is longer, extend original_paa by repeating the last row
         if len(augmented_data) > len(original_paa):
-            last_row = original_paa[-1:]  # Get the last row
-            repeat_count = len(augmented_data) - len(original_paa)
-            extended_rows = np.tile(last_row, (repeat_count, 1))  # Repeat last row
-            original_paa = np.vstack((original_paa, extended_rows))  # Stack to original data
+            original_paa = repeat_backwards(original_paa, len(augmented_data))
         
-        # Round pressure, azimuth, altitude to integers
         original_paa_int = np.rint(original_paa).astype(int)
         
-        # Combine all data
+        new_timestamps = np.zeros(len(augmented_data), dtype=int)
+        increment_sequence = [7, 8]
+        current_time = 0
+        for idx in range(len(augmented_data)):
+            new_timestamps[idx] = current_time
+            current_time += increment_sequence[idx % 2]
+
+        augmented_xyz_int[:, 2] = new_timestamps
+
         augmented_data_original_scale = np.column_stack((
             augmented_xyz_int,
             pen_status,
             original_paa_int[:len(augmented_data)]
         ))
 
-        # Construct the new file name to match the original file name
-        augmented_filename = f"augmented_{original_filename}"
-        augmented_file_path = os.path.join(directory, augmented_filename)
+        # Save augmented data as .svc files
+        augmented_filename = f"synthetic_{original_filename}"
+        augmented_filename = get_unique_filename(directory1, augmented_filename)
+        augmented_file_path = os.path.join(directory1, augmented_filename)
 
-        # Save the augmented data to a file
         np.savetxt(augmented_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
+
+        # Store augmented data
+        all_augmented_data.append(augmented_data_original_scale)
 
         print(f"Augmented data saved to {augmented_file_path}")
         print(f"Shape of augmented data for {original_filename}: {augmented_data_original_scale.shape}")
 
+    # After saving all augmented data, zip the files
+    zip_file_path = os.path.join(directory1, 'augmented_data.zip')
+    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+        for foldername, subfolders, filenames in os.walk(directory1):
+            for filename in filenames:
+                if filename != 'augmented_data.zip':  # Avoid adding the zip file itself
+                    file_path = os.path.join(foldername, filename)
+                    zipf.write(file_path, arcname=filename)  # Add files to the zip
+
+    print(f"Zipped augmented data saved at {zip_file_path}")
+
+    # Return the path to the zip file
+    return zip_file_path
+
+# Nested augmentation function
+def nested_augmentation(num_augmentations, num_files_to_use, model_path):
+    vae_pretrained = load_pretrained_vae(model_path)
+    if vae_pretrained is None:
+        print("Error: Pretrained VAE model could not be loaded. Augmentation process halted.")
+        return
+    print("Pretrained VAE model loaded.")
+
+    # Use existing data for the first iteration
+    global data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames
+
+    for iteration in range(num_augmentations):
+        print(f"Starting augmentation iteration {iteration + 1}")
+        
+        if iteration > 0:
+            # Update the data for subsequent iterations
+            directory = 'augmented_data_nested'
+            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
+        
+        augmented_datasets = generate_augmented_datasets(vae_pretrained, num_files_to_use, avg_data_points, processed_data, 
+                                                     base_latent_variability, latent_variability_range)
+        
+        # Clear augmented_data_nested directory
+        if os.path.exists('augmented_data_nested'):
+            shutil.rmtree('augmented_data_nested')
+        os.makedirs('augmented_data_nested')
+        
+        download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames)
+        
+        print(f"Completed augmentation iteration {iteration + 1}")
+    
+    # Clear the augmented_data_nested directory after the last iteration
+    if os.path.exists('augmented_data_nested'):
+        shutil.rmtree('augmented_data_nested')
+        print("Cleared augmented_data_nested directory after the final iteration.")
+    
+    print("Nested augmentation process completed.")
+    # visualize_augmented_data_from_directory('augmented_data')
+
 # 10. Repeat backwards function
 def repeat_backwards(original_paa, augmented_length):
-    """Repeat original data backwards to fill the required augmented length."""
     repeat_count = augmented_length - len(original_paa)
-
     if repeat_count <= 0:
         return original_paa
-
     backwards_rows = np.empty((0, original_paa.shape[1]))
     for i in range(repeat_count):
-        row_to_repeat = original_paa[-(i + 1)]  # Get the i-th row from the end
+        row_to_repeat = original_paa[-(i % len(original_paa) + 1)]
         backwards_rows = np.vstack((backwards_rows, row_to_repeat))
-
     return np.vstack((original_paa, backwards_rows))
 
 # 11. Calculate NRMSE
@@ -754,3 +851,8 @@ learning_rate = 0.001
 vae = VAE(latent_dim, beta)
 optimizer = tf.keras.optimizers.Adam(learning_rate)
 lstm_discriminator = LSTMDiscriminator()
+
+# Global latent variability settings
+base_latent_variability = 100.0
+latent_variability_range = (0.99, 1.01)
+all_augmented_data = []
