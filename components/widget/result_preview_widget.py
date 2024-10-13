@@ -1,7 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 import zipfile
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np

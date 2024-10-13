@@ -108,7 +108,7 @@ class ModelWidget(QtWidgets.QWidget):
         self.layout.addWidget(table_container)
 
         # SpinBox widget
-        self.slider_widget = SpinBoxWidget(0)
+        self.slider_widget = SpinBoxWidget(1)
         self.layout.addWidget(self.slider_widget)
 
     def load_files(self, directory=None):
