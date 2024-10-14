@@ -582,7 +582,7 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
     return zip_file_path
 
 # Nested augmentation function
-def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_data_points, processed_data):
+def nested_augmentation(num_augmentations, num_files_to_use, data_frames, scalers, input_filenames, original_data_frames, model_path, avg_data_points, processed_data):
     print(f"Inside nested_augmentation: processed_data type={type(processed_data)}, value={processed_data}")
     vae_pretrained = load_pretrained_vae(model_path)
     if vae_pretrained is None:
@@ -591,7 +591,7 @@ def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_dat
     print("Pretrained VAE model loaded.")
 
     # Use existing data for the first iteration
-    global data_frames, scalers, input_filenames, original_data_frames
+    # global scalers, input_filenames, original_data_frames
 
     # Check processed_data before passing it
     if isinstance(processed_data, (list, np.ndarray)):
@@ -607,7 +607,7 @@ def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_dat
             directory = 'augmented_data_nested'
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
         print(f"processed_data after processing in iteration {iteration + 1}: type={type(processed_data)}, value={processed_data}")
-        augmented_datasets = generate_augmented_datasets(vae_pretrained, num_files_to_use, avg_data_points, processed_data, 
+        augmented_datasets = generate_augmented_datasets(vae_pretrained, processed_data, data_frames, num_augmentations, avg_data_points,
                                                      base_latent_variability, latent_variability_range)
         
         # Clear augmented_data_nested directory
