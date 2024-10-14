@@ -144,7 +144,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
         self.results_text.setReadOnly(True)
-        self.results_text.setFixedHeight(100)
+        self.results_text.setFixedHeight(250)
         self.results_text.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
         )
@@ -154,6 +154,21 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Set the layout for the widget
         self.setLayout(self.container_layout)
+
+    def add_result_text(self, text):
+  
+        # Get the current text
+        current_text = self.results_text.toPlainText()
+        
+        # If there's already text, add a newline before the new text
+        if current_text:
+            new_text = current_text + "\n" + text
+        else:
+            new_text = text
+        
+        # Set the updated text
+        self.results_text.setPlainText(new_text)
+        
 
     def display_file_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate text preview."""
@@ -514,6 +529,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.update()
 
 
+    @QtCore.pyqtSlot(str)
     def set_zip_path(self, zip_path):
         """Handle the ZIP file, list contents, and possibly display relevant file contents."""
         if not zipfile.is_zipfile(zip_path):
@@ -521,23 +537,31 @@ class SVCpreview(QtWidgets.QWidget):
             return
         
         try:
-            # Open the ZIP file and display its contents
+            # Extract the zip contents to a temporary directory
+            temp_dir = os.path.join(os.getcwd(), 'temp_extracted')
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
             with zipfile.ZipFile(zip_path, 'r') as zipf:
+                zipf.extractall(temp_dir)  # Extract all files in the zip to temp directory
                 file_list = zipf.namelist()
 
-                # Set the first file content in preview 1 and the second in preview 2 (if they exist)
+                # Make sure at least one file exists
                 if len(file_list) > 0:
-                    with zipf.open(file_list[0]) as file1:
-                        content1 = file1.read().decode("utf-8", errors="ignore")
+                    file1_path = os.path.join(temp_dir, file_list[0])
+                    with open(file1_path, 'r') as file1:
+                        content1 = file1.read()
                         self.filename1.setText(file_list[0])
                         self.text_preview1.setPlainText(content1)
+
+                # If there is a second file, display it in the second preview
                 if len(file_list) > 1:
-                    with zipf.open(file_list[1]) as file2:
-                        content2 = file2.read().decode("utf-8", errors="ignore")
+                    file2_path = os.path.join(temp_dir, file_list[1])
+                    with open(file2_path, 'r') as file2:
+                        content2 = file2.read()
                         self.filename2.setText(file_list[1])
                         self.text_preview2.setPlainText(content2)
 
-                self.results_text.setPlainText("Results:")
-
+                self.results_text.setPlainText("Results displayed successfully.")
         except Exception as e:
             self.results_text.setPlainText(f"Error reading ZIP file: {str(e)}")
