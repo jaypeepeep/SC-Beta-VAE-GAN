@@ -74,9 +74,9 @@ class ModelTrainingThread(QThread):
         processed_dataframes = process_dataframes(data_frames)
         self.log("Processing of data frames completed.")
 
-        # self.log("Converting and saving the processed dataframes...")
-        # convert_and_store_dataframes(input_filenames, processed_dataframes)
-        # self.log("Data frames converted and saved.")
+        self.log("Converting and saving the processed dataframes...")
+        convert_and_store_dataframes(input_filenames, processed_dataframes)
+        self.log("Data frames converted and saved.")
 
         # Step 3: Initialize the VAE model and LSTM Discriminator
         vae = VAE(latent_dim=512, beta=0.000001)
@@ -117,6 +117,9 @@ class ModelTrainingThread(QThread):
                 avg_data_points=avg_data_points,
                 processed_data=processed_data
             )
+            if augmented_datasets is None:
+                print("nested_augmentation returned None.")
+                return
             self.log("Nested synthetic data generation completed.")
         except Exception as e:
             self.log(f"Error during nested augmentation: {e}", level="ERROR")
@@ -161,6 +164,7 @@ class Handwriting(QtWidgets.QWidget):
         self.drawing_done = False
         self.flask_process = None
         self.file_list = []  # List to store uploaded .svc files
+        self.threads = []
         self.setupUi()
 
     def setupUi(self):
@@ -448,10 +452,6 @@ class Handwriting(QtWidgets.QWidget):
         button_widget = QtWidgets.QWidget()  # Wrap buttons in a QWidget
         button_widget.setLayout(button_layout)
         self.collapsible_widget.add_widget(button_widget)
-
-        for file in self.file_list:
-            file_container = FileContainerWidget(file, self)
-            scroll_layout.addWidget(file_container)
         
         # Add the File Preview Widget
         self.collapsible_widget_file_preview = CollapsibleWidget("File Preview", self)
@@ -517,7 +517,7 @@ class Handwriting(QtWidgets.QWidget):
     def on_generate_data(self):
         """Start processing the selected .svc files."""
         uploads_dir = 'uploads'
-        num_augmented_files = 10  # Set dynamically or through user input
+        num_augmented_files = self.spin_box_widget.number_input.value()
         epochs = 10
 
         if not self.file_list:
@@ -534,11 +534,43 @@ class Handwriting(QtWidgets.QWidget):
             if not selected_file.endswith('.svc'):
                 self.process_log_widget.append_log(f"Skipping non-.svc file: {selected_file}")
                 continue
+
+            # Start a new thread for each file
             thread = ModelTrainingThread(uploads_dir, selected_file, num_augmented_files, epochs, logger=self.logger)
+            self.threads.append(thread)  # Keep track of threads
             thread.log_signal.connect(self.process_log_widget.append_log)
             thread.zip_ready.connect(self.on_zip_ready)
-            thread.finished.connect(self.on_training_finished)
+            thread.finished.connect(self.on_thread_finished)
             thread.start()
+
+        self.process_log_widget.append_log("All threads started, awaiting results...")
+    
+    def closeEvent(self, event):
+        """Ensure the Flask app process and threads are killed when the main window is closed."""
+        # Terminate the Flask process if running
+        if self.flask_process:
+            self.flask_process.terminate()
+
+        # Stop all running threads
+        for thread in self.threads:
+            if thread.isRunning():
+                thread.quit()  # Stop the thread
+                thread.wait()  # Wait until it's fully terminated
+
+        event.accept()
+    
+    def on_thread_finished(self):
+        """Callback when a single file has finished processing."""
+        self.process_log_widget.append_log("A file has finished processing.")
+
+        # Check if all threads are done before re-enabling the button
+        for thread in self.threads:
+            if thread.isFinished():
+                self.threads.remove(thread)  # Remove finished threads
+
+        if not self.threads:  # If all threads are finished
+            self.process_log_widget.append_log("All files have finished processing.")
+            self.generate_data_button.setEnabled(True)
 
     def on_zip_ready(self, zip_file_path):
         if self.svc_preview and hasattr(self.svc_preview, 'set_zip_path'):
@@ -586,6 +618,15 @@ class Handwriting(QtWidgets.QWidget):
     def clear_all_drawings(self):
         """Clear all added files and reset the state."""
         self.file_list.clear()  # Empty the file list
+
+        # Stop all running threads when clearing all drawings
+        for thread in self.threads:
+            if thread.isRunning():
+                thread.quit()
+                thread.wait()
+
+        self.threads.clear()  # Clear the thread list after stopping them
+
         self.show_drawing_page()  # Go back to the initial drawing page
 
     def reset_state(self):
