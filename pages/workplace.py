@@ -827,6 +827,8 @@ class Workplace(QtWidgets.QWidget):
         elif self.selected_model == None:
             self.show_error("Please select a pre-trained model first or train your own model")
         elif self.has_files is True and self.selected_model != None:
+            if self.selected_model == "EMOTHAW.h5":
+                self.svc_preview.add_graph_containers()
             self.process_log_widget.clear()
             self.svc_preview.clear()
             self.collapsible_widget_output.toggle_container(False)
@@ -1140,6 +1142,7 @@ class Workplace(QtWidgets.QWidget):
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
+                    self.svc_preview.display_handwriting_contents(file_path, 1)
 
         self.svc_preview.set_augmented_files(all_augmented_filepaths)
 
@@ -1154,6 +1157,7 @@ class Workplace(QtWidgets.QWidget):
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
+                    self.svc_preview.display_handwriting_contents(file_path, 0)
 
         
         self.svc_preview.set_original_absolute_files(original_absolute_files)
