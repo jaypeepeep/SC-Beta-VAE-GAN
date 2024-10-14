@@ -8,12 +8,18 @@ from tqdm import tqdm
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 import random
 from keras.models import Sequential
-from keras.layers import LSTM, Dense
+from keras.layers import LSTM, Dense, Dropout
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import load_model
 from keras.utils import custom_object_scope
 import shutil
+
+from glob import glob
+import re
+
+from keras.callbacks import Callback
+
 
 all_augmented_filepaths = []
 
@@ -395,3 +401,195 @@ def nested_augmentation(all_augmented_data, num_augmentations, num_files_to_use,
     visualize_augmented_data_from_directory('augmented_data')
 
     return all_augmented_filepaths
+
+def read_svc_file(file_path):
+    return pd.read_csv(file_path, sep=' ', header=None, 
+                       names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+
+def calculate_nrmse(original, predicted):
+    if original.shape != predicted.shape:
+        raise ValueError("The shapes of the original and predicted datasets must match.")
+    mse = np.mean((original - predicted) ** 2)
+    rmse = np.sqrt(mse)
+    nrmse = rmse / (np.max(original) - np.min(original))
+    return nrmse
+
+def get_matching_augmented_files(original_file, augmented_folder):
+    base_name = os.path.basename(original_file)
+    base_name_without_ext = os.path.splitext(base_name)[0]
+    pattern = os.path.join(augmented_folder, f"synthetic_{base_name_without_ext}*.svc")
+    matching_files = glob(pattern)
+    
+    # Sort files based on the number in parentheses, with the base file (no number) first
+    def sort_key(filename):
+        match = re.search(r'\((\d+)\)', filename)
+        return int(match.group(1)) if match else -1
+    
+    return sorted(matching_files, key=sort_key)
+
+def process_files_NRMSE(imputed_folder, augmented_folder, input_filenames):
+    nrmse_results = {}
+
+    # Create a set of base filenames (without extensions) for easy comparison
+    input_filenames_set = {os.path.splitext(os.path.basename(filename))[0] for filename in input_filenames}
+
+    for original_file in glob(os.path.join(imputed_folder, "*.svc")):
+        base_name = os.path.splitext(os.path.basename(original_file))[0]
+        
+        # Only process files that are present in input_filenames
+        if base_name not in input_filenames_set:
+            continue
+        
+        file_name = os.path.basename(original_file)
+        original_data = read_svc_file(original_file)
+        
+        matching_augmented_files = get_matching_augmented_files(original_file, augmented_folder)
+        
+        file_nrmse = []
+        for augmented_file in matching_augmented_files:
+            augmented_data = read_svc_file(augmented_file)
+            
+            # Trim to the shorter length
+            min_length = min(len(original_data), len(augmented_data))
+            original_array = original_data.iloc[:min_length].values
+            augmented_array = augmented_data.iloc[:min_length].values
+            
+            nrmse = calculate_nrmse(original_array, augmented_array)
+            file_nrmse.append(nrmse)
+        
+        nrmse_results[file_name] = file_nrmse
+
+    return nrmse_results
+
+# Cell 12 Post-Hoc Discriminative Score
+def process_files_PHDS(imputed_folder, augmented_folder, input_filenames):
+    all_real_data = []
+    all_synthetic_data = []
+
+    # Create a set of base filenames (without extensions) for easy comparison
+    input_filenames_set = {os.path.splitext(os.path.basename(filename))[0] for filename in input_filenames}
+
+    for original_file in glob(os.path.join(imputed_folder, "*.svc")):
+        base_name = os.path.splitext(os.path.basename(original_file))[0]
+        
+        # Only process files that are present in input_filenames
+        if base_name not in input_filenames_set:
+            continue
+        
+        original_data = read_svc_file(original_file)
+        all_real_data.append(original_data.values)
+        
+        matching_augmented_files = get_matching_augmented_files(original_file, augmented_folder)
+        
+        for augmented_file in matching_augmented_files:
+            augmented_data = read_svc_file(augmented_file)
+            all_synthetic_data.append(augmented_data.values)
+
+    return np.concatenate(all_real_data), np.concatenate(all_synthetic_data)
+
+def create_lstm_classifier(input_shape):
+    model = Sequential([
+        LSTM(64, input_shape=input_shape, return_sequences=True),
+        LSTM(32),
+        Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+def prepare_data_for_lstm(real_data, synthetic_data):
+    n_features = min(real_data.shape[1], synthetic_data.shape[1])
+    real_data_trimmed = real_data[:, :n_features]
+    synthetic_data_trimmed = synthetic_data[:, :n_features]
+    
+    X = np.vstack((real_data_trimmed, synthetic_data_trimmed))
+    y = np.concatenate((np.ones(len(real_data)), np.zeros(len(synthetic_data))))
+    return X, y
+
+def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
+    X, y = prepare_data_for_lstm(real_data, synthetic_data)
+    
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    accuracies = []
+    
+    for fold, (train_index, test_index) in enumerate(kf.split(X)):
+        print(f"\nFold {fold + 1}/{n_splits}:")  # New print statement for fold numbers
+        
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        X_train = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
+        X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
+
+        model = create_lstm_classifier((1, X_train.shape[2]))
+        
+        # Train model and show epoch progress for this fold
+        history = model.fit(X_train, y_train, epochs=2, batch_size=512, verbose=1)
+
+        y_pred = (model.predict(X_test) > 0.5).astype(int)
+        accuracy = accuracy_score(y_test, y_pred)
+        accuracies.append(accuracy)
+
+    mean_accuracy = np.mean(accuracies)
+    std_accuracy = np.std(accuracies)
+    return mean_accuracy, std_accuracy
+
+# Step 1: Prepare Data
+def prepare_data(df, time_steps=5):
+    data = df[['x', 'y']].values
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    data_scaled = scaler.fit_transform(data)
+    
+    # Create sequences of length `time_steps`
+    X, y = [], []
+    for i in range(len(data_scaled) - time_steps):
+        X.append(data_scaled[i:i+time_steps])
+        y.append(data_scaled[i+time_steps])
+    
+    return np.array(X), np.array(y), scaler
+
+# Custom callback for progress bar
+class CustomCallback(Callback):
+    def on_train_begin(self, logs=None):
+        self.epochs = self.params['epochs']
+        self.progress_bar = tqdm(total=self.epochs, desc="Training Progress")
+
+    def on_epoch_end(self, epoch, logs=None):
+        self.progress_bar.update(1)
+
+    def on_train_end(self, logs=None):
+        self.progress_bar.close()
+
+# Step 2: Define the LSTM Model
+def create_model(input_shape):
+    model = Sequential()
+    model.add(LSTM(50, return_sequences=True, input_shape=input_shape))
+    model.add(Dropout(0.2))  # Adding dropout to introduce randomness
+    model.add(LSTM(50))
+    model.add(Dropout(0.2))
+    model.add(Dense(2))  # Predict x and y
+    model.compile(optimizer='adam', loss='mse')
+    return model
+
+# Step 3: Evaluate Model Function
+def evaluate_model(model, X_test, y_test, scaler):
+    # Predict and inverse transform
+    y_pred = model.predict(X_test)
+    y_pred_rescaled = scaler.inverse_transform(y_pred)
+    y_test_rescaled = scaler.inverse_transform(y_test)
+    
+    # Compute MAPE for each test sample
+    mape = mean_absolute_percentage_error(y_test_rescaled, y_pred_rescaled)
+    print(f"\nMAPE: {mape * 100:.2f}%")
+    
+    # Interpretation of MAPE
+    if mape < 0.1:
+        interpretation = "Excellent prediction"
+    elif mape < 0.2:
+        interpretation = "Good prediction"
+    elif mape < 0.5:
+        interpretation = "Fair prediction"
+    else:
+        interpretation = "Poor prediction"
+    
+    print(f"Interpretation: {interpretation}")
+    
+    return mape

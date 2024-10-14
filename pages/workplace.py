@@ -41,10 +41,14 @@ import traceback
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 
+from glob import glob
+import re
+
 class GenerateDataWorker(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
     progress = pyqtSignal(str)  # For logging progress
+    generation_complete = pyqtSignal()
 
     def __init__(self, workplace):
 
@@ -593,7 +597,74 @@ class GenerateDataWorker(QThread):
 
             self.all_augmented_filepaths = scbetavaegan.nested_augmentation(self.all_augmented_data, self.num_augmentations, self.num_files_to_use, pretrained_filename, self.base_latent_variability, self.latent_variability_range, data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames)
             
+            self.generation_complete.emit()
+            self.result_preview(input_filenames)
+        except Exception as e:
+            self.error.emit(str(e) + "\n" + traceback.format_exc())
+
+    def result_preview(self, input_filenames):
+        try:
+            # Define the folders directly in the notebook cell
+            self.imputed_folder = "imputed"
+            self.augmented_folder = "augmented_data"
+
+            # Process the files and calculate NRMSE
+            self.results = scbetavaegan.process_files_NRMSE(self.imputed_folder, self.augmented_folder, input_filenames)
+
+            # Display the results
+            for self.original_file, self.nrmse_values in self.results.items():
+                print(f"Results for {self.original_file}:")
+                for i, self.nrmse in enumerate(self.nrmse_values):
+                    self.augmented_version = f"({i})" if i > 0 else "base"
+                    print(f"  NRMSE for augmented version {self.augmented_version}: {self.nrmse:.4f}")
+                
+                if self.nrmse_values:
+                    self.avg_nrmse = np.mean(self.nrmse_values)
+                    print(f"  Average NRMSE: {self.avg_nrmse:.4f}")
+                print()
+
+            # Calculate and display the overall average NRMSE
+            self.all_nrmse = [self.nrmse for self.nrmse_list in self.results.values() for self.nrmse in self.nrmse_list]
+            self.overall_avg_nrmse = np.mean(self.all_nrmse)
+            print(f"Overall Average NRMSE: {self.overall_avg_nrmse:.4f}")
+
+            # Process files, without NRMSE
+            self.real_data, self.synthetic_data = scbetavaegan.process_files_PHDS(self.imputed_folder, self.augmented_folder, input_filenames)
+
+            # Compute post-hoc discriminative score
+            self.mean_accuracy, self.std_accuracy = scbetavaegan.post_hoc_discriminative_score(self.real_data, self.synthetic_data)
+
+            print(f"Mean accuracy: {self.mean_accuracy:.4f} (±{self.std_accuracy:.4f})")
+
+            self.X, self.y, self.scaler = scbetavaegan.prepare_data(self.data_frames[0])
+
+            self.kf = KFold(n_splits=10, shuffle=True, random_state=np.random.randint(1000))  # 10-fold cross-validation
+
+            self.mape_values = []
+            for self.fold, (self.train_index, self.test_index) in enumerate(self.kf.split(self.X), start=1):
+                print(f"\n--- Fold {self.fold} ---")
+                
+                # Split data into training and testing sets for this fold
+                self.X_train, self.X_test = self.X[self.train_index], self.X[self.test_index]
+                self.y_train, self.y_test = self.y[self.train_index], self.y[self.test_index]
+
+                self.model = scbetavaegan.create_model((self.X_train.shape[1], self.X_train.shape[2]))
+                self.model.fit(self.X_train, self.y_train, epochs=5, batch_size=512, verbose=3, callbacks=[scbetavaegan.CustomCallback()])
+                
+                # Evaluate the model and store MAPE
+                self.mape = scbetavaegan.evaluate_model(self.model, self.X_test, self.y_test, self.scaler)
+                print(f"Fold {self.fold} MAPE: {self.mape * 100:.2f}%")  # Print MAPE for the current fold
+                self.mape_values.append(self.mape)
+
+            # Step 5: Calculate Mean and Standard Deviation of MAPE
+            self.mean_mape = np.mean(self.mape_values)
+            self.std_mape = np.std(self.mape_values)
+
+            print(f"\nMean MAPE: {self.mean_mape * 100:.2f}%")
+            print(f"Standard Deviation of MAPE: {self.std_mape * 100:.2f}%")
+
             self.finished.emit()
+                        
         except Exception as e:
             self.error.emit(str(e) + "\n" + traceback.format_exc())
 
@@ -705,6 +776,7 @@ class Workplace(QtWidgets.QWidget):
             self.worker.set_num_augmentations(self.num_augmentations)
 
             # Connect signals
+            self.worker.generation_complete.connect(self.on_generation_finished)
             self.worker.finished.connect(self.on_generation_complete)
             self.worker.error.connect(self.on_generation_error)
             self.worker.progress.connect(
@@ -739,9 +811,10 @@ class Workplace(QtWidgets.QWidget):
             self.worker.set_num_augmentations(self.num_augmentations)
 
             # Connect signals
-            self.worker.finished.connect(self.on_generation_complete)
             self.worker.error.connect(self.on_generation_error)
             self.worker.progress.connect(self.logger.info)  # Connect directly to logger.info
+            self.worker.generation_complete.connect(self.on_generation_finished)
+            self.worker.finished.connect(self.on_generation_complete)
 
             # Start the worker
             self.worker.start()
@@ -751,13 +824,19 @@ class Workplace(QtWidgets.QWidget):
         self.generate_data_button.setEnabled(True)
         self.generate_data_button.setText("Generate Synthetic Data")
 
-        self.update_output_file_display(self.worker.all_augmented_filepaths)
-        self.update_original_absolute_file_display(self.worker.original_absolute_files)
-
         # Clean up
         if self.worker:
             self.worker.deleteLater()
             self.worker = None
+
+    
+    def on_generation_finished(self):
+        # Disable the generate button and change text
+        self.generate_data_button.setEnabled(False)
+        self.generate_data_button.setText("Calculating Results...")
+
+        self.update_output_file_display(self.worker.all_augmented_filepaths)
+        self.update_original_absolute_file_display(self.worker.original_absolute_files)
 
         # Expand relevant sections
         self.collapsible_widget_output.toggle_container(True)
