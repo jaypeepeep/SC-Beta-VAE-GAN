@@ -583,7 +583,7 @@ class GenerateDataWorker(QThread):
             self.vae.save(self.model_save_path)
             print(f"VAE model saved at {self.model_save_path}.")
 
-            self.generate_synthetic_data(os.path.basename(self.model_save_path), self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frame)
+            self.generate_synthetic_data(os.path.basename(self.model_save_path), self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames)
 
         except Exception as e:
             self.error.emit(str(e) + "\n" + traceback.format_exc())
