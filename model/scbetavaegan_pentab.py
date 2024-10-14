@@ -306,6 +306,7 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
     reconstruction_loss_history = []
     kl_loss_history = []
     nrmse_history = []
+    nrmse_values = []
 
     save_dir = "pentab_vae_models"
     os.makedirs(save_dir, exist_ok=True)
@@ -642,16 +643,26 @@ def repeat_backwards(original_paa, augmented_length):
     return np.vstack((original_paa, backwards_rows))
 
 # 11. Calculate NRMSE
-def calculate_nrmse(original, predicted): 
-    """Calculate the Normalized Root Mean Squared Error (NRMSE)."""
+def calculate_nrmse(original, predicted):
     if original.shape != predicted.shape:
         raise ValueError("The shapes of the original and predicted datasets must match.")
-    
     mse = np.mean((original - predicted) ** 2)
     rmse = np.sqrt(mse)
     nrmse = rmse / (np.max(original) - np.min(original))
-    
     return nrmse
+
+def get_matching_augmented_files(original_file, augmented_folder):
+    base_name = os.path.basename(original_file)
+    base_name_without_ext = os.path.splitext(base_name)[0]
+    pattern = os.path.join(augmented_folder, f"synthetic_{base_name_without_ext}*.svc")
+    matching_files = glob(pattern)
+    
+    # Sort files based on the number in parentheses, with the base file (no number) first
+    def sort_key(filename):
+        match = re.search(r'\((\d+)\)', filename)
+        return int(match.group(1)) if match else -1
+    
+    return sorted(matching_files, key=sort_key)
 
 def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list):
     """Calculate NRMSE for a list of original and augmented datasets."""

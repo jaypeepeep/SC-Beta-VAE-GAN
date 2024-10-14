@@ -127,7 +127,6 @@ class SVCpreview(QtWidgets.QWidget):
         )
         self.text_preview2_layout.addWidget(self.text_preview2)
 
-        # Graph container for output
         self.output_graph_container = QtWidgets.QWidget(self.container_widget)
         self.output_graph_container.setFixedHeight(300)
         self.output_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
@@ -144,7 +143,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
         self.results_text.setReadOnly(True)
-        self.results_text.setFixedHeight(100)
+        self.results_text.setFixedHeight(250)
         self.results_text.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
         )
@@ -154,6 +153,73 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Set the layout for the widget
         self.setLayout(self.container_layout)
+
+    def add_graph_containers(self):
+        # Graph container for output
+        self.second_output_graph_container = QtWidgets.QWidget(self.container_widget)
+        self.second_output_graph_container.setFixedHeight(500)
+        self.second_output_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
+        self.second_output_graph_layout = QtWidgets.QVBoxLayout(self.second_output_graph_container)
+        self.text_preview2_layout.addWidget(self.second_output_graph_container)
+
+        # Second graph container for input
+        self.second_input_graph_container = QtWidgets.QWidget(self.container_widget)
+        self.second_input_graph_container.setFixedHeight(500)
+        self.second_input_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
+        self.second_input_graph_layout = QtWidgets.QVBoxLayout(self.second_input_graph_container)
+        self.text_preview1_layout.addWidget(self.second_input_graph_container)
+
+    def display_handwriting_contents(self, file_path, preview_index):
+        try:
+            df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+            df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+            
+            # Separate strokes based on pen status
+            on_surface = df[df['pen_status'] == 1]
+            in_air = df[df['pen_status'] == 0]
+
+            # Create the plot
+            fig, ax = plt.subplots(figsize=(6, 6))
+            ax.scatter(on_surface['y'], on_surface['x'], c='b', s=1, alpha=0.7, label='On Surface')
+            ax.scatter(in_air['y'], in_air['x'], c='r', s=1, alpha=0.7, label='In Air')
+            ax.set_title(f'Time Series Handwriting Visualization for {os.path.basename(file_path)}')
+            ax.set_xlabel('y')
+            ax.set_ylabel('x')
+            ax.invert_yaxis()
+            ax.set_aspect('equal')
+            ax.legend()
+
+            canvas = FigureCanvas(fig)
+            if preview_index == 0:
+                self.clear_layout(self.second_input_graph_layout)
+                self.second_input_graph_layout.addWidget(canvas)
+                canvas.draw() 
+            else:
+                self.clear_layout(self.second_output_graph_layout)
+                self.second_output_graph_layout.addWidget(canvas)
+                canvas.draw() 
+
+        except Exception as e:
+            error_message = f"Error reading or displaying graph: {str(e)}"
+            if preview_index == 0:
+                self.text_preview1.setPlainText(error_message)
+            else:
+                self.text_preview2.setPlainText(error_message)
+
+    def add_result_text(self, text):
+  
+        # Get the current text
+        current_text = self.results_text.toPlainText()
+        
+        # If there's already text, add a newline before the new text
+        if current_text:
+            new_text = current_text + "\n" + text
+        else:
+            new_text = text
+        
+        # Set the updated text
+        self.results_text.setPlainText(new_text)
+        
 
     def display_file_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate text preview."""
@@ -522,7 +588,6 @@ class SVCpreview(QtWidgets.QWidget):
             return
         
         try:
-            # Open the ZIP file and display its contents
             # Extract the zip contents to a temporary directory
             temp_dir = os.path.join(os.getcwd(), 'temp_extracted')
             if not os.path.exists(temp_dir):
@@ -532,7 +597,6 @@ class SVCpreview(QtWidgets.QWidget):
                 zipf.extractall(temp_dir)  # Extract all files in the zip to temp directory
                 file_list = zipf.namelist()
 
-                # Set the first file content in preview 1 and the second in preview 2 (if they exist)
                 # Make sure at least one file exists
                 if len(file_list) > 0:
                     file1_path = os.path.join(temp_dir, file_list[0])
@@ -548,8 +612,6 @@ class SVCpreview(QtWidgets.QWidget):
                         content2 = file2.read()
                         self.filename2.setText(file_list[1])
                         self.text_preview2.setPlainText(content2)
-
-                self.results_text.setPlainText("Results:")
 
                 self.results_text.setPlainText("Results displayed successfully.")
         except Exception as e:
