@@ -199,8 +199,17 @@ class SVCpreview(QtWidgets.QWidget):
                 self.second_output_graph_layout.addWidget(canvas)
                 canvas.draw() 
 
+<<<<<<< HEAD
         except:
             pass
+=======
+        except Exception as e:
+            error_message = f"Error reading or displaying graph: {str(e)}"
+            if preview_index == 0:
+                self.text_preview1.setPlainText(error_message)
+            else:
+                self.text_preview2.setPlainText(error_message)
+>>>>>>> origin/nichole-branch
 
     def add_result_text(self, text):
   
@@ -586,7 +595,6 @@ class SVCpreview(QtWidgets.QWidget):
             return
         
         try:
-            # Open the ZIP file and display its contents
             # Extract the zip contents to a temporary directory
             temp_dir = os.path.join(os.getcwd(), 'temp_extracted')
             if not os.path.exists(temp_dir):
@@ -596,7 +604,6 @@ class SVCpreview(QtWidgets.QWidget):
                 zipf.extractall(temp_dir)  # Extract all files in the zip to temp directory
                 file_list = zipf.namelist()
 
-                # Set the first file content in preview 1 and the second in preview 2 (if they exist)
                 # Make sure at least one file exists
                 if len(file_list) > 0:
                     file1_path = os.path.join(temp_dir, file_list[0])
@@ -612,8 +619,6 @@ class SVCpreview(QtWidgets.QWidget):
                         content2 = file2.read()
                         self.filename2.setText(file_list[1])
                         self.text_preview2.setPlainText(content2)
-
-                self.results_text.setPlainText("Results:")
 
                 self.results_text.setPlainText("Results displayed successfully.")
         except Exception as e:
