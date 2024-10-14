@@ -296,8 +296,8 @@ def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
     optimizer.apply_gradients(zip(gradients, lstm_model.trainable_variables))
     return total_loss
 
-def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001):
-    """Train the VAE and LSTM models."""
+def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001):
+    """Train the VAE and LSTM models and calculate metrics."""
     lstm_optimizer = tf.keras.optimizers.Adam(learning_rate)
     
     train_datasets = [tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(batch_size) for data in processed_data]
@@ -306,10 +306,8 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
     reconstruction_loss_history = []
     kl_loss_history = []
     nrmse_history = []
-    nrmse_values = []
 
-    save_dir = "pentab_vae_models"
-    os.makedirs(save_dir, exist_ok=True)
+    avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
 
     for epoch in range(epochs):
         generator_loss = 0 
@@ -328,15 +326,6 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
                     pbar.update(1)
                     pbar.set_postfix({'Generator Loss': float(generator_loss_batch), 'Reconstruction Loss': float(reconstruction_loss), 'KL Loss': float(kl_loss)})
 
-        # Train LSTM every `lstm_interval` epochs after `vae_epochs`
-        if epoch >= vae_epochs and (epoch - vae_epochs) % lstm_interval == 0:
-            for data in processed_data:
-                augmented_data = vae.decode(tf.random.normal(shape=(data.shape[0], latent_dim))).numpy()
-                real_data = tf.expand_dims(data, axis=0)
-                generated_data = tf.expand_dims(augmented_data, axis=0)
-                lstm_loss = train_lstm_step(lstm_discriminator, real_data, generated_data, lstm_optimizer)
-            print(f'LSTM training at epoch {epoch+1}: Discriminator Loss = {lstm_loss.numpy()}')
-
         avg_generator_loss = generator_loss / num_batches  # Update the average calculation
         avg_reconstruction_loss = reconstruction_loss_sum / num_batches
         avg_kl_loss = kl_loss_sum / num_batches
@@ -345,20 +334,12 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
         reconstruction_loss_history.append(avg_reconstruction_loss)
         kl_loss_history.append(avg_kl_loss)
 
-        # Calculate NRMSE
-        nrmse_sum = 0
-        for data in processed_data:
-            augmented_data = vae.decode(tf.random.normal(shape=(data.shape[0], latent_dim))).numpy()
-            rmse = np.sqrt(mean_squared_error(data[:, :2], augmented_data[:, :2]))
-            nrmse = rmse / (data[:, :2].max() - data[:, :2].min())
-            nrmse_sum += nrmse
+        # Generate synthetic data and calculate NRMSE
+        augmented_datasets = generate_augmented_datasets(vae, processed_data, data_frames, num_augmented_files, avg_data_points)
+        nrmse_epoch, avg_nrmse = calculate_nrmse_for_augmented_data(original_data_frames, augmented_datasets)
+        nrmse_history.append(avg_nrmse)
+        print(f"NRMSE for epoch {epoch + 1}: {avg_nrmse:.4f}")
         
-        nrmse_avg = nrmse_sum / len(processed_data)
-        nrmse_history.append(nrmse_avg)
-
-        print(f"Epoch {epoch+1}: Generator Loss = {avg_generator_loss:.6f}, Reconstruction Loss = {avg_reconstruction_loss:.6f}, KL Divergence Loss = {avg_kl_loss:.6f}")
-        print(f"NRMSE = {nrmse_avg:.6f}")
-
     return generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history
 
 def post_process_pen_status(pen_status, threshold=0.5, min_segment_length=5):
@@ -644,11 +625,14 @@ def repeat_backwards(original_paa, augmented_length):
 
 # 11. Calculate NRMSE
 def calculate_nrmse(original, predicted):
+    """Calculate the Normalized Root Mean Squared Error (NRMSE)."""
     if original.shape != predicted.shape:
         raise ValueError("The shapes of the original and predicted datasets must match.")
+    
     mse = np.mean((original - predicted) ** 2)
     rmse = np.sqrt(mse)
     nrmse = rmse / (np.max(original) - np.min(original))
+    
     return nrmse
 
 def get_matching_augmented_files(original_file, augmented_folder):
@@ -669,12 +653,19 @@ def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list
     nrmse_values = []
 
     for i, (original_df, augmented) in enumerate(zip(original_data_frames, augmented_data_list)):
+        # Extract relevant columns from original data
         original_array = original_df[['x', 'y', 'timestamp', 'pen_status']].values
         augmented_array = augmented[:, :4]  # Assuming first 4 columns match original data structure
-
-        nrmse = calculate_nrmse(original_array, augmented_array)
+        
+        # Trim to the shorter length to ensure shapes match
+        min_length = min(len(original_array), len(augmented_array))
+        original_array_trimmed = original_array[:min_length]
+        augmented_array_trimmed = augmented_array[:min_length]
+        
+        # Calculate NRMSE with the trimmed arrays
+        nrmse = calculate_nrmse(original_array_trimmed, augmented_array_trimmed)
         nrmse_values.append(nrmse)
-        print(f"NRMSE for dataset {i+1}: {nrmse:.4f}")
+        print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
 
     # Calculate average NRMSE
     average_nrmse = np.mean(nrmse_values)
@@ -723,7 +714,7 @@ def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
         X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
 
         model = create_lstm_classifier((1, X_train.shape[2]))
-        model.fit(X_train, y_train, epochs=3, batch_size=256, verbose=1)
+        model.fit(X_train, y_train, epochs=3, batch_size=256, verbose=0)
 
         y_pred = (model.predict(X_test) > 0.5).astype(int)
         accuracy = accuracy_score(y_test, y_pred)
@@ -732,6 +723,8 @@ def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
     mean_accuracy = np.mean(accuracies)
     std_accuracy = np.std(accuracies)
 
+    print(f"Post-Hoc Discriminative Score: Mean Accuracy = {mean_accuracy:.4f}, Std = {std_accuracy:.4f}")
+    
     return mean_accuracy, std_accuracy
 
 # 14. Prepare data for LSTM
@@ -744,8 +737,8 @@ def prepare_data(df, time_steps=5):
     # Create sequences of length `time_steps`
     X, y = [], []
     for i in range(len(data_scaled) - time_steps):
-        X.append(data_scaled[i:i+time_steps])
-        y.append(data_scaled[i+time_steps])
+        X.append(data_scaled[i:i + time_steps])
+        y.append(data_scaled[i + time_steps])
     
     return np.array(X), np.array(y), scaler
 
@@ -769,19 +762,7 @@ def evaluate_model(model, X_test, y_test, scaler):
     
     # Compute MAPE for each test sample
     mape = mean_absolute_percentage_error(y_test_rescaled, y_pred_rescaled)
-    print(f"\nMAPE: {mape * 100:.2f}%")
-    
-    # Interpretation of MAPE
-    if mape < 0.1:
-        interpretation = "Excellent prediction"
-    elif mape < 0.2:
-        interpretation = "Good prediction"
-    elif mape < 0.5:
-        interpretation = "Fair prediction"
-    else:
-        interpretation = "Poor prediction"
-    
-    print(f"Interpretation: {interpretation}")
+    print(f"MAPE: {mape * 100:.2f}%")
     
     return mape
 
@@ -808,8 +789,8 @@ def k_fold_cross_validation(X, y, scaler, n_splits=10):
         y_train, y_test = y[train_index], y[test_index]
         
         # Create and train the model for each fold
-        model = create_lstm_classifier((X_train.shape[1], X_train.shape[2]))
-        model.fit(X_train, y_train, epochs=5, batch_size=512, verbose=0, callbacks=[CustomCallback()])
+        model = create_model((X_train.shape[1], X_train.shape[2]))
+        model.fit(X_train, y_train, epochs=5, batch_size=512, verbose=0)
         
         # Evaluate the model and store MAPE
         mape = evaluate_model(model, X_test, y_test, scaler)
@@ -819,7 +800,7 @@ def k_fold_cross_validation(X, y, scaler, n_splits=10):
     mean_mape = np.mean(mape_values)
     std_mape = np.std(mape_values)
 
-    print(f"\nMean MAPE: {mean_mape * 100:.2f}%")
+    print(f"Mean MAPE: {mean_mape * 100:.2f}%")
     print(f"Standard Deviation of MAPE: {std_mape * 100:.2f}%")
 
     return mean_mape, std_mape

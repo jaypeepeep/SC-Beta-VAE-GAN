@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class SVCpreview(QtWidgets.QWidget):
-    def __init__(self, input=None, output=None, parent=None):
+    def __init__(self, input=None, output=None, metrics=None, parent=None):
         super(SVCpreview, self).__init__(parent)
         self.setupUi()
         self.uploaded_files = []
@@ -20,6 +20,8 @@ class SVCpreview(QtWidgets.QWidget):
         if output:
             self.display_file_contents(output, 1)  # Display content in the second text preview
             self.display_graph_contents(output, 1)
+        if metrics:
+            self.display_metrics(metrics)
 
     def setupUi(self):
         self.container_widget = QtWidgets.QWidget(self)
@@ -76,7 +78,7 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Graph container for input
         self.input_graph_container = QtWidgets.QWidget(self.container_widget)
-        self.input_graph_container.setFixedHeight(300)
+        self.input_graph_container.setFixedHeight(400)
         self.input_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
         self.input_graph_layout = QtWidgets.QVBoxLayout(self.input_graph_container)
         self.text_preview1_layout.addWidget(self.input_graph_container)
@@ -128,7 +130,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.text_preview2_layout.addWidget(self.text_preview2)
 
         self.output_graph_container = QtWidgets.QWidget(self.container_widget)
-        self.output_graph_container.setFixedHeight(300)
+        self.output_graph_container.setFixedHeight(400)
         self.output_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
         self.output_graph_layout = QtWidgets.QVBoxLayout(self.output_graph_container)
         self.text_preview2_layout.addWidget(self.output_graph_container)
@@ -199,12 +201,8 @@ class SVCpreview(QtWidgets.QWidget):
                 self.second_output_graph_layout.addWidget(canvas)
                 canvas.draw() 
 
-        except Exception as e:
-            error_message = f"Error reading or displaying graph: {str(e)}"
-            if preview_index == 0:
-                self.text_preview1.setPlainText(error_message)
-            else:
-                self.text_preview2.setPlainText(error_message)
+        except:
+            pass
 
     def add_result_text(self, text):
   
@@ -219,7 +217,14 @@ class SVCpreview(QtWidgets.QWidget):
         
         # Set the updated text
         self.results_text.setPlainText(new_text)
-        
+
+    def display_metrics(self, metrics):
+        """Display the NRMSE, post-hoc discriminative score, and predictive score in the results_text field."""
+        results_text = f"NRMSE: {metrics['nrmse']:.4f}\n"
+        results_text += f"Post-Hoc Discriminative Score: {metrics['discriminative_score']:.4f}\n"
+        results_text += f"Post-Hoc Predictive Score: {metrics['predictive_score']:.4f}\n"
+        self.results_text.setPlainText(results_text)
+
 
     def display_file_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate text preview."""
@@ -438,6 +443,7 @@ class SVCpreview(QtWidgets.QWidget):
             full_path = next(f for f in self.original_absolute_files if os.path.basename(f) == selected_file)
             self.display_file_contents(full_path, 0)
             self.display_graph_contents(full_path, 0)
+            self.display_handwriting_contents(full_path, 0)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph1(full_path))
 
@@ -550,6 +556,7 @@ class SVCpreview(QtWidgets.QWidget):
             full_path = next(f for f in self.augmented_files if os.path.basename(f) == selected_file)
             self.display_file_contents(full_path, 1)
             self.display_graph_contents(full_path, 1)
+            self.display_handwriting_contents(full_path, 1)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph(full_path))
 

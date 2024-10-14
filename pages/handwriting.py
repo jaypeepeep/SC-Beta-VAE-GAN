@@ -6,6 +6,7 @@ import time
 import shutil
 import zipfile
 import numpy as np
+import pandas as pd
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
@@ -30,7 +31,9 @@ from model.scbetavaegan_pentab import (
     VAE,
     LSTMDiscriminator,
     train_models,
-    plot_training_history
+    plot_training_history,
+    calculate_nrmse,
+    post_hoc_discriminative_score
 )
 
 class ModelTrainingThread(QThread):
@@ -87,7 +90,7 @@ class ModelTrainingThread(QThread):
         self.log(f"Training started for {self.epochs} epochs...")
         for epoch in range(self.epochs):
             self.log(f"Epoch {epoch + 1}/{self.epochs} in progress...")
-            train_models(vae, lstm_discriminator, processed_data, epochs=1)
+            train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files=self.num_augmented_files, epochs=1)
             self.log(f"Epoch {epoch + 1} completed.")
 
         self.log("Training completed.")
@@ -591,13 +594,52 @@ class Handwriting(QtWidgets.QWidget):
         self.generate_data_button.setEnabled(True)
         self.process_log_widget.append_log("Data generation finished.")
 
-    def update_results_widget(self, zip_path):
-        """Display the contents of the zip file in the Results widget."""
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            files = zip_ref.namelist()
-            for file in files:
-                self.results_widget.addItem(f"File: {file}")
+    def update_results_preview(self, zip_file_path):
+        """Unzip the synthetic data and update the results preview."""
+        try:
+            # Unzip the synthetic data
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall("synthetic_output")
+            synthetic_file = os.path.join("synthetic_output", os.listdir("synthetic_output")[0])
 
+            # Get the original file
+            original_file = self.file_list[0]  # Assuming the first file in the list is the original
+
+            # Calculate metrics
+            metrics = self.calculate_metrics(original_file, synthetic_file)
+
+            # Update the SVC preview widget with the original and synthetic data
+            self.svc_preview = SVCpreview(input=original_file, output=synthetic_file, metrics=metrics)
+
+            # Update the results text field with metrics
+            self.results_text.setPlainText(f"NRMSE: {metrics['nrmse']:.4f}\n"
+                                           f"Post-Hoc Discriminative Score: {metrics['discriminative_score']:.4f}\n"
+                                           f"Post-Hoc Predictive Score: {metrics['predictive_score']:.4f}\n")
+
+            self.layout.addWidget(self.svc_preview)
+
+        except Exception as e:
+            self.process_log_widget.append_log(f"Error updating results preview: {e}", level="ERROR")
+
+    def calculate_metrics(self, original_file, synthetic_file):
+        """Calculate and return the NRMSE, discriminative, and predictive scores."""
+        original_data = pd.read_csv(original_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+        synthetic_data = pd.read_csv(synthetic_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+
+        # Compute NRMSE
+        nrmse = calculate_nrmse(original_data[['x', 'y']].values, synthetic_data[['x', 'y']].values)
+
+        # Compute Post-Hoc Discriminative Score (you can use the LSTM model for this)
+        discriminative_score = post_hoc_discriminative_score(original_data, synthetic_data)
+
+        # Compute Post-Hoc Predictive Score (LSTM-based predictive model)
+        # predictive_score = post_hoc_predictive_score(original_data, synthetic_data)
+
+        return {
+            "nrmse": nrmse,
+            "discriminative_score": discriminative_score,
+            # "predictive_score": predictive_score
+        }
 
     def show_reset_confirmation_dialog(self):
         """Show a confirmation dialog before resetting the state."""
