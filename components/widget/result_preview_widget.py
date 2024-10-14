@@ -13,6 +13,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.uploaded_files = []
         self.augmented_files = []
         self.original_absolute_files = []
+
         if input:
             self.display_file_contents(input, 0)  # Display content in the first text preview
             self.display_graph_contents(input, 0)
@@ -77,6 +78,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.input_graph_container = QtWidgets.QWidget(self.container_widget)
         self.input_graph_container.setFixedHeight(300)
         self.input_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
+        self.input_graph_layout = QtWidgets.QVBoxLayout(self.input_graph_container)
         self.text_preview1_layout.addWidget(self.input_graph_container)
 
         # Vertical layout for second text preview
@@ -129,6 +131,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.output_graph_container = QtWidgets.QWidget(self.container_widget)
         self.output_graph_container.setFixedHeight(300)
         self.output_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
+        self.output_graph_layout = QtWidgets.QVBoxLayout(self.output_graph_container)
         self.text_preview2_layout.addWidget(self.output_graph_container)
 
         # Add both vertical layouts to the horizontal layout
@@ -241,22 +244,14 @@ class SVCpreview(QtWidgets.QWidget):
             plt.legend(loc='upper right', fontsize='small')  # Use 'small' or a specific size like 8
 
             if preview_index == 0:
-                for i in self.input_graph_container.children():
-                    i.deleteLater()
-                layout = QtWidgets.QVBoxLayout(self.input_graph_container)
-                canvas = FigureCanvas(fig)  # Use FigureCanvas from matplotlib.backends.backend_qt5agg
-                layout.addWidget(canvas)
-
-                # Show the plot
+                self.clear_layout(self.input_graph_layout)
+                canvas = FigureCanvas(fig)
+                self.input_graph_layout.addWidget(canvas)
                 canvas.draw()
             else:
-                for i in self.output_graph_container.children():
-                    i.deleteLater()
-                layout = QtWidgets.QVBoxLayout(self.output_graph_container)
-                canvas = FigureCanvas(fig)  # Use FigureCanvas from matplotlib.backends.backend_qt5agg
-                layout.addWidget(canvas)
-
-                # Show the plot
+                self.clear_layout(self.output_graph_layout)
+                canvas = FigureCanvas(fig)
+                self.output_graph_layout.addWidget(canvas)
                 canvas.draw()
 
         except Exception as e:
@@ -265,7 +260,13 @@ class SVCpreview(QtWidgets.QWidget):
                 self.text_preview1.setPlainText(error_message)
             else:
                 self.text_preview2.setPlainText(error_message)
-
+    
+    def clear_layout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
 
     def setText(self, text1, text2, results_text):
         """Method to set text in both text previews and the results area."""
@@ -494,15 +495,34 @@ class SVCpreview(QtWidgets.QWidget):
         self.output_graph_container.setVisible(True)
         QtWidgets.QApplication.processEvents()
 
+    def clear(self):
+        """Clear all displays and reset file lists."""
+        # Clear text previews
+        self.text_preview1.clear()
+        self.text_preview2.clear()
+        self.results_text.clear()
+
+        # Reset filenames
+        self.filename1.setText("Filename")
+        self.filename2.setText("Filename")
+
+        # Clear graph layout
+        self.clear_layout(self.input_graph_layout)
+        self.clear_layout(self.output_graph_layout)
+
+        # Update the widget
+        self.update()
+
 
     @QtCore.pyqtSlot(str)
     def set_zip_path(self, zip_path):
-        """Handle the ZIP file, list contents, and display relevant file contents."""
+        """Handle the ZIP file, list contents, and possibly display relevant file contents."""
         if not zipfile.is_zipfile(zip_path):
             self.results_text.setPlainText("Error: Invalid ZIP file.")
             return
-
+        
         try:
+            # Open the ZIP file and display its contents
             # Extract the zip contents to a temporary directory
             temp_dir = os.path.join(os.getcwd(), 'temp_extracted')
             if not os.path.exists(temp_dir):
@@ -512,6 +532,7 @@ class SVCpreview(QtWidgets.QWidget):
                 zipf.extractall(temp_dir)  # Extract all files in the zip to temp directory
                 file_list = zipf.namelist()
 
+                # Set the first file content in preview 1 and the second in preview 2 (if they exist)
                 # Make sure at least one file exists
                 if len(file_list) > 0:
                     file1_path = os.path.join(temp_dir, file_list[0])
@@ -527,6 +548,8 @@ class SVCpreview(QtWidgets.QWidget):
                         content2 = file2.read()
                         self.filename2.setText(file_list[1])
                         self.text_preview2.setPlainText(content2)
+
+                self.results_text.setPlainText("Results:")
 
                 self.results_text.setPlainText("Results displayed successfully.")
         except Exception as e:

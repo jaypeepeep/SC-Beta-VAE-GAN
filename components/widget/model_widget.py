@@ -1,6 +1,7 @@
 import os
 from components.widget.spin_box_widget import SpinBoxWidget
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtGui import QIcon
 
 
 class ModelWidget(QtWidgets.QWidget):
@@ -17,6 +18,9 @@ class ModelWidget(QtWidgets.QWidget):
 
         self.load_files()
 
+        self.current_checked_checkbox = None
+        self.current_checked_file = None
+
     def setup_ui(self):
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignTop)
@@ -28,7 +32,7 @@ class ModelWidget(QtWidgets.QWidget):
         self.setFont(font)
 
         # Train VAE button
-        self.train_button = QtWidgets.QPushButton("Train VAE")
+        self.train_button = QtWidgets.QPushButton("Train Model")
         button_style = """
             QPushButton {
                 background-color: #003333; 
@@ -104,10 +108,8 @@ class ModelWidget(QtWidgets.QWidget):
         self.layout.addWidget(table_container)
 
         # SpinBox widget
-        self.slider_widget = SpinBoxWidget(0)
+        self.slider_widget = SpinBoxWidget(1)
         self.layout.addWidget(self.slider_widget)
-
-        self.train_button.clicked.connect(self.train_vae)
 
     def load_files(self, directory=None):
         if directory is None:
@@ -162,6 +164,7 @@ class ModelWidget(QtWidgets.QWidget):
                     border-radius: 3px;
                 }
             """)
+            checkbox.stateChanged.connect(lambda state, cb=checkbox, fn=file_name: self.checkbox_clicked(state, cb, fn))
             checkbox_layout.addWidget(checkbox)
             checkbox_layout.setAlignment(QtCore.Qt.AlignCenter)
             checkbox_layout.setContentsMargins(0, 0, 0, 0)
@@ -201,6 +204,21 @@ class ModelWidget(QtWidgets.QWidget):
         # Adjust table height based on content
         total_height = ((len(files) + 1) * row_height) + self.files_table.horizontalHeader().height()
         self.files_table.setMinimumHeight(total_height)
+            
+    def checkbox_clicked(self, state, checkbox, filename):
+        if state == QtCore.Qt.Checked:
+            if self.current_checked_checkbox and self.current_checked_checkbox != checkbox:
+                self.current_checked_checkbox.setChecked(False)
+            self.current_checked_checkbox = checkbox
+            print(f"Checkbox clicked for file: {filename}")
+            self.current_checked_file = filename
+        else:
+            if self.current_checked_checkbox == checkbox:
+                self.current_checked_checkbox = None
+                print(f"Checkbox unchecked for file: {filename}")
+                filename = None
+                self.current_checked_file = filename            
+
     def show_file_options(self, file):
         menu = QtWidgets.QMenu(self)
         menu.setStyleSheet("""
@@ -264,20 +282,12 @@ class ModelWidget(QtWidgets.QWidget):
             except OSError as e:
                 QtWidgets.QMessageBox.critical(self, "Error", f"Failed to delete file: {str(e)}")
 
-    def train_vae(self):
-        self.create_custom_message_box(
-            title="Train VAE",
-            message=f"Training VAE model..."
-        )
-
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.load_files)
-        self.timer.start(5000)
-
 
     def create_custom_message_box(self, title, message):
         """Create a custom message box"""
         message_box = QtWidgets.QMessageBox()
+        icon = QIcon("icon/icon.ico")
+        message_box.setWindowIcon(icon)
         message_box.setWindowTitle(title)
         message_box.setText(message)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
