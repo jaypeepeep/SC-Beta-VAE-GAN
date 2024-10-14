@@ -49,6 +49,7 @@ class GenerateDataWorker(QThread):
     error = pyqtSignal(str)
     progress = pyqtSignal(str)  # For logging progress
     generation_complete = pyqtSignal()
+    metrics = pyqtSignal(str)
 
     def __init__(self, workplace):
 
@@ -618,7 +619,6 @@ class GenerateDataWorker(QThread):
             # Process the files and calculate NRMSE
             self.progress.emit("Calculating NRMSE for generated data...")
             self.results = scbetavaegan.process_files_NRMSE(self.imputed_folder, self.augmented_folder, input_filenames)
-
             # Display the results
             self.progress.emit("=== RESULTS: NRMSE ANALYSIS ===")
             for self.original_file, self.nrmse_values in self.results.items():
@@ -640,6 +640,7 @@ class GenerateDataWorker(QThread):
             self.overall_avg_nrmse = np.mean(self.all_nrmse)
             print(f"Overall Average NRMSE: {self.overall_avg_nrmse:.4f}")
             self.progress.emit(f"Overall Average NRMSE: {self.overall_avg_nrmse:.4f}")
+            self.metrics.emit("NRMSE")
             self.progress.emit("=== END OF NRMSE ANALYSIS ===")
 
             self.progress.emit("Calculating post-hoc discriminative score...")
@@ -652,9 +653,10 @@ class GenerateDataWorker(QThread):
             print(f"Mean accuracy: {self.mean_accuracy:.4f} (±{self.std_accuracy:.4f})")
             self.progress.emit("=== RESULTS: POST-HOC DISCRIMINATIVE SCORE ===")
             self.progress.emit(f"Mean accuracy: {self.mean_accuracy:.4f} (±{self.std_accuracy:.4f})")
+            self.metrics.emit("PHDS")
             self.progress.emit("=== END OF POST-HOC DISCRIMINATIVE SCORE ===")
 
-            self.progress.emit("Preparing data for MAPE analysis...")
+            self.progress.emit("Calculating post-hoc predictive score...")
 
             self.X, self.y, self.scaler = scbetavaegan.prepare_data(self.data_frames[0])
 
@@ -681,10 +683,11 @@ class GenerateDataWorker(QThread):
             self.mean_mape = np.mean(self.mape_values)
             self.std_mape = np.std(self.mape_values)
 
-            self.progress.emit("=== RESULTS: MAPE ANALYSIS ===")
+            self.progress.emit("=== RESULTS: POST-HOC PREDICTIVE SCORE ===")
             self.progress.emit(f"Mean MAPE: {self.mean_mape * 100:.2f}%")
             self.progress.emit(f"Standard Deviation of MAPE: {self.std_mape * 100:.2f}%")
-            self.progress.emit("=== END OF MAPE ANALYSIS ===")
+            self.metrics.emit("PHPS")
+            self.progress.emit("=== END OF POST-HOC PREDICTIVE SCORE ===")
 
             self.progress.emit("Result preview and analysis completed.")
 
@@ -810,6 +813,7 @@ class Workplace(QtWidgets.QWidget):
             self.worker.progress.connect(
                 self.logger.info
             )  # Connect directly to logger.info
+            self.worker.metrics.connect(self.on_generation_results)
 
             # Start the thread
             self.worker.start()
@@ -843,6 +847,7 @@ class Workplace(QtWidgets.QWidget):
             self.worker.progress.connect(self.logger.info)  # Connect directly to logger.info
             self.worker.generation_complete.connect(self.on_generation_finished)
             self.worker.finished.connect(self.on_generation_complete)
+            self.worker.metrics.connect(self.on_generation_results)
 
             # Start the worker
             self.worker.start()
@@ -872,6 +877,18 @@ class Workplace(QtWidgets.QWidget):
         # Expand relevant sections
         self.collapsible_widget_output.toggle_container(True)
         self.collapsible_widget_result.toggle_container(True)
+
+    def on_generation_results(self, results):
+        if results == "NRMSE":
+            self.svc_preview.add_result_text("Normalized Root Mean Square Error (NRMSE)")
+            self.svc_preview.add_result_text(f"\tOverall Average NRMSE: {self.worker.overall_avg_nrmse:.4f}")
+        elif results == "PHDS":
+            self.svc_preview.add_result_text("\nPost-Hoc Discriminative Score (PHDS)")
+            self.svc_preview.add_result_text(f"\tMean accuracy: {self.worker.mean_accuracy:.4f} (±{self.worker.std_accuracy:.4f})")
+        elif results == "PHPS":
+            self.svc_preview.add_result_text("\nPost-Hoc Predictive Score (PHPS)")
+            self.svc_preview.add_result_text(f"\tMean MAPE: {self.worker.mean_mape * 100:.2f}%")
+            self.svc_preview.add_result_text(f"\tStandard Deviation of MAPE: {self.worker.std_mape * 100:.2f}%")
 
     def on_generation_error(self, error_message):
         # Re-enable the generate button
