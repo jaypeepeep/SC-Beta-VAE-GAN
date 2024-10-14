@@ -76,7 +76,7 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Graph container for input
         self.input_graph_container = QtWidgets.QWidget(self.container_widget)
-        self.input_graph_container.setFixedHeight(300)
+        self.input_graph_container.setFixedHeight(400)
         self.input_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
         self.input_graph_layout = QtWidgets.QVBoxLayout(self.input_graph_container)
         self.text_preview1_layout.addWidget(self.input_graph_container)
@@ -121,7 +121,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Text preview for the second file
         self.text_preview2 = QtWidgets.QTextEdit(self.container_widget)
         self.text_preview2.setReadOnly(True)
-        self.text_preview2.setFixedHeight(400)
+        self.text_preview2.setFixedHeight(300)
         self.text_preview2.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
         )
@@ -199,12 +199,8 @@ class SVCpreview(QtWidgets.QWidget):
                 self.second_output_graph_layout.addWidget(canvas)
                 canvas.draw() 
 
-        except Exception as e:
-            error_message = f"Error reading or displaying graph: {str(e)}"
-            if preview_index == 0:
-                self.text_preview1.setPlainText(error_message)
-            else:
-                self.text_preview2.setPlainText(error_message)
+        except:
+            pass
 
     def add_result_text(self, text):
   
@@ -438,6 +434,7 @@ class SVCpreview(QtWidgets.QWidget):
             full_path = next(f for f in self.original_absolute_files if os.path.basename(f) == selected_file)
             self.display_file_contents(full_path, 0)
             self.display_graph_contents(full_path, 0)
+            self.display_handwriting_contents(full_path, 0)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph1(full_path))
 
@@ -550,6 +547,7 @@ class SVCpreview(QtWidgets.QWidget):
             full_path = next(f for f in self.augmented_files if os.path.basename(f) == selected_file)
             self.display_file_contents(full_path, 1)
             self.display_graph_contents(full_path, 1)
+            self.display_handwriting_contents(full_path, 1)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph(full_path))
 

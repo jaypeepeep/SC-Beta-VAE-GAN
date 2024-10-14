@@ -44,6 +44,9 @@ from PyQt5.QtWidgets import QMessageBox
 from glob import glob
 import re
 
+from PyQt5.QtWidgets import QApplication
+
+
 class GenerateDataWorker(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
@@ -611,11 +614,11 @@ class GenerateDataWorker(QThread):
 
     def result_preview(self, input_filenames):
         try:
+            self.progress.emit("Starting result preview and analysis...")
             # Define the folders directly in the notebook cell
             self.imputed_folder = "imputed"
             self.augmented_folder = "augmented_data"
 
-            self.progress.emit("Starting result preview and analysis...")
             # Process the files and calculate NRMSE
             self.progress.emit("Calculating NRMSE for generated data...")
             self.results = scbetavaegan.process_files_NRMSE(self.imputed_folder, self.augmented_folder, input_filenames)
@@ -624,6 +627,7 @@ class GenerateDataWorker(QThread):
             for self.original_file, self.nrmse_values in self.results.items():
                 print(f"Results for {self.original_file}:")
                 self.progress.emit(f"Results for {self.original_file}:")
+                QApplication.processEvents()
                 for i, self.nrmse in enumerate(self.nrmse_values):
                     self.augmented_version = f"({i})" if i > 0 else "base"
                     print(f"  NRMSE for augmented version {self.augmented_version}: {self.nrmse:.4f}")
@@ -631,6 +635,7 @@ class GenerateDataWorker(QThread):
                 if self.nrmse_values:
                     self.avg_nrmse = np.mean(self.nrmse_values)
                     self.progress.emit(f"  Average NRMSE: {self.avg_nrmse:.4f}")
+                    QApplication.processEvents()
                     print(f"  Average NRMSE: {self.avg_nrmse:.4f}")
                 print()
                 self.progress.emit("")
@@ -666,6 +671,7 @@ class GenerateDataWorker(QThread):
             for self.fold, (self.train_index, self.test_index) in enumerate(self.kf.split(self.X), start=1):
                 print(f"\n--- Fold {self.fold} ---")
                 self.progress.emit(f"Processing fold {self.fold} of 10...")
+                QApplication.processEvents()
                 
                 # Split data into training and testing sets for this fold
                 self.X_train, self.X_test = self.X[self.train_index], self.X[self.test_index]
