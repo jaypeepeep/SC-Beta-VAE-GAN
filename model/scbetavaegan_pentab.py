@@ -34,11 +34,6 @@ def upload_and_process_files(path, num_files_to_use=None):
     scalers = []
     input_filenames = []  # List to store input filenames
 
-    num_files = len(svc_files)
-    fig, axs = plt.subplots(1, num_files, figsize=(6*num_files, 6), constrained_layout=True)
-    if num_files == 1:
-        axs = [axs]
-
     # Create the folder if it doesn't exist
     output_folder = 'original_absolute'
     os.makedirs(output_folder, exist_ok=True)
@@ -47,6 +42,8 @@ def upload_and_process_files(path, num_files_to_use=None):
         file_path = os.path.join(directory, filename)
         input_filenames.append(filename)  # Store the filename
         print(f"Reading file: {file_path}")
+        
+        # Read the .svc file data
         df = pd.read_csv(file_path, skiprows=1, header=None, delim_whitespace=True)
         df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
         
@@ -67,18 +64,7 @@ def upload_and_process_files(path, num_files_to_use=None):
         normalized_data = scaler.fit_transform(df[['x', 'y', 'timestamp']])
         scalers.append(scaler)
 
-        # Plot with a 90-degree right rotation (swap x and y)
-        on_paper = df[df['pen_status'] == 1]
-        in_air = df[df['pen_status'] == 0]
-        axs[i].scatter(on_paper['x'], -on_paper['y'], c='blue', s=1, alpha=0.7, label='On Paper')  # Swap x and y, negate y
-        axs[i].scatter(in_air['x'], -in_air['y'], c='red', s=1, alpha=0.7, label='In Air')  # Swap x and y, negate y
-        axs[i].set_title(f'Original Data {i + 1}')
-        axs[i].set_xlabel('x')  # x-axis is 'x'
-        axs[i].set_ylabel('-y')  # y-axis is '-y'
-        axs[i].legend()
-        axs[i].set_aspect('equal')
-
-        # Print the first few rows of the timestamp column
+        # Print the first few rows of the timestamp column for debugging
         print(f"Modified timestamps for file {filename}:")
         print(df['timestamp'].head())
         print("\n")
@@ -151,18 +137,21 @@ def convert_and_store_dataframes(input_filenames, data_frames):
     processed_dataframes = []
 
     for input_filename, df in zip(input_filenames, data_frames):
-        # Convert all numeric columns to integers
-        df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
+        # Ensure df is a pandas DataFrame
+        if isinstance(df, pd.DataFrame):
+            # Convert all numeric columns to integers
+            df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
 
-        #########Start
-        # Save the processed DataFrame to the 'imputed' folder with the same input filename
-        save_path = os.path.join(imputed_folder, input_filename)
-        df.to_csv(save_path, sep=' ', index=False, header=False)  # Save without header and index
-        ##########Emd
-        # Append the processed DataFrame to the list
-        processed_dataframes.append(df)
+            # Save the processed DataFrame to the 'imputed' folder with the same input filename
+            save_path = os.path.join(imputed_folder, input_filename)
+            df.to_csv(save_path, sep=' ', index=False, header=False)  # Save without header and index
 
-        print(f"Processed DataFrame saved as: {input_filename}")
+            # Append the processed DataFrame to the list
+            processed_dataframes.append(df)
+
+            print(f"Processed DataFrame saved as: {input_filename}")
+        else:
+            print(f"Skipping non-DataFrame object: {type(df)}")
 
     return processed_dataframes
 
@@ -371,7 +360,6 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
 
     return generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history
 
-
 def post_process_pen_status(pen_status, threshold=0.5, min_segment_length=5):
     """Smooth out rapid changes in pen status."""
     binary_pen_status = (pen_status > threshold).astype(int)
@@ -522,16 +510,32 @@ def get_unique_filename(directory, filename):
     return filename
 
 # 9. Download augmented data function
-def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data'):
+def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data', directory2='augmented_data_nested'):
     global all_augmented_data  # Access the global list
 
     if not os.path.exists(directory1):
         os.makedirs(directory1)
+    
+    if not os.path.exists(directory2):
+        os.makedirs(directory2)
 
     for i, (augmented_data, scaler, original_df, original_filename) in enumerate(zip(augmented_datasets, scalers, original_data_frames, original_filenames)):
-        augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
-        augmented_xyz_int = np.rint(augmented_xyz).astype(int)
-        pen_status = augmented_data[:, 3].astype(int)
+        # Check if augmented_data is a list and convert to NumPy array if needed
+        if isinstance(augmented_data, list):
+            augmented_data = np.array(augmented_data)  # Convert list to NumPy array
+        
+        print(f"augmented_data shape before inverse_transform: {augmented_data.shape}")
+        # Check dimensions and handle accordingly
+        if augmented_data.ndim == 3:
+            augmented_data = augmented_data.reshape(-1, augmented_data.shape[-1])
+        
+        if isinstance(augmented_data, np.ndarray):
+            augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
+            augmented_xyz_int = np.rint(augmented_xyz).astype(int)
+            pen_status = augmented_data[:, 3].astype(int)
+        else:
+            raise TypeError(f"Expected augmented_data to be a NumPy array, but got {type(augmented_data)}")
+
         original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
         
         if len(augmented_data) > len(original_paa):
@@ -554,35 +558,29 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
             original_paa_int[:len(augmented_data)]
         ))
 
-        # Save augmented data as .svc files
+        # Use the original filename for nested directory
+        nested_filename = original_filename
+        nested_file_path = os.path.join(directory2, nested_filename)
+
+        # For augmented_data directory, add 'augmented_' prefix and handle duplicates
         augmented_filename = f"synthetic_{original_filename}"
         augmented_filename = get_unique_filename(directory1, augmented_filename)
         augmented_file_path = os.path.join(directory1, augmented_filename)
 
         np.savetxt(augmented_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
+        np.savetxt(nested_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
 
-        # Store augmented data
+        # Only store augmented data from the augmented_data directory
         all_augmented_data.append(augmented_data_original_scale)
 
         print(f"Augmented data saved to {augmented_file_path}")
+        print(f"Augmented data saved to {nested_file_path}")
         print(f"Shape of augmented data for {original_filename}: {augmented_data_original_scale.shape}")
 
-    # After saving all augmented data, zip the files
-    zip_file_path = os.path.join(directory1, 'augmented_data.zip')
-    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
-        for foldername, subfolders, filenames in os.walk(directory1):
-            for filename in filenames:
-                if filename != 'augmented_data.zip':  # Avoid adding the zip file itself
-                    file_path = os.path.join(foldername, filename)
-                    zipf.write(file_path, arcname=filename)  # Add files to the zip
-
-    print(f"Zipped augmented data saved at {zip_file_path}")
-
-    # Return the path to the zip file
-    return zip_file_path
+    return all_augmented_data  # Return augmented data if needed
 
 # Nested augmentation function
-def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_data_points, processed_data):
+def nested_augmentation(num_augmentations, num_files_to_use, data_frames, scalers, input_filenames, original_data_frames, model_path, avg_data_points, processed_data):
     print(f"Inside nested_augmentation: processed_data type={type(processed_data)}, value={processed_data}")
     vae_pretrained = load_pretrained_vae(model_path)
     if vae_pretrained is None:
@@ -591,7 +589,8 @@ def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_dat
     print("Pretrained VAE model loaded.")
 
     # Use existing data for the first iteration
-    global data_frames, scalers, input_filenames, original_data_frames
+    # global scalers, input_filenames, original_data_frames
+
 
     # Check processed_data before passing it
     if isinstance(processed_data, (list, np.ndarray)):
@@ -601,22 +600,25 @@ def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_dat
 
     for iteration in range(num_augmentations):
         print(f"Starting augmentation iteration {iteration + 1}")
+        print(f"processed_data before iteration {iteration + 1}: type={type(processed_data)}, shape={[arr.shape for arr in processed_data]}")
         
         if iteration > 0:
             # Update the data for subsequent iterations
             directory = 'augmented_data_nested'
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
-        print(f"processed_data after processing in iteration {iteration + 1}: type={type(processed_data)}, value={processed_data}")
-        augmented_datasets = generate_augmented_datasets(vae_pretrained, num_files_to_use, avg_data_points, processed_data, 
+            print(f"processed_data after processing in iteration {iteration + 1}: type={type(processed_data)}, value={processed_data}")
+        print(f"Calling generate_augmented_datasets with processed_data shape: {[arr.shape for arr in processed_data]}")
+        augmented_datasets = generate_augmented_datasets(vae_pretrained, processed_data, data_frames, num_augmentations, avg_data_points,
                                                      base_latent_variability, latent_variability_range)
+        print(f"augmented_datasets: {[type(dataset) for dataset in augmented_datasets]}")
         
         # Clear augmented_data_nested directory
         if os.path.exists('augmented_data_nested'):
             shutil.rmtree('augmented_data_nested')
         os.makedirs('augmented_data_nested')
-        
+
+        print(f"augmented_datasets: {type(augmented_datasets)}, scalers: {type(scalers)}, original_data_frames: {type(original_data_frames)}, original_filenames: {type(input_filenames)}")
         download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames)
-        
         print(f"Completed augmentation iteration {iteration + 1}")
     
     # Clear the augmented_data_nested directory after the last iteration
@@ -625,6 +627,7 @@ def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_dat
         print("Cleared augmented_data_nested directory after the final iteration.")
     
     print("Nested augmentation process completed.")
+    return augmented_datasets, scalers, original_data_frames, input_filenames
     # visualize_augmented_data_from_directory('augmented_data')
 
 # 10. Repeat backwards function
