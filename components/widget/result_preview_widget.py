@@ -199,17 +199,8 @@ class SVCpreview(QtWidgets.QWidget):
                 self.second_output_graph_layout.addWidget(canvas)
                 canvas.draw() 
 
-<<<<<<< HEAD
         except:
             pass
-=======
-        except Exception as e:
-            error_message = f"Error reading or displaying graph: {str(e)}"
-            if preview_index == 0:
-                self.text_preview1.setPlainText(error_message)
-            else:
-                self.text_preview2.setPlainText(error_message)
->>>>>>> origin/nichole-branch
 
     def add_result_text(self, text):
   
