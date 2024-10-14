@@ -91,6 +91,10 @@ def upload_and_process_files(path, num_files_to_use=None):
                       for df, scaler in zip(data_frames, scalers)]
     avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
 
+    print(f"data_frames type: {type(data_frames)}, length: {len(data_frames)}")
+    print(f"scalers type: {type(scalers)}, length: {len(scalers)}")
+    print(f"processed_data type: {type(processed_data)}, length: {len(processed_data)}")
+
     return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames
 
 def fill_gaps_and_interpolate(data_frames):
@@ -385,8 +389,21 @@ def generate_augmented_datasets(model, processed_data, data_frames, num_augmente
     augmented_datasets = []
     num_input_files = len(processed_data)
 
+    # Validate that processed_data is a list of arrays
+    if not isinstance(processed_data, list):
+        raise ValueError(f"Expected processed_data to be a list, but got {type(processed_data)}")
+
+    for data in processed_data:
+        if not isinstance(data, (np.ndarray, list)):
+            raise ValueError(f"Expected each element in processed_data to be a NumPy array or list, but got {type(data)}")
+
     for i in range(num_augmented_files):
         selected_data = processed_data[i % num_input_files]
+
+        # Validate selected_data again before proceeding
+        if not isinstance(selected_data, (np.ndarray, list)):
+            raise ValueError(f"Expected selected_data to be a NumPy array or list, but got {type(selected_data)}")
+
         original_data = data_frames[i % num_input_files]  # Use original unprocessed data
         pressure_azimuth_altitude = original_data[['pressure', 'azimuth', 'altitude']].values
         
@@ -565,7 +582,8 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
     return zip_file_path
 
 # Nested augmentation function
-def nested_augmentation(num_augmentations, num_files_to_use, model_path):
+def nested_augmentation(num_augmentations, num_files_to_use, model_path, avg_data_points, processed_data):
+    print(f"Inside nested_augmentation: processed_data type={type(processed_data)}, value={processed_data}")
     vae_pretrained = load_pretrained_vae(model_path)
     if vae_pretrained is None:
         print("Error: Pretrained VAE model could not be loaded. Augmentation process halted.")
@@ -573,7 +591,13 @@ def nested_augmentation(num_augmentations, num_files_to_use, model_path):
     print("Pretrained VAE model loaded.")
 
     # Use existing data for the first iteration
-    global data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames
+    global data_frames, scalers, input_filenames, original_data_frames
+
+    # Check processed_data before passing it
+    if isinstance(processed_data, (list, np.ndarray)):
+        num_files_to_use = len(processed_data)
+    else:
+        raise ValueError(f"processed_data is not iterable, got: {type(processed_data)}")
 
     for iteration in range(num_augmentations):
         print(f"Starting augmentation iteration {iteration + 1}")
@@ -582,7 +606,7 @@ def nested_augmentation(num_augmentations, num_files_to_use, model_path):
             # Update the data for subsequent iterations
             directory = 'augmented_data_nested'
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
-        
+        print(f"processed_data after processing in iteration {iteration + 1}: type={type(processed_data)}, value={processed_data}")
         augmented_datasets = generate_augmented_datasets(vae_pretrained, num_files_to_use, avg_data_points, processed_data, 
                                                      base_latent_variability, latent_variability_range)
         

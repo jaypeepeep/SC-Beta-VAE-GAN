@@ -5,6 +5,7 @@ import sys
 import time
 import shutil
 import zipfile
+import numpy as np
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
@@ -56,34 +57,23 @@ class ModelTrainingThread(QThread):
     def run(self):
         self.log("Starting the process for file: " + self.selected_file)
 
-        # Step 1: Load and process the .svc file (including filling gaps and interpolation)
+        # Step 1: Load only the selected .svc file from the uploads directory
         file_path = os.path.join(self.uploads_dir, self.selected_file)
         self.log(f"Using file path: {file_path}")
-        
         try:
-            # Load and process the file, including gap filling
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
-            self.log("File loaded, gaps filled, and processed successfully.")
-            
-            # Step 2: Process the dataframes further if needed (e.g., normalization or adjustments)
-            processed_data_frames, processed_data, scalers, avg_data_points, _ = process_dataframes(data_frames)
-            self.log("Data normalization and further processing completed.")
-            
-            # Step 3: Convert and store processed DataFrames into files
-            convert_and_store_dataframes(input_filenames, processed_data_frames)
-            self.log("Processed DataFrames stored successfully.")
-        
+            self.log("File loaded and processed successfully.")
         except Exception as e:
             self.log(f"Error processing file: {e}", level="ERROR")
             self.finished.emit()
             return
 
-        # Step 4: Initialize the VAE model and LSTM Discriminator
+        # Step 2: Initialize the VAE model and LSTM Discriminator
         vae = VAE(latent_dim=512, beta=0.000001)
         lstm_discriminator = LSTMDiscriminator()
         self.log("VAE and LSTM Discriminator initialized.")
 
-        # Step 5: Train the model with uploaded data
+        # Step 3: Train the model with uploaded data
         self.log(f"Training started for {self.epochs} epochs...")
         generator_loss_history = []
         reconstruction_loss_history = []
@@ -97,32 +87,41 @@ class ModelTrainingThread(QThread):
 
         self.log("Training completed.")
 
-        # Step 6: Save the trained model
-        model_output_path = os.path.join(self.model_output_dir, 'final_vae_model.h5')
+        # Step 4: Save the trained model
+        model_output_path = os.path.join(self.model_output_dir)
         save_model(vae, model_output_path)
         self.log(f"Model saved at {model_output_path}")
 
-        # Step 7: Generate augmented data based on the user's input from the spin box
-        self.log(f"Generating {self.num_augmented_files} augmented datasets...")
+        # Step 5: Generate augmented data
+        self.log("Generating augmented data...")
+        augmented_datasets = generate_augmented_datasets(vae, processed_data, data_frames, self.num_augmented_files, avg_data_points)
+        self.log("Synthetic data generation completed.")
 
-        # Step 8: Perform nested augmentation
-        try:
-            augmented_datasets = nested_augmentation(self.num_augmented_files, len(processed_data), model_output_path)
-            self.log("Nested augmentation completed.")
+        # Step 6: Save augmented data as .svc files
+        download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
+        self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
 
-            zip_file_path = download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
-            self.log(f"Synthetic data saved and zipped at {zip_file_path}")
-        except Exception as e:
-            self.log(f"Error during nested augmentation: {e}", level="ERROR")
-            self.finished.emit()
-            return
-
+        # Step 7: Zip the synthetic data files
+        zip_file_path = self.create_zip(self.synthetic_data_dir)
+        self.log(f"Zipped synthetic data saved at {zip_file_path}")
 
         # Notify the main thread that the zip file is ready
         self.zip_ready.emit(zip_file_path)
 
+        # Step 8: Get the training loss and NRMSE figures
+        # fig_loss, fig_nrmse = plot_training_history(generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history)
+
         # Notify completion
         self.finished.emit()
+
+    def create_zip(self, directory):
+        """Create a zip file from the generated synthetic data."""
+        zip_file_path = os.path.join(directory + ".zip")
+        with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+            for root, _, files in os.walk(directory):
+                for file in files:
+                    zipf.write(os.path.join(root, file), file)
+        return zip_file_path
 
     def log(self, message, level="INFO"):
         if self.logger:
