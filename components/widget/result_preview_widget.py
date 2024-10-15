@@ -217,14 +217,7 @@ class SVCpreview(QtWidgets.QWidget):
         
         # Set the updated text
         self.results_text.setPlainText(new_text)
-
-    def display_metrics(self, metrics):
-        """Display the NRMSE, post-hoc discriminative score, and predictive score in the results_text field."""
-        results_text = f"NRMSE: {metrics['nrmse']:.4f}\n"
-        results_text += f"Post-Hoc Discriminative Score: {metrics['discriminative_score']:.4f}\n"
-        results_text += f"Post-Hoc Predictive Score: {metrics['predictive_score']:.4f}\n"
-        self.results_text.setPlainText(results_text)
-
+        
 
     def display_file_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate text preview."""
