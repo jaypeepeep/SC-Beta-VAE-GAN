@@ -4,8 +4,10 @@ import os
 import sys
 import time
 import shutil
+import tempfile
 import zipfile
 import numpy as np
+import pandas as pd
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
@@ -30,13 +32,15 @@ from model.scbetavaegan_pentab import (
     VAE,
     LSTMDiscriminator,
     train_models,
-    plot_training_history
+    plot_training_history,
+    calculate_nrmse,
+    post_hoc_discriminative_score
 )
 
 class ModelTrainingThread(QThread):
     finished = pyqtSignal()
     log_signal = pyqtSignal(str)
-    zip_ready = pyqtSignal(str)  # Signal to indicate the zip file is ready
+    zip_ready = pyqtSignal(str, str)
 
     def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
         super().__init__()
@@ -87,7 +91,7 @@ class ModelTrainingThread(QThread):
         self.log(f"Training started for {self.epochs} epochs...")
         for epoch in range(self.epochs):
             self.log(f"Epoch {epoch + 1}/{self.epochs} in progress...")
-            train_models(vae, lstm_discriminator, processed_data, epochs=1)
+            train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files=self.num_augmented_files, epochs=1)
             self.log(f"Epoch {epoch + 1} completed.")
 
         self.log("Training completed.")
@@ -134,8 +138,9 @@ class ModelTrainingThread(QThread):
         zip_file_path = self.create_zip(self.synthetic_data_dir)
         self.log(f"Zipped synthetic data saved at {zip_file_path}")
 
-        # Notify the main thread that the zip file is ready
-        self.zip_ready.emit(zip_file_path)
+        original_file_path = os.path.join('original_absolute', self.selected_file)
+        print("Path: ", original_file_path)
+        self.zip_ready.emit(zip_file_path, original_file_path)
 
         # Notify completion
         self.finished.emit()
@@ -402,7 +407,7 @@ class Handwriting(QtWidgets.QWidget):
 
 
         # Add the slider widget directly to the collapsible widget
-        self.spin_box_widget = SpinBoxWidget(0)
+        self.spin_box_widget = SpinBoxWidget(1)
         self.collapsible_widget.add_widget(self.spin_box_widget)
 
         # Add "Draw More" and "Clear All" buttons inside the collapsible widget
@@ -475,9 +480,7 @@ class Handwriting(QtWidgets.QWidget):
         # Call the collapsible widget component for result
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
         scroll_layout.addWidget(self.collapsible_widget_result)
-
-        # Add the svc preview widget for input
-        self.svc_preview = SVCpreview(filename, 0)
+        self.svc_preview = SVCpreview(input=filename)
         self.collapsible_widget_result.add_widget(self.svc_preview)
 
         # Generate Synthetic Data button
@@ -525,6 +528,7 @@ class Handwriting(QtWidgets.QWidget):
             return
 
         self.process_log_widget.setVisible(True)
+        self.collapsible_widget_process_log.toggle_container(True)
         self.generate_data_button.setEnabled(False)
 
         file_count = len(self.file_list)
@@ -572,18 +576,51 @@ class Handwriting(QtWidgets.QWidget):
             self.process_log_widget.append_log("All files have finished processing.")
             self.generate_data_button.setEnabled(True)
 
-    def on_zip_ready(self, zip_file_path):
-        if self.svc_preview and hasattr(self.svc_preview, 'set_zip_path'):
-            # Set the zip path for result preview widget
-            QtCore.QMetaObject.invokeMethod(self.svc_preview, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
-            self.svc_preview.setVisible(True)
-            QTimer.singleShot(2000, lambda: self.collapsible_widget_result.toggle_container(True))
-
+    def on_zip_ready(self, zip_file_path, original_file_path):
         # Set the zip path for output widget
         if hasattr(self.output_widget, 'set_zip_path'):
             QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
             self.output_widget.setVisible(True)
-            QTimer.singleShot(2000, lambda: self.collapsible_widget_output.toggle_container(True))
+            self.collapsible_widget_output.toggle_container(True)
+
+        try:
+            # Check if original file exists
+            if not os.path.exists(original_file_path):
+                self.process_log_widget.append_log(f"Error: Original file not found at {original_file_path}")
+                return
+
+            # Create a temporary directory to extract the synthetic data
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Extract the synthetic data from the zip file
+                with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                    zip_ref.extractall(temp_dir)
+
+                # Get the path of the first extracted synthetic data file
+                synthetic_file = os.path.join(temp_dir, os.listdir(temp_dir)[0])
+
+                # Calculate metrics between the original and synthetic data
+                # metrics = self.calculate_metrics(original_file_path, synthetic_file)
+
+                # Display the original and synthetic data in the SVCpreview widget
+                self.svc_preview.add_graph_containers()
+
+                self.svc_preview.display_file_contents(original_file_path, 0)  # Original file
+                self.svc_preview.display_graph_contents(original_file_path, 0)
+                self.svc_preview.display_handwriting_contents(original_file_path, 0)
+
+                self.svc_preview.display_file_contents(synthetic_file, 1)  # Synthetic file
+                self.svc_preview.display_graph_contents(synthetic_file, 1)
+                self.svc_preview.display_handwriting_contents(synthetic_file, 1)
+
+                # Display metrics in the results widget
+                # self.svc_preview.display_metrics(metrics)
+
+                # Display the results widget and open it
+                self.svc_preview.setVisible(True)
+                self.collapsible_widget_result.toggle_container(True)
+
+        except Exception as e:
+            self.process_log_widget.append_log(f"Error displaying results: {e}")
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
@@ -591,13 +628,52 @@ class Handwriting(QtWidgets.QWidget):
         self.generate_data_button.setEnabled(True)
         self.process_log_widget.append_log("Data generation finished.")
 
-    def update_results_widget(self, zip_path):
-        """Display the contents of the zip file in the Results widget."""
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            files = zip_ref.namelist()
-            for file in files:
-                self.results_widget.addItem(f"File: {file}")
+    def update_results_preview(self, zip_file_path):
+        """Unzip the synthetic data and update the results preview."""
+        try:
+            # Unzip the synthetic data
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall("synthetic_output")
+            synthetic_file = os.path.join("synthetic_output", os.listdir("synthetic_output")[0])
 
+            # Get the original file
+            original_file = self.file_list[0]  # Assuming the first file in the list is the original
+
+            # Calculate metrics
+            metrics = self.calculate_metrics(original_file, synthetic_file)
+
+            # Update the SVC preview widget with the original and synthetic data
+            # self.svc_preview = SVCpreview(input=original_file, output=synthetic_file, metrics=metrics)
+
+            # Update the results text field with metrics
+            self.results_text.setPlainText(f"NRMSE: {metrics['nrmse']:.4f}\n"
+                                           f"Post-Hoc Discriminative Score: {metrics['discriminative_score']:.4f}\n"
+                                           f"Post-Hoc Predictive Score: {metrics['predictive_score']:.4f}\n")
+
+            self.layout.addWidget(self.svc_preview)
+
+        except Exception as e:
+            self.process_log_widget.append_log(f"Error updating results preview: {e}", level="ERROR")
+
+    def calculate_metrics(self, original_file, synthetic_file):
+        """Calculate and return the NRMSE, discriminative, and predictive scores."""
+        original_data = pd.read_csv(original_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+        synthetic_data = pd.read_csv(synthetic_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+
+        # Compute NRMSE
+        nrmse = calculate_nrmse(original_data[['x', 'y']].values, synthetic_data[['x', 'y']].values)
+
+        # Compute Post-Hoc Discriminative Score (you can use the LSTM model for this)
+        discriminative_score = post_hoc_discriminative_score(original_data, synthetic_data)
+
+        # Compute Post-Hoc Predictive Score (LSTM-based predictive model)
+        # predictive_score = post_hoc_predictive_score(original_data, synthetic_data)
+
+        return {
+            "nrmse": nrmse,
+            "discriminative_score": discriminative_score,
+            # "predictive_score": predictive_score
+        }
 
     def show_reset_confirmation_dialog(self):
         """Show a confirmation dialog before resetting the state."""
