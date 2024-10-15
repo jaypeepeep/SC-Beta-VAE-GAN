@@ -138,7 +138,8 @@ class ModelTrainingThread(QThread):
         zip_file_path = self.create_zip(self.synthetic_data_dir)
         self.log(f"Zipped synthetic data saved at {zip_file_path}")
 
-        original_file_path = os.path.join(self.uploads_dir, self.selected_file)
+        original_file_path = os.path.join('original_absolute', self.selected_file)
+        print("Path: ", original_file_path)
         self.zip_ready.emit(zip_file_path, original_file_path)
 
         # Notify completion
@@ -479,9 +480,7 @@ class Handwriting(QtWidgets.QWidget):
         # Call the collapsible widget component for result
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
         scroll_layout.addWidget(self.collapsible_widget_result)
-
-        # Add the svc preview widget for input
-        self.svc_preview = SVCpreview(filename, 0)
+        self.svc_preview = SVCpreview(input=filename)
         self.collapsible_widget_result.add_widget(self.svc_preview)
 
         # Generate Synthetic Data button
@@ -529,6 +528,7 @@ class Handwriting(QtWidgets.QWidget):
             return
 
         self.process_log_widget.setVisible(True)
+        QTimer.singleShot(500, lambda: self.collapsible_widget_process_log.toggle_container(True))
         self.generate_data_button.setEnabled(False)
 
         file_count = len(self.file_list)
@@ -577,6 +577,12 @@ class Handwriting(QtWidgets.QWidget):
             self.generate_data_button.setEnabled(True)
 
     def on_zip_ready(self, zip_file_path, original_file_path):
+        # Set the zip path for output widget
+        if hasattr(self.output_widget, 'set_zip_path'):
+            QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
+            self.output_widget.setVisible(True)
+            QTimer.singleShot(2000, lambda: self.collapsible_widget_output.toggle_container(True))
+
         try:
             # Check if original file exists
             if not os.path.exists(original_file_path):
@@ -593,29 +599,28 @@ class Handwriting(QtWidgets.QWidget):
                 synthetic_file = os.path.join(temp_dir, os.listdir(temp_dir)[0])
 
                 # Calculate metrics between the original and synthetic data
-                metrics = self.calculate_metrics(original_file_path, synthetic_file)
+                # metrics = self.calculate_metrics(original_file_path, synthetic_file)
 
                 # Display the original and synthetic data in the SVCpreview widget
+                self.svc_preview.add_graph_containers()
+
                 self.svc_preview.display_file_contents(original_file_path, 0)  # Original file
                 self.svc_preview.display_graph_contents(original_file_path, 0)
+                self.svc_preview.display_handwriting_contents(original_file_path, 0)
+
                 self.svc_preview.display_file_contents(synthetic_file, 1)  # Synthetic file
                 self.svc_preview.display_graph_contents(synthetic_file, 1)
+                self.svc_preview.display_handwriting_contents(synthetic_file, 1)
 
                 # Display metrics in the results widget
-                self.svc_preview.display_metrics(metrics)
+                # self.svc_preview.display_metrics(metrics)
 
                 # Display the results widget and open it
                 self.svc_preview.setVisible(True)
-                QTimer.singleShot(2000, lambda: self.collapsible_widget_result.toggle_container(True))
+                QTimer.singleShot(500, lambda: self.collapsible_widget_result.toggle_container(True))
 
         except Exception as e:
             self.process_log_widget.append_log(f"Error displaying results: {e}")
-
-        # Set the zip path for output widget
-        if hasattr(self.output_widget, 'set_zip_path'):
-            QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
-            self.output_widget.setVisible(True)
-            QTimer.singleShot(2000, lambda: self.collapsible_widget_output.toggle_container(True))
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
@@ -638,7 +643,7 @@ class Handwriting(QtWidgets.QWidget):
             metrics = self.calculate_metrics(original_file, synthetic_file)
 
             # Update the SVC preview widget with the original and synthetic data
-            self.svc_preview = SVCpreview(input=original_file, output=synthetic_file, metrics=metrics)
+            # self.svc_preview = SVCpreview(input=original_file, output=synthetic_file, metrics=metrics)
 
             # Update the results text field with metrics
             self.results_text.setPlainText(f"NRMSE: {metrics['nrmse']:.4f}\n"
