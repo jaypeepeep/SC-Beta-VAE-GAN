@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class SVCpreview(QtWidgets.QWidget):
-    def __init__(self, input=None, output=None, parent=None):
+    def __init__(self, input=None, output=None, metrics=None, parent=None):
         super(SVCpreview, self).__init__(parent)
         self.setupUi()
         self.uploaded_files = []
@@ -20,6 +20,8 @@ class SVCpreview(QtWidgets.QWidget):
         if output:
             self.display_file_contents(output, 1)  # Display content in the second text preview
             self.display_graph_contents(output, 1)
+        if metrics:
+            self.display_metrics(metrics)
 
     def setupUi(self):
         self.container_widget = QtWidgets.QWidget(self)
