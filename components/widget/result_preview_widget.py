@@ -197,6 +197,41 @@ class SVCpreview(QtWidgets.QWidget):
 
             # Create the plot
             fig, ax = plt.subplots(figsize=(6, 6))
+            ax.scatter(on_surface['x'], -on_surface['y'], c='b', s=1, alpha=0.7, label='On Surface')
+            ax.scatter(in_air['x'], -in_air['y'], c='r', s=1, alpha=0.7, label='In Air')
+            ax.set_title(f'Time Series Handwriting Visualization for {os.path.basename(file_path)}')
+            ax.set_xlabel('y')
+            ax.set_ylabel('x')
+            ax.invert_yaxis()
+            ax.set_aspect('equal')
+            ax.legend()
+
+            ax.invert_yaxis() 
+
+            canvas = FigureCanvas(fig)
+            if preview_index == 0:
+                self.clear_layout(self.second_input_graph_layout)
+                self.second_input_graph_layout.addWidget(canvas)
+                canvas.draw() 
+            else:
+                self.clear_layout(self.second_output_graph_layout)
+                self.second_output_graph_layout.addWidget(canvas)
+                canvas.draw() 
+
+        except:
+            pass
+
+    def display_emothaw_contents(self, file_path, preview_index):
+        try:
+            df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+            df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+            
+            # Separate strokes based on pen status
+            on_surface = df[df['pen_status'] == 1]
+            in_air = df[df['pen_status'] == 0]
+
+            # Create the plot
+            fig, ax = plt.subplots(figsize=(6, 6))
             ax.scatter(on_surface['y'], on_surface['x'], c='b', s=1, alpha=0.7, label='On Surface')
             ax.scatter(in_air['y'], in_air['x'], c='r', s=1, alpha=0.7, label='In Air')
             ax.set_title(f'Time Series Handwriting Visualization for {os.path.basename(file_path)}')

@@ -407,7 +407,7 @@ class Handwriting(QtWidgets.QWidget):
 
 
         # Add the slider widget directly to the collapsible widget
-        self.spin_box_widget = SpinBoxWidget(0)
+        self.spin_box_widget = SpinBoxWidget(1)
         self.collapsible_widget.add_widget(self.spin_box_widget)
 
         # Add "Draw More" and "Clear All" buttons inside the collapsible widget
@@ -528,7 +528,7 @@ class Handwriting(QtWidgets.QWidget):
             return
 
         self.process_log_widget.setVisible(True)
-        QTimer.singleShot(500, lambda: self.collapsible_widget_process_log.toggle_container(True))
+        self.collapsible_widget_process_log.toggle_container(True)
         self.generate_data_button.setEnabled(False)
 
         file_count = len(self.file_list)
@@ -581,7 +581,7 @@ class Handwriting(QtWidgets.QWidget):
         if hasattr(self.output_widget, 'set_zip_path'):
             QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
             self.output_widget.setVisible(True)
-            QTimer.singleShot(2000, lambda: self.collapsible_widget_output.toggle_container(True))
+            self.collapsible_widget_output.toggle_container(True)
 
         try:
             # Check if original file exists
@@ -617,7 +617,7 @@ class Handwriting(QtWidgets.QWidget):
 
                 # Display the results widget and open it
                 self.svc_preview.setVisible(True)
-                QTimer.singleShot(500, lambda: self.collapsible_widget_result.toggle_container(True))
+                self.collapsible_widget_result.toggle_container(True)
 
         except Exception as e:
             self.process_log_widget.append_log(f"Error displaying results: {e}")
