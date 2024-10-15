@@ -77,7 +77,7 @@ class GenerateDataWorker(QThread):
             self.timestamp = time.strftime("%Y%m%d-%H%M%S")
             self.folder_name = f"SyntheticData_{self.timestamp}"
             self.output_dir = os.path.join(
-                os.path.dirname(__file__), "../uploads", self.folder_name
+                os.path.dirname(__file__), "../files/uploads", self.folder_name
             )
 
             if not os.path.exists(self.output_dir):
@@ -238,7 +238,7 @@ class GenerateDataWorker(QThread):
                 np.mean([self.df.shape[0] for self.df in self.data_frames])
             )
 
-            self.imputed_folder = 'imputed'
+            self.imputed_folder = 'files/imputed'
             os.makedirs(self.imputed_folder, exist_ok=True)
 
             self.processed_dataframes = []
@@ -616,8 +616,8 @@ class GenerateDataWorker(QThread):
         try:
             self.progress.emit("Starting result preview and analysis...")
             # Define the folders directly in the notebook cell
-            self.imputed_folder = "imputed"
-            self.augmented_folder = "augmented_data"
+            self.imputed_folder = "files/imputed"
+            self.augmented_folder = "files/augmented_data"
 
             # Process the files and calculate NRMSE
             self.progress.emit("Calculating NRMSE for generated data...")
@@ -835,13 +835,13 @@ class Workplace(QtWidgets.QWidget):
         elif self.selected_model == None:
             self.show_error("Please select a pre-trained model first or train your own model")
         elif self.has_files is True and self.selected_model != None:
-            if self.selected_model == "EMOTHAW.h5":
-                self.svc_preview.add_graph_containers()
             self.process_log_widget.clear()
             self.svc_preview.clear()
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
             self.collapsible_widget_process_log.toggle_container(True)
+            if self.selected_model == "EMOTHAW.h5":
+                self.svc_preview.add_graph_containers()
             # Disable the generate button and change text
             self.generate_data_button.setEnabled(False)
             self.generate_data_button.setText("Generating...")
@@ -1196,6 +1196,7 @@ class Workplace(QtWidgets.QWidget):
         self.process_log_widget.clear()
         self.svc_preview.clear()
         self.model_widget.uncheck_checkbox()
+        self.model_widget.slider_widget.resetValue()
         
         # Collapse all widgets except Input
         self.collapsible_widget_preview.toggle_container(False)
