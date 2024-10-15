@@ -81,3 +81,6 @@ class SpinBoxWidget(QtWidgets.QWidget):
 
     def getValue(self):
         return self.number_input.value()
+    
+    def resetValue(self):
+        self.number_input.setValue(self.min_value)

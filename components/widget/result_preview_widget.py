@@ -143,7 +143,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
         self.results_text.setReadOnly(True)
-        self.results_text.setFixedHeight(250)
+        self.results_text.setFixedHeight(225)
         self.results_text.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
         )
@@ -168,6 +168,21 @@ class SVCpreview(QtWidgets.QWidget):
         self.second_input_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
         self.second_input_graph_layout = QtWidgets.QVBoxLayout(self.second_input_graph_container)
         self.text_preview1_layout.addWidget(self.second_input_graph_container)
+
+    def remove_graph_containers(self):
+        # Remove and delete the second output graph container
+        if hasattr(self, 'second_output_graph_container'):
+            self.text_preview2_layout.removeWidget(self.second_output_graph_container)
+            self.second_output_graph_container.deleteLater()
+            del self.second_output_graph_container
+            del self.second_output_graph_layout
+
+        # Remove and delete the second input graph container
+        if hasattr(self, 'second_input_graph_container'):
+            self.text_preview1_layout.removeWidget(self.second_input_graph_container)
+            self.second_input_graph_container.deleteLater()
+            del self.second_input_graph_container
+            del self.second_input_graph_layout
 
     def display_handwriting_contents(self, file_path, preview_index):
         try:
@@ -573,6 +588,8 @@ class SVCpreview(QtWidgets.QWidget):
         # Clear graph layout
         self.clear_layout(self.input_graph_layout)
         self.clear_layout(self.output_graph_layout)
+
+        self.remove_graph_containers()
 
         # Update the widget
         self.update()
