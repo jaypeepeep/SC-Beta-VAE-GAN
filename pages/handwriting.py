@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import shutil
+import tempfile
 import zipfile
 import numpy as np
 import pandas as pd
@@ -39,7 +40,7 @@ from model.scbetavaegan_pentab import (
 class ModelTrainingThread(QThread):
     finished = pyqtSignal()
     log_signal = pyqtSignal(str)
-    zip_ready = pyqtSignal(str)  # Signal to indicate the zip file is ready
+    zip_ready = pyqtSignal(str, str)
 
     def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
         super().__init__()
@@ -137,8 +138,8 @@ class ModelTrainingThread(QThread):
         zip_file_path = self.create_zip(self.synthetic_data_dir)
         self.log(f"Zipped synthetic data saved at {zip_file_path}")
 
-        # Notify the main thread that the zip file is ready
-        self.zip_ready.emit(zip_file_path)
+        original_file_path = os.path.join(self.uploads_dir, self.selected_file)
+        self.zip_ready.emit(zip_file_path, original_file_path)
 
         # Notify completion
         self.finished.emit()
@@ -575,12 +576,40 @@ class Handwriting(QtWidgets.QWidget):
             self.process_log_widget.append_log("All files have finished processing.")
             self.generate_data_button.setEnabled(True)
 
-    def on_zip_ready(self, zip_file_path):
-        if self.svc_preview and hasattr(self.svc_preview, 'set_zip_path'):
-            # Set the zip path for result preview widget
-            QtCore.QMetaObject.invokeMethod(self.svc_preview, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
-            self.svc_preview.setVisible(True)
-            QTimer.singleShot(2000, lambda: self.collapsible_widget_result.toggle_container(True))
+    def on_zip_ready(self, zip_file_path, original_file_path):
+        try:
+            # Check if original file exists
+            if not os.path.exists(original_file_path):
+                self.process_log_widget.append_log(f"Error: Original file not found at {original_file_path}")
+                return
+
+            # Create a temporary directory to extract the synthetic data
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Extract the synthetic data from the zip file
+                with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                    zip_ref.extractall(temp_dir)
+
+                # Get the path of the first extracted synthetic data file
+                synthetic_file = os.path.join(temp_dir, os.listdir(temp_dir)[0])
+
+                # Calculate metrics between the original and synthetic data
+                metrics = self.calculate_metrics(original_file_path, synthetic_file)
+
+                # Display the original and synthetic data in the SVCpreview widget
+                self.svc_preview.display_file_contents(original_file_path, 0)  # Original file
+                self.svc_preview.display_graph_contents(original_file_path, 0)
+                self.svc_preview.display_file_contents(synthetic_file, 1)  # Synthetic file
+                self.svc_preview.display_graph_contents(synthetic_file, 1)
+
+                # Display metrics in the results widget
+                self.svc_preview.display_metrics(metrics)
+
+                # Display the results widget and open it
+                self.svc_preview.setVisible(True)
+                QTimer.singleShot(2000, lambda: self.collapsible_widget_result.toggle_container(True))
+
+        except Exception as e:
+            self.process_log_widget.append_log(f"Error displaying results: {e}")
 
         # Set the zip path for output widget
         if hasattr(self.output_widget, 'set_zip_path'):
