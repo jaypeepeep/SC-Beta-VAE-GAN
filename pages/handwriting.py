@@ -74,13 +74,13 @@ class ModelTrainingThread(QThread):
             return
 
         # Step 2: Process and save the loaded dataframes
-        self.log("Processing the data frames...")
-        processed_dataframes = process_dataframes(data_frames)
-        self.log("Processing of data frames completed.")
-
         self.log("Converting and saving the processed dataframes...")
-        convert_and_store_dataframes(input_filenames, processed_dataframes)
+        convert_and_store_dataframes(input_filenames, data_frames)
         self.log("Data frames converted and saved.")
+
+        self.log("Processing the data frames...")
+        process_dataframes(data_frames)
+        self.log("Processing of data frames completed.")
 
         # Step 3: Initialize the VAE model and LSTM Discriminator
         vae = VAE(latent_dim=512, beta=0.000001)

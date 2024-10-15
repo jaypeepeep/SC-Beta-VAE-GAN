@@ -15,8 +15,9 @@ from tensorflow.keras.models import load_model
 
 # 1. Load and process the .svc file
 def upload_and_process_files(path, num_files_to_use=None):
-    """Upload and process .svc files for handwriting analysis."""
-    
+    """Upload and process .svc files for handwriting analysis. 
+       Save unscaled data in 'original_absolute' folder.
+    """
     # Check if the path is a directory or a single file
     if os.path.isdir(path):
         svc_files = [f for f in os.listdir(path) if f.endswith('.svc')]
@@ -50,15 +51,15 @@ def upload_and_process_files(path, num_files_to_use=None):
         # Modify timestamp to start from 0
         df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
         
-        # Save the modified data to the 'original_absolute' folder
-        save_path = os.path.join(output_folder, filename)
-        df.to_csv(save_path, sep=' ', index=False, header=False)
-        
         # Keep a copy of the original data before scaling
         original_data_frames.append(df.copy())  # Save the original unmodified data
         
+        # Save the original unscaled data to the 'original_absolute' folder before scaling
+        save_path = os.path.join(output_folder, filename)
+        df.to_csv(save_path, sep=' ', index=False, header=False)
+        
         # Process the data for use in the model
-        df = df.iloc[:, [0, 1, 2, 3, 4, 5, 6]] 
+        df = df.iloc[:, [0, 1, 2, 3, 4, 5, 6]]  # Select only the relevant columns
         data_frames.append(df)
         scaler = MinMaxScaler()
         normalized_data = scaler.fit_transform(df[['x', 'y', 'timestamp']])
@@ -69,7 +70,7 @@ def upload_and_process_files(path, num_files_to_use=None):
         print(df['timestamp'].head())
         print("\n")
 
-    # Call gap filling and interpolation function
+    # Call gap filling and interpolation function (assuming it's defined somewhere)
     data_frames = fill_gaps_and_interpolate(data_frames)
 
     # Update processed data for all DataFrames
@@ -150,6 +151,7 @@ def convert_and_store_dataframes(input_filenames, data_frames):
             processed_dataframes.append(df)
 
             print(f"Processed DataFrame saved as: {input_filename}")
+            print("Processed imputed data: ", processed_dataframes)
         else:
             print(f"Skipping non-DataFrame object: {type(df)}")
 
