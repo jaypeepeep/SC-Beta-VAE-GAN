@@ -141,7 +141,7 @@ class GenerateDataWorker(QThread):
             )  ##dito sa processed data naka_store
             print(f"Average number of data points: {self.avg_data_points}")
 
-            self.progress.emit("Processing time series data and filling gaps...")
+            self.progress.emit("Processing time series data and masking gaps...")
             for self.df_idx in range(len(self.data_frames)):
                 self.progress.emit(f"Processing file {self.df_idx + 1}/{len(self.data_frames)}")
                 self.df = self.data_frames[
@@ -630,6 +630,7 @@ class GenerateDataWorker(QThread):
                 QApplication.processEvents()
                 for i, self.nrmse in enumerate(self.nrmse_values):
                     self.augmented_version = f"({i})" if i > 0 else "base"
+                    QApplication.processEvents()
                     print(f"  NRMSE for augmented version {self.augmented_version}: {self.nrmse:.4f}")
                 
                 if self.nrmse_values:
@@ -678,7 +679,7 @@ class GenerateDataWorker(QThread):
                 self.y_train, self.y_test = self.y[self.train_index], self.y[self.test_index]
 
                 self.model = scbetavaegan.create_model((self.X_train.shape[1], self.X_train.shape[2]))
-                self.model.fit(self.X_train, self.y_train, epochs=5, batch_size=512, verbose=3, callbacks=[scbetavaegan.CustomCallback()])
+                self.model.fit(self.X_train, self.y_train, epochs=2, batch_size=1024, verbose=3, callbacks=[scbetavaegan.CustomCallback()])
                 
                 # Evaluate the model and store MAPE
                 self.mape = scbetavaegan.evaluate_model(self.model, self.X_test, self.y_test, self.scaler)
@@ -797,6 +798,7 @@ class Workplace(QtWidgets.QWidget):
         # Proceed only if the user confirms with 'Yes'
         if confirmation:
             self.process_log_widget.clear()
+            self.model_widget.uncheck_checkbox()
             self.svc_preview.clear()
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
@@ -1193,6 +1195,7 @@ class Workplace(QtWidgets.QWidget):
         self.file_preview_widget.clear()
         self.process_log_widget.clear()
         self.svc_preview.clear()
+        self.model_widget.uncheck_checkbox()
         
         # Collapse all widgets except Input
         self.collapsible_widget_preview.toggle_container(False)
