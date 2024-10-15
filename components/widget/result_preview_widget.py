@@ -204,6 +204,10 @@ class SVCpreview(QtWidgets.QWidget):
             ax.set_aspect('equal')
             ax.legend()
 
+            ax.set_xlim(ax.get_xlim()[::-1])  # Reverse the x-axis limits
+            ax.set_ylim(ax.get_ylim()[::-1])  # Reverse the y-axis limits
+
+
             canvas = FigureCanvas(fig)
             if preview_index == 0:
                 self.clear_layout(self.second_input_graph_layout)
