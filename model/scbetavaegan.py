@@ -547,7 +547,7 @@ def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
         model = create_lstm_classifier((1, X_train.shape[2]))
         
         # Train model and show epoch progress for this fold
-        history = model.fit(X_train, y_train, epochs=2, batch_size=512, verbose=1)
+        history = model.fit(X_train, y_train, epochs=1, batch_size=1024, verbose=1)
 
         y_pred = (model.predict(X_test) > 0.5).astype(int)
         accuracy = accuracy_score(y_test, y_pred)

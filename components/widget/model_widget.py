@@ -14,12 +14,14 @@ class ModelWidget(QtWidgets.QWidget):
         if not os.path.exists(self.pre_trained_path):
             os.makedirs(self.pre_trained_path)
 
+        self.current_checked_checkbox = None
+        self.current_checked_file = None
+
+
         self.setup_ui()
 
         self.load_files()
 
-        self.current_checked_checkbox = None
-        self.current_checked_file = None
 
     def setup_ui(self):
         self.layout = QtWidgets.QVBoxLayout(self)
@@ -112,6 +114,8 @@ class ModelWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.slider_widget)
 
     def load_files(self, directory=None):
+        self.uncheck_checkbox()
+
         if directory is None:
             directory = self.pre_trained_path
 
@@ -217,7 +221,14 @@ class ModelWidget(QtWidgets.QWidget):
                 self.current_checked_checkbox = None
                 print(f"Checkbox unchecked for file: {filename}")
                 filename = None
-                self.current_checked_file = filename            
+                self.current_checked_file = None         
+
+    def uncheck_checkbox(self):
+        if self.current_checked_checkbox:
+            self.current_checked_checkbox.setChecked(False)
+            self.current_checked_checkbox = None
+            self.current_checked_file = None
+            print("Checkbox unchecked")
 
     def show_file_options(self, file):
         menu = QtWidgets.QMenu(self)
