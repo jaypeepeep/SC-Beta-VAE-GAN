@@ -145,7 +145,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
         self.results_text.setReadOnly(True)
-        self.results_text.setFixedHeight(250)
+        self.results_text.setFixedHeight(225)
         self.results_text.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
         )
@@ -171,7 +171,57 @@ class SVCpreview(QtWidgets.QWidget):
         self.second_input_graph_layout = QtWidgets.QVBoxLayout(self.second_input_graph_container)
         self.text_preview1_layout.addWidget(self.second_input_graph_container)
 
+    def remove_graph_containers(self):
+        # Remove and delete the second output graph container
+        if hasattr(self, 'second_output_graph_container'):
+            self.text_preview2_layout.removeWidget(self.second_output_graph_container)
+            self.second_output_graph_container.deleteLater()
+            del self.second_output_graph_container
+            del self.second_output_graph_layout
+
+        # Remove and delete the second input graph container
+        if hasattr(self, 'second_input_graph_container'):
+            self.text_preview1_layout.removeWidget(self.second_input_graph_container)
+            self.second_input_graph_container.deleteLater()
+            del self.second_input_graph_container
+            del self.second_input_graph_layout
+
     def display_handwriting_contents(self, file_path, preview_index):
+        try:
+            df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+            df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+            
+            # Separate strokes based on pen status
+            on_surface = df[df['pen_status'] == 1]
+            in_air = df[df['pen_status'] == 0]
+
+            # Create the plot
+            fig, ax = plt.subplots(figsize=(6, 6))
+            ax.scatter(on_surface['x'], -on_surface['y'], c='b', s=1, alpha=0.7, label='On Surface')
+            ax.scatter(in_air['x'], -in_air['y'], c='r', s=1, alpha=0.7, label='In Air')
+            ax.set_title(f'Time Series Handwriting Visualization for {os.path.basename(file_path)}')
+            ax.set_xlabel('y')
+            ax.set_ylabel('x')
+            ax.invert_yaxis()
+            ax.set_aspect('equal')
+            ax.legend()
+
+            ax.invert_yaxis() 
+
+            canvas = FigureCanvas(fig)
+            if preview_index == 0:
+                self.clear_layout(self.second_input_graph_layout)
+                self.second_input_graph_layout.addWidget(canvas)
+                canvas.draw() 
+            else:
+                self.clear_layout(self.second_output_graph_layout)
+                self.second_output_graph_layout.addWidget(canvas)
+                canvas.draw() 
+
+        except:
+            pass
+
+    def display_emothaw_contents(self, file_path, preview_index):
         try:
             df = pd.read_csv(file_path, delim_whitespace=True, header=None)
             df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
@@ -190,6 +240,10 @@ class SVCpreview(QtWidgets.QWidget):
             ax.invert_yaxis()
             ax.set_aspect('equal')
             ax.legend()
+
+            ax.set_xlim(ax.get_xlim()[::-1])  # Reverse the x-axis limits
+            ax.set_ylim(ax.get_ylim()[::-1])  # Reverse the y-axis limits
+
 
             canvas = FigureCanvas(fig)
             if preview_index == 0:
@@ -575,6 +629,8 @@ class SVCpreview(QtWidgets.QWidget):
         # Clear graph layout
         self.clear_layout(self.input_graph_layout)
         self.clear_layout(self.output_graph_layout)
+
+        self.remove_graph_containers()
 
         # Update the widget
         self.update()

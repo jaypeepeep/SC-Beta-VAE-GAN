@@ -102,7 +102,7 @@ class DragDrop_Button(QtWidgets.QWidget):
                 file_name = os.path.basename(file_path)
                 
                 # Construct the full path where the file will be saved
-                destination_path = os.path.join(os.path.dirname(__file__), '../../uploads', file_name)
+                destination_path = os.path.join(os.path.dirname(__file__), '../../files/uploads', file_name)
                 
                 # Copy the file to the save directory
                 shutil.copy(file_path, destination_path)

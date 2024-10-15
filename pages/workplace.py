@@ -77,7 +77,7 @@ class GenerateDataWorker(QThread):
             self.timestamp = time.strftime("%Y%m%d-%H%M%S")
             self.folder_name = f"SyntheticData_{self.timestamp}"
             self.output_dir = os.path.join(
-                os.path.dirname(__file__), "../uploads", self.folder_name
+                os.path.dirname(__file__), "../files/uploads", self.folder_name
             )
 
             if not os.path.exists(self.output_dir):
@@ -141,7 +141,7 @@ class GenerateDataWorker(QThread):
             )  ##dito sa processed data naka_store
             print(f"Average number of data points: {self.avg_data_points}")
 
-            self.progress.emit("Processing time series data and filling gaps...")
+            self.progress.emit("Processing time series data and masking gaps...")
             for self.df_idx in range(len(self.data_frames)):
                 self.progress.emit(f"Processing file {self.df_idx + 1}/{len(self.data_frames)}")
                 self.df = self.data_frames[
@@ -238,7 +238,7 @@ class GenerateDataWorker(QThread):
                 np.mean([self.df.shape[0] for self.df in self.data_frames])
             )
 
-            self.imputed_folder = 'imputed'
+            self.imputed_folder = 'files/imputed'
             os.makedirs(self.imputed_folder, exist_ok=True)
 
             self.processed_dataframes = []
@@ -616,8 +616,8 @@ class GenerateDataWorker(QThread):
         try:
             self.progress.emit("Starting result preview and analysis...")
             # Define the folders directly in the notebook cell
-            self.imputed_folder = "imputed"
-            self.augmented_folder = "augmented_data"
+            self.imputed_folder = "files/imputed"
+            self.augmented_folder = "files/augmented_data"
 
             # Process the files and calculate NRMSE
             self.progress.emit("Calculating NRMSE for generated data...")
@@ -630,6 +630,7 @@ class GenerateDataWorker(QThread):
                 QApplication.processEvents()
                 for i, self.nrmse in enumerate(self.nrmse_values):
                     self.augmented_version = f"({i})" if i > 0 else "base"
+                    QApplication.processEvents()
                     print(f"  NRMSE for augmented version {self.augmented_version}: {self.nrmse:.4f}")
                 
                 if self.nrmse_values:
@@ -678,7 +679,7 @@ class GenerateDataWorker(QThread):
                 self.y_train, self.y_test = self.y[self.train_index], self.y[self.test_index]
 
                 self.model = scbetavaegan.create_model((self.X_train.shape[1], self.X_train.shape[2]))
-                self.model.fit(self.X_train, self.y_train, epochs=5, batch_size=512, verbose=3, callbacks=[scbetavaegan.CustomCallback()])
+                self.model.fit(self.X_train, self.y_train, epochs=2, batch_size=1024, verbose=3, callbacks=[scbetavaegan.CustomCallback()])
                 
                 # Evaluate the model and store MAPE
                 self.mape = scbetavaegan.evaluate_model(self.model, self.X_test, self.y_test, self.scaler)
@@ -797,6 +798,7 @@ class Workplace(QtWidgets.QWidget):
         # Proceed only if the user confirms with 'Yes'
         if confirmation:
             self.process_log_widget.clear()
+            self.model_widget.uncheck_checkbox()
             self.svc_preview.clear()
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
@@ -833,13 +835,13 @@ class Workplace(QtWidgets.QWidget):
         elif self.selected_model == None:
             self.show_error("Please select a pre-trained model first or train your own model")
         elif self.has_files is True and self.selected_model != None:
-            if self.selected_model == "EMOTHAW.h5":
-                self.svc_preview.add_graph_containers()
             self.process_log_widget.clear()
             self.svc_preview.clear()
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
             self.collapsible_widget_process_log.toggle_container(True)
+            if self.selected_model == "EMOTHAW.h5":
+                self.svc_preview.add_graph_containers()
             # Disable the generate button and change text
             self.generate_data_button.setEnabled(False)
             self.generate_data_button.setText("Generating...")
@@ -923,7 +925,11 @@ class Workplace(QtWidgets.QWidget):
         msg.setIcon(QMessageBox.Critical)
         msg.setText("Error")
         msg.setInformativeText(message)
-        msg.setWindowTitle("Error")
+
+        if message == "Please upload a file first":
+            msg.setWindowTitle("File Upload Error")
+        else:
+            msg.setWindowTitle("Model Selection Error")
         
         # Set custom icon
         icon = QIcon("icon/icon.ico")
@@ -1148,7 +1154,7 @@ class Workplace(QtWidgets.QWidget):
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
-                    self.svc_preview.display_handwriting_contents(file_path, 1)
+                    self.svc_preview.display_emothaw_contents(file_path, 1)
 
         self.svc_preview.set_augmented_files(all_augmented_filepaths)
 
@@ -1163,7 +1169,7 @@ class Workplace(QtWidgets.QWidget):
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
-                    self.svc_preview.display_handwriting_contents(file_path, 0)
+                    self.svc_preview.display_emothaw_contents(file_path, 0)
 
         
         self.svc_preview.set_original_absolute_files(original_absolute_files)
@@ -1193,6 +1199,8 @@ class Workplace(QtWidgets.QWidget):
         self.file_preview_widget.clear()
         self.process_log_widget.clear()
         self.svc_preview.clear()
+        self.model_widget.uncheck_checkbox()
+        self.model_widget.slider_widget.resetValue()
         
         # Collapse all widgets except Input
         self.collapsible_widget_preview.toggle_container(False)
