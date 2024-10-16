@@ -673,18 +673,19 @@ def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list
         original_array = original_df[['x', 'y', 'timestamp', 'pen_status']].values
         augmented_array = augmented[:, :4]  # Assuming first 4 columns match original data structure
         
-        # Trim to the shorter length to ensure shapes match
-        min_length = min(len(original_array), len(augmented_array))
-        original_array_trimmed = original_array[:min_length]
-        augmented_array_trimmed = augmented_array[:min_length]
+        # Ensure compatibility
+        original_array, augmented_array = ensure_data_compatibility(original_array, augmented_array)
         
-        # Calculate NRMSE with the trimmed arrays
-        nrmse = calculate_nrmse(original_array_trimmed, augmented_array_trimmed)
-        nrmse_values.append(nrmse)
-        print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
+        # Calculate NRMSE with the compatible arrays
+        try:
+            nrmse = calculate_nrmse(original_array, augmented_array)
+            nrmse_values.append(nrmse)
+            print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
+        except ValueError as e:
+            print(f"Error calculating NRMSE for dataset {i + 1}: {e}")
 
     # Calculate average NRMSE
-    average_nrmse = np.mean(nrmse_values)
+    average_nrmse = np.mean(nrmse_values) if nrmse_values else float('nan')
     print(f"Average NRMSE: {average_nrmse:.4f}")
     
     return nrmse_values, average_nrmse
@@ -716,6 +717,7 @@ def prepare_data_for_lstm(real_data, synthetic_data):
 # 13. Post-Hoc Discriminative Score Function
 def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
     """Calculate the post-hoc discriminative score using K-Fold cross-validation."""
+    # Ensure compatibility using the existing function
     X, y = prepare_data_for_lstm(real_data, synthetic_data)
     
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
@@ -771,6 +773,9 @@ def create_model(input_shape):
 
 def evaluate_model(model, X_test, y_test, scaler):
     """Evaluate the model using MAPE."""
+    # Ensure X_test and y_test are compatible
+    X_test, y_test = ensure_data_compatibility(X_test, y_test)
+    
     # Predict and inverse transform
     y_pred = model.predict(X_test)
     y_pred_rescaled = scaler.inverse_transform(y_pred)
@@ -876,6 +881,23 @@ def visualize_latent_space(model, data, perplexity=5, learning_rate=200, n_iter=
     plt.grid(True)
 
     return fig_latent
+
+def ensure_data_compatibility(original_data, synthetic_data):
+    """
+    Ensure original and synthetic data arrays have the same shape and dimensions.
+    Trims or pads if necessary and returns compatible arrays.
+    """
+    # Ensure the number of features matches
+    n_features = min(original_data.shape[1], synthetic_data.shape[1])
+    original_data = original_data[:, :n_features]
+    synthetic_data = synthetic_data[:, :n_features]
+
+    # Trim to the shortest length
+    min_length = min(len(original_data), len(synthetic_data))
+    original_data = original_data[:min_length]
+    synthetic_data = synthetic_data[:min_length]
+
+    return original_data, synthetic_data
 
 # Model parameters
 latent_dim = 512

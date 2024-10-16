@@ -26,22 +26,25 @@ from model.scbetavaegan_pentab import (
     upload_and_process_files,
     process_dataframes,
     convert_and_store_dataframes,
-    generate_augmented_datasets,
     nested_augmentation,
     save_model,
     download_augmented_data_with_modified_timestamp,
     VAE,
     LSTMDiscriminator,
     train_models,
-    plot_training_history,
     calculate_nrmse,
-    post_hoc_discriminative_score
+    post_hoc_discriminative_score,
+    calculate_nrmse_for_augmented_data,
+    k_fold_cross_validation,
+    prepare_data_for_lstm,
+    ensure_data_compatibility
 )
 
 class ModelTrainingThread(QThread):
     finished = pyqtSignal()
     log_signal = pyqtSignal(str)
-    zip_ready = pyqtSignal(str, str)
+    zip_ready = pyqtSignal(str)
+    metrics_ready = pyqtSignal(dict)
 
     def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
         super().__init__()
@@ -68,7 +71,6 @@ class ModelTrainingThread(QThread):
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
             self.log("File loaded and processed successfully.")
             self.log(f"Number of data frames loaded: {len(data_frames)}")
-            self.log("Processed data: ", processed_data)
         except Exception as e:
             self.log(f"Error processing file: {e}", level="ERROR")
             self.finished.emit()
@@ -104,14 +106,9 @@ class ModelTrainingThread(QThread):
         save_model(vae, model_output_path)
         self.log(f"Model saved at {model_output_path}")
 
-        self.log(f"processed_data before nested augmentation: type={type(processed_data)}, length={len(processed_data) if isinstance(processed_data, (list, np.ndarray)) else 'N/A'}")
-        for i, data in enumerate(processed_data):
-            self.log(f"processed_data[{i}] type: {type(data)}, value: {data}")
-
         # Step 6: Generate augmented data using nested_augmentation
         self.log("Generating nested augmented data...")
         try:
-            # Pass the necessary arguments to nested_augmentation
             augmented_datasets = nested_augmentation(
                 num_augmentations=self.num_augmented_files,
                 num_files_to_use=len(processed_data),
@@ -124,7 +121,8 @@ class ModelTrainingThread(QThread):
                 processed_data=processed_data
             )
             if augmented_datasets is None:
-                print("nested_augmentation returned None.")
+                self.log("nested_augmentation returned None.", level="ERROR")
+                self.finished.emit()
                 return
             self.log("Nested synthetic data generation completed.")
         except Exception as e:
@@ -140,9 +138,49 @@ class ModelTrainingThread(QThread):
         zip_file_path = self.create_zip(self.synthetic_data_dir)
         self.log(f"Zipped synthetic data saved at {zip_file_path}")
 
-        original_file_path = os.path.join('original_absolute', self.selected_file)
-        print("Path: ", original_file_path)
-        self.zip_ready.emit(zip_file_path, original_file_path)
+        self.zip_ready.emit(zip_file_path)
+
+        self.log("Calculating metrics for generated synthetic data...")
+
+        metrics = {}
+
+        # Convert synthetic data if needed
+        augmented_datasets = [np.array(data) if isinstance(data, list) else data for data in augmented_datasets]
+
+        # Step 9: Calculate Metrics
+        # 9.1. NRMSE Calculation
+        try:
+            nrmse_values, average_nrmse = calculate_nrmse_for_augmented_data(original_data_frames, augmented_datasets)
+            metrics["Average NRMSE"] = average_nrmse
+            self.log(f"Average NRMSE: {average_nrmse:.4f}")
+        except Exception as e:
+            self.log(f"Error calculating NRMSE: {e}", level="ERROR")
+            metrics["Average NRMSE"] = "Error"
+
+        try:
+            original_array, synthetic_array = ensure_data_compatibility(original_data_frames[0].values, augmented_datasets[0])
+            discriminative_mean, discriminative_std = post_hoc_discriminative_score(
+                original_array, synthetic_array
+            )
+            metrics["Discriminative Score Mean"] = discriminative_mean
+            metrics["Discriminative Score Std"] = discriminative_std
+            self.log(f"Discriminative Score: Mean = {discriminative_mean:.4f}, Std = {discriminative_std:.4f}")
+        except Exception as e:
+            self.log(f"Error calculating Discriminative Score: {e}", level="ERROR")
+            metrics["Discriminative Score"] = "Error"
+
+        try:
+            X, y = prepare_data_for_lstm(original_data_frames[0].values, augmented_datasets[0])
+            mean_mape, std_mape = k_fold_cross_validation(X, y, scalers[0], n_splits=10)
+            metrics["Predictive Score Mean MAPE"] = mean_mape * 100
+            metrics["Predictive Score Std MAPE"] = std_mape * 100
+            self.log(f"Predictive Score (MAPE): Mean = {mean_mape * 100:.2f}%, Std = {std_mape * 100:.2f}%")
+        except Exception as e:
+            self.log(f"Error calculating Predictive Score (MAPE): {e}", level="ERROR")
+            metrics["Predictive Score"] = "Error"
+
+        # Emit the metrics
+        self.metrics_ready.emit(metrics)
 
         # Notify completion
         self.finished.emit()
@@ -171,8 +209,12 @@ class Handwriting(QtWidgets.QWidget):
         self.drawing_done = False
         self.flask_process = None
         self.file_list = []  # List to store uploaded .svc files
+        self.uploads_dir = os.path.abspath('uploads')
         self.threads = []
         self.setupUi()
+
+        if not os.path.exists(self.uploads_dir):
+            os.makedirs(self.uploads_dir)
 
     def setupUi(self):
         """Initial setup for the drawing page or Flask app depending on the file_list state."""
@@ -302,6 +344,8 @@ class Handwriting(QtWidgets.QWidget):
                     self.show_done_page(filename)
                     if filename not in self.file_list:  # Avoid duplicate
                         self.file_list.append(filename)
+                        self.update_original_absolute_file_display()
+                        print("File list:", self.file_list)
                         if hasattr(self, 'file_preview_widget'):
                             self.file_preview_widget.set_uploaded_files(self.file_list)
                 else:
@@ -546,6 +590,7 @@ class Handwriting(QtWidgets.QWidget):
             self.threads.append(thread)  # Keep track of threads
             thread.log_signal.connect(self.process_log_widget.append_log)
             thread.zip_ready.connect(self.on_zip_ready)
+            thread.metrics_ready.connect(self.on_metrics_ready)
             thread.finished.connect(self.on_thread_finished)
             thread.start()
 
@@ -578,16 +623,24 @@ class Handwriting(QtWidgets.QWidget):
             self.process_log_widget.append_log("All files have finished processing.")
             self.generate_data_button.setEnabled(True)
 
-    def on_zip_ready(self, zip_file_path, original_file_path):
+    def on_zip_ready(self, zip_file_path):
         # Set the zip path for output widget
         if hasattr(self.output_widget, 'set_zip_path'):
             QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
             self.output_widget.setVisible(True)
             self.collapsible_widget_output.toggle_container(True)
         
+        self.svc_preview.add_graph_containers()
         self.update_output_file_display(zip_file_path)
-        self.update_original_absolute_file_display(original_file_path)
         self.collapsible_widget_result.toggle_container(True)
+    
+    def on_metrics_ready(self, metrics):
+        """Update the results_text widget with the calculated metrics."""
+        metrics_text = "Calculated Metrics:\n"
+        for key, value in metrics.items():
+            metrics_text += f"{key}: {value}\n"
+        
+        self.svc_preview.results_text.setPlainText(metrics_text)
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
@@ -661,26 +714,28 @@ class Handwriting(QtWidgets.QWidget):
         # Automatically expand the output collapsible widget
         self.collapsible_widget_output.toggle_container(True)
 
-    def update_original_absolute_file_display(self, original_file_path):
+    def update_original_absolute_file_display(self):
         """
-        Update the display of original absolute files based on newly generated augmented files.
+        Update the display for all original files stored in self.file_list.
         """
-        # Convert to absolute paths if not already
-        if not os.path.isabs(original_file_path):
-            uploads_dir = 'original_absolute'  # Make sure this is the correct directory
-            absolute_original_paths = self.get_absolute_paths(uploads_dir, [original_file_path])
-        else:
-            absolute_original_paths = [original_file_path]
+        # Ensure all file paths in self.file_list are absolute
+        absolute_original_paths = self.get_absolute_paths(self.uploads_dir, self.file_list)
+        os.path.join(self.uploads_dir, self.selected_file)
 
-        # Use the path(s) to update the SVCPreview
-        for index, file_path in enumerate(absolute_original_paths):
+        # Update `uploaded_files` to make sure SVCpreview has it set
+        self.svc_preview.set_original_absolute_files(absolute_original_paths)
+        print("Updated original absolute paths:", absolute_original_paths)
+
+        # Now update the display for each file
+        for index, file_path in enumerate(self.file_list):
             if os.path.exists(file_path):
-                if index == 0:  # Display the first file
+                if index == 0:  # Display only the first file for now
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
                     self.svc_preview.display_handwriting_contents(file_path, 0)
+                else:
+                     print(f"File does not exist: {file_path}")
 
-        self.svc_preview.set_original_absolute_files(absolute_original_paths)
 
     def calculate_metrics(self, original_file, synthetic_file):
         """Calculate and return the NRMSE, discriminative, and predictive scores."""
