@@ -173,18 +173,25 @@ class ModelTrainingThread(QThread):
             return
 
         # Step 7: Save augmented data as .svc files
-        download_augmented_data_with_modified_timestamp(
-            augmented_datasets,
-            scalers,
-            original_data_frames,
-            input_filenames,
-            self.synthetic_data_dir,
-        )
-        self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
+        # download_augmented_data_with_modified_timestamp(
+        #    augmented_datasets,
+         #   scalers,
+          #  original_data_frames,
+           # input_filenames,
+            #self.synthetic_data_dir,
+        #)
+        #self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
 
         # Step 8: Zip the synthetic data files
-        zip_file_path = self.create_zip(self.synthetic_data_dir)
-        self.log(f"Zipped synthetic data saved at {zip_file_path}")
+        base_name = os.path.splitext(self.selected_file)[0]  # Get the base name of the selected file
+        matching_files = self.get_matching_synthetic_files(base_name)  # Find matching synthetic files
+
+        if matching_files:
+            zip_file_path = self.create_zip(matching_files)  # Create a zip from the matching files
+            self.log(f"Zipped synthetic data saved at {zip_file_path}")
+            self.zip_ready.emit(zip_file_path)
+        else:
+            self.log("No matching synthetic files found to zip.", level="WARNING")
 
         self.zip_ready.emit(zip_file_path)
 
@@ -387,13 +394,18 @@ class ModelTrainingThread(QThread):
         # Notify completion
         self.finished.emit()
 
-    def create_zip(self, directory):
-        """Create a zip file from the generated synthetic data."""
-        zip_file_path = os.path.join(directory + ".zip")
+    def get_matching_synthetic_files(self, base_name):
+        """Find synthetic files matching the base name in the augmented folder."""
+        pattern = os.path.join(self.augmented_folder, f"synthetic_{base_name}*.svc")
+        matching_files = glob(pattern)
+        return matching_files
+    
+    def create_zip(self, files):
+        """Create a zip file from the provided list of files."""
+        zip_file_path = os.path.join(self.synthetic_data_dir + ".zip")
         with zipfile.ZipFile(zip_file_path, "w") as zipf:
-            for root, _, files in os.walk(directory):
-                for file in files:
-                    zipf.write(os.path.join(root, file), file)
+            for file in files:
+                zipf.write(file, os.path.basename(file))  # Zip each file using its base name
         return zip_file_path
 
     def log(self, message, level="INFO"):
