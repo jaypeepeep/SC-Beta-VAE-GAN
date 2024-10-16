@@ -994,7 +994,7 @@ class Handwriting(QtWidgets.QWidget):
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
-                    self.svc_preview.display_emothaw_contents(file_path, 0)
+                    self.svc_preview.display_handwriting_contents(file_path, 0)
 
         self.svc_preview.set_original_absolute_files(original_absolute_files)
 
