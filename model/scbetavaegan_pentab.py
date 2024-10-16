@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import re
+from glob import glob
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, accuracy_score, mean_absolute_percentage_error
 from sklearn.model_selection import KFold
@@ -298,10 +300,20 @@ def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
     optimizer.apply_gradients(zip(gradients, lstm_model.trainable_variables))
     return total_loss
 
-def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001):
+def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001, optimizer=None):
     """Train the VAE and LSTM models and calculate metrics."""
+    
+    # Use the passed optimizer, or create a new one if none is provided
+    if optimizer is None:
+        optimizer = tf.keras.optimizers.Adam(learning_rate)
+    
     lstm_optimizer = tf.keras.optimizers.Adam(learning_rate)
     
+    # Make sure the optimizer knows the variables it will be optimizing
+    dummy_input = tf.random.normal((1, 4))  # Assume input shape is (batch, 4)
+    vae(dummy_input)  # This will force the VAE to build and register variables
+    optimizer.apply_gradients([(tf.zeros_like(var), var) for var in vae.trainable_variables])
+
     train_datasets = [tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(batch_size) for data in processed_data]
 
     generator_loss_history = []
@@ -514,6 +526,8 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
             augmented_data = augmented_data.reshape(-1, augmented_data.shape[-1])
         
         if isinstance(augmented_data, np.ndarray):
+            if augmented_data.ndim == 1:
+                augmented_data = augmented_data.reshape(-1, 4)
             augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
             augmented_xyz_int = np.rint(augmented_xyz).astype(int)
             pen_status = augmented_data[:, 3].astype(int)
@@ -659,18 +673,19 @@ def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list
         original_array = original_df[['x', 'y', 'timestamp', 'pen_status']].values
         augmented_array = augmented[:, :4]  # Assuming first 4 columns match original data structure
         
-        # Trim to the shorter length to ensure shapes match
-        min_length = min(len(original_array), len(augmented_array))
-        original_array_trimmed = original_array[:min_length]
-        augmented_array_trimmed = augmented_array[:min_length]
+        # Ensure compatibility
+        original_array, augmented_array = ensure_data_compatibility(original_array, augmented_array)
         
-        # Calculate NRMSE with the trimmed arrays
-        nrmse = calculate_nrmse(original_array_trimmed, augmented_array_trimmed)
-        nrmse_values.append(nrmse)
-        print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
+        # Calculate NRMSE with the compatible arrays
+        try:
+            nrmse = calculate_nrmse(original_array, augmented_array)
+            nrmse_values.append(nrmse)
+            print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
+        except ValueError as e:
+            print(f"Error calculating NRMSE for dataset {i + 1}: {e}")
 
     # Calculate average NRMSE
-    average_nrmse = np.mean(nrmse_values)
+    average_nrmse = np.mean(nrmse_values) if nrmse_values else float('nan')
     print(f"Average NRMSE: {average_nrmse:.4f}")
     
     return nrmse_values, average_nrmse
@@ -702,6 +717,7 @@ def prepare_data_for_lstm(real_data, synthetic_data):
 # 13. Post-Hoc Discriminative Score Function
 def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
     """Calculate the post-hoc discriminative score using K-Fold cross-validation."""
+    # Ensure compatibility using the existing function
     X, y = prepare_data_for_lstm(real_data, synthetic_data)
     
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
@@ -757,6 +773,9 @@ def create_model(input_shape):
 
 def evaluate_model(model, X_test, y_test, scaler):
     """Evaluate the model using MAPE."""
+    # Ensure X_test and y_test are compatible
+    X_test, y_test = ensure_data_compatibility(X_test, y_test)
+    
     # Predict and inverse transform
     y_pred = model.predict(X_test)
     y_pred_rescaled = scaler.inverse_transform(y_pred)
@@ -862,6 +881,23 @@ def visualize_latent_space(model, data, perplexity=5, learning_rate=200, n_iter=
     plt.grid(True)
 
     return fig_latent
+
+def ensure_data_compatibility(original_data, synthetic_data):
+    """
+    Ensure original and synthetic data arrays have the same shape and dimensions.
+    Trims or pads if necessary and returns compatible arrays.
+    """
+    # Ensure the number of features matches
+    n_features = min(original_data.shape[1], synthetic_data.shape[1])
+    original_data = original_data[:, :n_features]
+    synthetic_data = synthetic_data[:, :n_features]
+
+    # Trim to the shortest length
+    min_length = min(len(original_data), len(synthetic_data))
+    original_data = original_data[:min_length]
+    synthetic_data = synthetic_data[:min_length]
+
+    return original_data, synthetic_data
 
 # Model parameters
 latent_dim = 512

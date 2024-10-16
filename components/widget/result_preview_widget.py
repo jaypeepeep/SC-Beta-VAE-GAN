@@ -276,7 +276,15 @@ class SVCpreview(QtWidgets.QWidget):
     def display_file_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate text preview."""
         try:
-            # Handle regular file path, display content
+            # Ensure the file path is absolute
+            if not os.path.isabs(filename):
+                filename = os.path.abspath(filename)
+
+            # Check if the file exists before attempting to read
+            if not os.path.exists(filename):
+                raise FileNotFoundError(f"File not found: {filename}")
+
+            # Read and display the content
             with open(filename, "r") as file:
                 content = file.read()
             if preview_index == 0:
@@ -298,6 +306,11 @@ class SVCpreview(QtWidgets.QWidget):
             # Load the .svc file into a pandas DataFrame
             columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
             data = pd.read_csv(filename, sep=' ', names=columns, header=None)
+
+            for col in columns:
+                data[col] = pd.to_numeric(data[col], errors='coerce')
+            data = data.dropna()  # Remove rows with any NaN values
+
 
             # Remove 'pen_status' column from the data
             data = data.drop(columns=['pen_status'])
@@ -393,8 +406,24 @@ class SVCpreview(QtWidgets.QWidget):
         self.results_text.setPlainText(results_text)
 
     def set_uploaded_files(self, files):
-        """Set the list of uploaded files and display the first one."""
-        self.uploaded_files = files
+        """
+        Set the list of uploaded files and display the first one.
+        Ensure paths are converted to absolute paths if they are not already.
+        """
+        # Convert any relative paths to absolute paths explicitly pointing to the uploads directory
+        self.uploaded_files = [os.path.abspath(os.path.join('uploads', os.path.basename(file))) for file in files]
+        
+        # Display the first file if available
+        if self.uploaded_files:
+            try:
+                first_file = self.uploaded_files[0]
+                self.display_file_contents(first_file, 0)
+                self.display_graph_contents(first_file, 0)
+                self.display_handwriting_contents(first_file, 0)
+            except Exception as e:
+                print(f"Error displaying the first uploaded file: {e}")
+
+
             
     def select_file(self):
         """Open a custom dialog to select a file from the uploaded files, showing only the file name."""
@@ -668,7 +697,5 @@ class SVCpreview(QtWidgets.QWidget):
                         content2 = file2.read()
                         self.filename2.setText(file_list[1])
                         self.text_preview2.setPlainText(content2)
-
-                self.results_text.setPlainText("Results displayed successfully.")
         except Exception as e:
             self.results_text.setPlainText(f"Error reading ZIP file: {str(e)}")
