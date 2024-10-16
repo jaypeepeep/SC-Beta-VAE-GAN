@@ -825,7 +825,7 @@ class Handwriting(QtWidgets.QWidget):
         """Start processing the selected .svc files."""
         uploads_dir = "uploads"
         num_augmented_files = self.spin_box_widget.number_input.value()
-        epochs = 10
+        epochs = 100
 
         if not self.file_list:
             self.process_log_widget.append_log("No files available for processing.")
