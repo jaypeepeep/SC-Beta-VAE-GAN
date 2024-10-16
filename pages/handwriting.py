@@ -39,15 +39,8 @@ from model.scbetavaegan_pentab import (
     train_models,
     calculate_nrmse,
     post_hoc_discriminative_score,
-<<<<<<< HEAD
-    calculate_nrmse_for_augmented_data,
-    k_fold_cross_validation,
-    prepare_data_for_lstm,
     ensure_data_compatibility,
-    save_original_data,
-=======
-    ensure_data_compatibility
->>>>>>> origin/nichole-branch
+    save_original_data
 )
 
 
@@ -199,13 +192,6 @@ class ModelTrainingThread(QThread):
         self.log("Calculating metrics for generated synthetic data...")
         metrics = {}
 
-<<<<<<< HEAD
-        # Convert synthetic data if needed
-        augmented_datasets = [
-            np.array(data) if isinstance(data, list) else data
-            for data in augmented_datasets
-        ]
-=======
         # --- Embedded Functions for File Loading and Metrics ---
         def read_svc_file(file_path):
             """Log file reading and read SVC file data."""
@@ -368,15 +354,8 @@ class ModelTrainingThread(QThread):
             print(f"Mean MAPE: {mean_mape * 100:.2f}%")
             print(f"Standard Deviation of MAPE: {std_mape * 100:.2f}%")
             return mean_mape, std_mape
->>>>>>> origin/nichole-branch
 
         try:
-<<<<<<< HEAD
-            nrmse_values, average_nrmse = calculate_nrmse_for_augmented_data(
-                original_data_frames, augmented_datasets
-            )
-            metrics["Average NRMSE"] = average_nrmse
-=======
             self.log("Loading original data for metrics comparison...")
             original_file_paths = [os.path.join(self.imputed_folder, f) for f in input_filenames]
             original_data = [read_svc_file(file_path) for file_path in original_file_paths]
@@ -389,7 +368,6 @@ class ModelTrainingThread(QThread):
 
             nrmse_values, average_nrmse = calculate_nrmse_for_augmented_data(original_data, augmented_data)
             metrics["Normalized Root Mean Square Error (NRMSE)"] = average_nrmse
->>>>>>> origin/nichole-branch
             self.log(f"Average NRMSE: {average_nrmse:.4f}")
 
             real_data, synthetic_data = np.concatenate(original_data), np.concatenate(augmented_data)
@@ -405,41 +383,6 @@ class ModelTrainingThread(QThread):
         except Exception as e:
             self.log(f"Error calculating NRMSE: {e}", level="ERROR")
             metrics["Average NRMSE"] = "Error"
-<<<<<<< HEAD
-
-        try:
-            original_array, synthetic_array = ensure_data_compatibility(
-                original_data_frames[0].values, augmented_datasets[0]
-            )
-            discriminative_mean, discriminative_std = post_hoc_discriminative_score(
-                original_array, synthetic_array
-            )
-            metrics["Discriminative Score Mean"] = discriminative_mean
-            metrics["Discriminative Score Std"] = discriminative_std
-            self.log(
-                f"Discriminative Score: Mean = {discriminative_mean:.4f}, Std = {discriminative_std:.4f}"
-            )
-        except Exception as e:
-            self.log(f"Error calculating Discriminative Score: {e}", level="ERROR")
-            metrics["Discriminative Score"] = "Error"
-
-        try:
-            X, y = prepare_data_for_lstm(
-                original_data_frames[0].values, augmented_datasets[0]
-            )
-            mean_mape, std_mape = k_fold_cross_validation(X, y, scalers[0], n_splits=10)
-            metrics["Predictive Score Mean MAPE"] = mean_mape * 100
-            metrics["Predictive Score Std MAPE"] = std_mape * 100
-            self.log(
-                f"Predictive Score (MAPE): Mean = {mean_mape * 100:.2f}%, Std = {std_mape * 100:.2f}%"
-            )
-        except Exception as e:
-            self.log(f"Error calculating Predictive Score (MAPE): {e}", level="ERROR")
-            metrics["Predictive Score"] = "Error"
-
-        # Emit the metrics
-=======
->>>>>>> origin/nichole-branch
         self.metrics_ready.emit(metrics)
         # Notify completion
         self.finished.emit()
@@ -939,12 +882,6 @@ class Handwriting(QtWidgets.QWidget):
 
     def on_metrics_ready(self, metrics):
         """Update the results_text widget with the calculated metrics."""
-<<<<<<< HEAD
-        metrics_text = "Calculated Metrics:\n"
-        for key, value in metrics.items():
-            metrics_text += f"{key}: {value}\n"
-
-=======
         # Start building the formatted text for results
         metrics_text = ""
 
@@ -970,7 +907,6 @@ class Handwriting(QtWidgets.QWidget):
             metrics_text += f"\tStandard Deviation of MAPE: {std_mape:.2f}%\n"
 
         # Update the text in the results preview widget
->>>>>>> origin/nichole-branch
         self.svc_preview.results_text.setPlainText(metrics_text)
 
 
