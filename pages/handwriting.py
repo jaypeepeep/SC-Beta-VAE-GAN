@@ -173,18 +173,25 @@ class ModelTrainingThread(QThread):
             return
 
         # Step 7: Save augmented data as .svc files
-        download_augmented_data_with_modified_timestamp(
-            augmented_datasets,
-            scalers,
-            original_data_frames,
-            input_filenames,
-            self.synthetic_data_dir,
-        )
-        self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
+        # download_augmented_data_with_modified_timestamp(
+        #    augmented_datasets,
+         #   scalers,
+          #  original_data_frames,
+           # input_filenames,
+            #self.synthetic_data_dir,
+        #)
+        #self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
 
         # Step 8: Zip the synthetic data files
-        zip_file_path = self.create_zip(self.synthetic_data_dir)
-        self.log(f"Zipped synthetic data saved at {zip_file_path}")
+        base_name = os.path.splitext(self.selected_file)[0]  # Get the base name of the selected file
+        matching_files = self.get_matching_synthetic_files(base_name)  # Find matching synthetic files
+
+        if matching_files:
+            zip_file_path = self.create_zip(matching_files)  # Create a zip from the matching files
+            self.log(f"Zipped synthetic data saved at {zip_file_path}")
+            self.zip_ready.emit(zip_file_path)
+        else:
+            self.log("No matching synthetic files found to zip.", level="WARNING")
 
         self.zip_ready.emit(zip_file_path)
 
@@ -387,13 +394,18 @@ class ModelTrainingThread(QThread):
         # Notify completion
         self.finished.emit()
 
-    def create_zip(self, directory):
-        """Create a zip file from the generated synthetic data."""
-        zip_file_path = os.path.join(directory + ".zip")
+    def get_matching_synthetic_files(self, base_name):
+        """Find synthetic files matching the base name in the augmented folder."""
+        pattern = os.path.join(self.augmented_folder, f"synthetic_{base_name}*.svc")
+        matching_files = glob(pattern)
+        return matching_files
+    
+    def create_zip(self, files):
+        """Create a zip file from the provided list of files."""
+        zip_file_path = os.path.join(self.synthetic_data_dir + ".zip")
         with zipfile.ZipFile(zip_file_path, "w") as zipf:
-            for root, _, files in os.walk(directory):
-                for file in files:
-                    zipf.write(os.path.join(root, file), file)
+            for file in files:
+                zipf.write(file, os.path.basename(file))  # Zip each file using its base name
         return zip_file_path
 
     def log(self, message, level="INFO"):
@@ -407,7 +419,6 @@ class ModelTrainingThread(QThread):
 
 
 class Handwriting(QtWidgets.QWidget):
-
     def __init__(self, parent=None):
         super(Handwriting, self).__init__(parent)
         self.drawing_done = False
@@ -596,6 +607,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add file containers to the scrollable layout
         for file in self.file_list:
             file_container = FileContainerWidget(file, self)
+            file_container.remove_file_signal.connect(self.remove_file)
             sub_layout.addWidget(file_container)
 
         # Set the scrollable widget
@@ -615,6 +627,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add a file container widget to the collapsible widget for each drawing added
         for file in self.file_list:
             file_container = FileContainerWidget(file, self)
+            file_container.remove_file_signal.connect(self.remove_file)
             self.collapsible_widget.add_widget(file_container)
 
         # Add the dropdown (QComboBox) for selecting a file to plot
@@ -788,15 +801,52 @@ class Handwriting(QtWidgets.QWidget):
         scroll_layout.addLayout(button_layout)
 
         # Automatically open file preview widget after 2 secs
-        QTimer.singleShot(
-            2000, lambda: self.collapsible_widget_file_preview.toggle_container(True)
-        )
+        QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
+    
+
+    def remove_file(self, file_path, file_name):
+        """Handle the removal of a file from the file list."""
+        if file_path in self.file_list:
+            self.file_list.remove(file_path)  # Update the list by removing the file
+            self.process_log_widget.append_log(f"Removed file: {file_name}")
+
+            # Refresh dropdown or other components referencing file_list
+            self.refresh_file_dropdown()
+
+            # If no files left, reset to the initial drawing page
+            if not self.file_list:
+                self.reset_state()
+                return
+            
+            # If only one file remains, reset and show done page for that single file
+            if len(self.file_list) == 1:
+                self.clear_layout()
+                self.show_done_page(self.file_list[0])
+                return
+
+            # Explicitly remove the widget from the collapsible widget layout
+            layout = self.collapsible_widget.collapsible_layout
+            for i in reversed(range(layout.count())):
+                widget = layout.itemAt(i).widget()
+                if isinstance(widget, FileContainerWidget) and widget.file_path == file_path:
+                    layout.removeWidget(widget)
+                    widget.setParent(None)
+                    widget.deleteLater()
+                    break
+
+    def update_file_display(self):
+        """Update the display of files in the UI after removal."""
+        self.clear_layout()  # Clear current layout
+        if self.file_list:
+            self.show_done_page(self.file_list[-1])  # Show the last file
+        else:
+            self.reset_state()  # Reset if no files remain
 
     def on_generate_data(self):
         """Start processing the selected .svc files."""
         uploads_dir = "uploads"
         num_augmented_files = self.spin_box_widget.number_input.value()
-        epochs = 10
+        epochs = 100
 
         if not self.file_list:
             self.process_log_widget.append_log("No files available for processing.")
