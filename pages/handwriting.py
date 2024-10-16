@@ -8,6 +8,7 @@ import tempfile
 import zipfile
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
@@ -42,10 +43,10 @@ class ModelTrainingThread(QThread):
     log_signal = pyqtSignal(str)
     zip_ready = pyqtSignal(str, str)
 
-    def __init__(self, uploads_dir, file_list, num_augmented_files, epochs=10, logger=None):
+    def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
         super().__init__()
         self.uploads_dir = uploads_dir
-        self.file_list = file_list 
+        self.selected_file = selected_file 
         self.num_augmented_files = num_augmented_files  # This is passed to nested_augmentation
         self.epochs = epochs
         self.logger = logger
@@ -58,90 +59,92 @@ class ModelTrainingThread(QThread):
         os.makedirs(self.model_output_dir, exist_ok=True)
 
     def run(self):
-        self.log(f"Starting the process for {len(self.file_list)} files.")
+        self.log("Starting the process for file: " + self.selected_file)
 
-        # Step 1: Load and process all .svc files together
+        # Step 1: Load only the selected .svc file from the uploads directory
+        file_path = os.path.join(self.uploads_dir, self.selected_file)
+        self.log(f"Using file path: {file_path}")
         try:
-            data_frames_list = []
-            processed_data_list = []
-            scalers_list = []
-            avg_data_points_list = []
-            input_filenames_list = []
-            original_data_frames_list = []
-
-            for file in self.file_list:
-                file_path = os.path.join(self.uploads_dir, file)
-                self.log(f"Using file path: {file_path}")
-                data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
-                
-                # Combine the data from all files
-                data_frames_list.extend(data_frames)
-                processed_data_list.extend(processed_data)
-                scalers_list.extend(scalers)
-                avg_data_points_list.extend(avg_data_points)
-                input_filenames_list.extend(input_filenames)
-                original_data_frames_list.extend(original_data_frames)
-
-            self.log(f"Loaded and processed {len(self.file_list)} files successfully.")
+            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
+            self.log("File loaded and processed successfully.")
+            self.log(f"Number of data frames loaded: {len(data_frames)}")
+            self.log("Processed data: ", processed_data)
         except Exception as e:
-            self.log(f"Error processing files: {e}", level="ERROR")
+            self.log(f"Error processing file: {e}", level="ERROR")
             self.finished.emit()
             return
 
-        # Step 2: Process the combined data from all files
-        self.log("Processing and saving the combined dataframes...")
-        convert_and_store_dataframes(input_filenames_list, data_frames_list)
-        process_dataframes(data_frames_list)
-        self.log("Processing of combined data frames completed.")
+        # Step 2: Process and save the loaded dataframes
+        self.log("Converting and saving the processed dataframes...")
+        convert_and_store_dataframes(input_filenames, data_frames)
+        self.log("Data frames converted and saved.")
+
+        self.log("Processing the data frames...")
+        process_dataframes(data_frames)
+        self.log("Processing of data frames completed.")
 
         # Step 3: Initialize the VAE model and LSTM Discriminator
         vae = VAE(latent_dim=512, beta=0.000001)
         lstm_discriminator = LSTMDiscriminator()
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
         self.log("VAE and LSTM Discriminator initialized.")
 
-        # Step 4: Train the model with the combined data
-        self.log(f"Training started for {self.epochs} epochs with {len(self.file_list)} files.")
+        # Step 4: Train the model with uploaded data
+        self.log(f"Training started for {self.epochs} epochs...")
         for epoch in range(self.epochs):
             self.log(f"Epoch {epoch + 1}/{self.epochs} in progress...")
-            train_models(vae, lstm_discriminator, processed_data_list, original_data_frames_list, data_frames_list, num_augmented_files=self.num_augmented_files, epochs=1)
+            train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files=self.num_augmented_files, epochs=1, optimizer=optimizer)
             self.log(f"Epoch {epoch + 1} completed.")
 
         self.log("Training completed.")
 
         # Step 5: Save the trained model
-        save_model(vae, self.model_output_dir)
-        self.log(f"Model saved at {self.model_output_dir}")
+        model_output_path = os.path.join(self.model_output_dir)
+        model_file_path = os.path.join(self.model_output_dir, 'final_vae_model.h5')
+        save_model(vae, model_output_path)
+        self.log(f"Model saved at {model_output_path}")
 
-        # Step 6: Generate augmented data using the combined data
-        self.log("Generating synthetic data using nested augmentation...")
+        self.log(f"processed_data before nested augmentation: type={type(processed_data)}, length={len(processed_data) if isinstance(processed_data, (list, np.ndarray)) else 'N/A'}")
+        for i, data in enumerate(processed_data):
+            self.log(f"processed_data[{i}] type: {type(data)}, value: {data}")
+
+        # Step 6: Generate augmented data using nested_augmentation
+        self.log("Generating nested augmented data...")
         try:
+            # Pass the necessary arguments to nested_augmentation
             augmented_datasets = nested_augmentation(
                 num_augmentations=self.num_augmented_files,
-                num_files_to_use=len(self.file_list),  # Use the total number of files
-                data_frames=data_frames_list,
-                scalers=scalers_list,
-                input_filenames=input_filenames_list,
-                original_data_frames=original_data_frames_list,
-                model_path=os.path.join(self.model_output_dir, 'final_vae_model.h5'),
-                avg_data_points=avg_data_points_list,
-                processed_data=processed_data_list
+                num_files_to_use=len(processed_data),
+                data_frames=data_frames,
+                scalers=scalers, 
+                input_filenames=input_filenames, 
+                original_data_frames=original_data_frames,
+                model_path=model_file_path,
+                avg_data_points=avg_data_points,
+                processed_data=processed_data
             )
-            self.log("Synthetic data generation completed.")
+            if augmented_datasets is None:
+                print("nested_augmentation returned None.")
+                return
+            self.log("Nested synthetic data generation completed.")
         except Exception as e:
             self.log(f"Error during nested augmentation: {e}", level="ERROR")
             self.finished.emit()
             return
 
-        # Step 7: Save the augmented data
-        download_augmented_data_with_modified_timestamp(augmented_datasets, scalers_list, original_data_frames_list, input_filenames_list, self.synthetic_data_dir)
+        # Step 7: Save augmented data as .svc files
+        download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
         self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
 
         # Step 8: Zip the synthetic data files
         zip_file_path = self.create_zip(self.synthetic_data_dir)
         self.log(f"Zipped synthetic data saved at {zip_file_path}")
 
-        # Emit signal that the process is complete
-        self.zip_ready.emit(zip_file_path, os.path.join('original_absolute', self.file_list[0]))
+        original_file_path = os.path.join('original_absolute', self.selected_file)
+        print("Path: ", original_file_path)
+        self.zip_ready.emit(zip_file_path, original_file_path)
+
+        # Notify completion
         self.finished.emit()
 
     def create_zip(self, directory):
@@ -539,14 +542,14 @@ class Handwriting(QtWidgets.QWidget):
                 continue
 
             # Start a new thread for each file
-            thread = ModelTrainingThread(uploads_dir, self.file_list, num_augmented_files, epochs, logger=self.logger)
+            thread = ModelTrainingThread(uploads_dir, selected_file, num_augmented_files, epochs, logger=self.logger)
             self.threads.append(thread)  # Keep track of threads
             thread.log_signal.connect(self.process_log_widget.append_log)
             thread.zip_ready.connect(self.on_zip_ready)
             thread.finished.connect(self.on_thread_finished)
             thread.start()
 
-        self.process_log_widget.append_log(f"Started processing {len(self.file_list)} files for training the model.")
+        self.process_log_widget.append_log("All threads started, awaiting results...")
     
     def closeEvent(self, event):
         """Ensure the Flask app process and threads are killed when the main window is closed."""

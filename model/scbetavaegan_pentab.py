@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import re
+from glob import glob
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, accuracy_score, mean_absolute_percentage_error
 from sklearn.model_selection import KFold
@@ -298,10 +300,20 @@ def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
     optimizer.apply_gradients(zip(gradients, lstm_model.trainable_variables))
     return total_loss
 
-def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001):
+def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001, optimizer=None):
     """Train the VAE and LSTM models and calculate metrics."""
+    
+    # Use the passed optimizer, or create a new one if none is provided
+    if optimizer is None:
+        optimizer = tf.keras.optimizers.Adam(learning_rate)
+    
     lstm_optimizer = tf.keras.optimizers.Adam(learning_rate)
     
+    # Make sure the optimizer knows the variables it will be optimizing
+    dummy_input = tf.random.normal((1, 4))  # Assume input shape is (batch, 4)
+    vae(dummy_input)  # This will force the VAE to build and register variables
+    optimizer.apply_gradients([(tf.zeros_like(var), var) for var in vae.trainable_variables])
+
     train_datasets = [tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(batch_size) for data in processed_data]
 
     generator_loss_history = []
@@ -514,6 +526,8 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
             augmented_data = augmented_data.reshape(-1, augmented_data.shape[-1])
         
         if isinstance(augmented_data, np.ndarray):
+            if augmented_data.ndim == 1:
+                augmented_data = augmented_data.reshape(-1, 4)
             augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
             augmented_xyz_int = np.rint(augmented_xyz).astype(int)
             pen_status = augmented_data[:, 3].astype(int)
