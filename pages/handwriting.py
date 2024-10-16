@@ -561,6 +561,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add a file container widget to the collapsible widget for each drawing added
         for file in self.file_list:
             file_container = FileContainerWidget(file, self)
+            file_container.remove_file_signal.connect(self.remove_file)
             self.collapsible_widget.add_widget(file_container)
 
         # Add the dropdown (QComboBox) for selecting a file to plot
@@ -722,7 +723,25 @@ class Handwriting(QtWidgets.QWidget):
 
         # Automatically open file preview widget after 2 secs
         QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
-        
+    
+
+    def remove_file(self, file_path, file_name):
+        """Handle the removal of a file from the file list."""
+        if file_path in self.file_list:
+            self.file_list.remove(file_path)  # Remove the file from the list
+            self.process_log_widget.append_log(f"Removed file: {file_name}")
+
+            # Refresh the display
+            self.update_file_display()  # Refresh the UI with the updated file list
+
+    def update_file_display(self):
+        """Update the display of files in the UI after removal."""
+        self.clear_layout()  # Clear current layout
+        if self.file_list:
+            self.show_done_page(self.file_list[-1])  # Show the last file
+        else:
+            self.reset_state()  # Reset if no files remain
+
     def on_generate_data(self):
         """Start processing the selected .svc files."""
         uploads_dir = 'uploads'
