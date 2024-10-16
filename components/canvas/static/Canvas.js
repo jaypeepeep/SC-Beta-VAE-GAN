@@ -14,7 +14,7 @@ let lastX, lastY;
 let rafId;
 let lastTimestamp = 0;
 let lastRecordedTime = 0;
-const INTERVAL = 0.2; // 3 milliseconds = 100 plots per second
+const INTERVAL = 0.1; // 3 milliseconds = 100 plots per second
 let startTime = 0;
 
 // Set up the initial drawing properties

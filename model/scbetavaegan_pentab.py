@@ -107,17 +107,17 @@ def fill_gaps_and_interpolate(data_frames):
 
         # Calculate time differences and identify gaps
         df['time_diff'] = df['timestamp'].diff()
-        gap_indices = df.index[df['time_diff'] > 30000].tolist()
+        gap_indices = df.index[df['time_diff'] > 1].tolist()
 
         new_rows = []
         for idx in gap_indices:
             if idx + 1 < len(df):
                 current_timestamp = df.at[idx, 'timestamp']
                 next_timestamp = df.at[idx + 1, 'timestamp']
-                num_fill_entries = (next_timestamp - current_timestamp) // 20000
+                num_fill_entries = (next_timestamp - current_timestamp) 
 
                 for i in range(1, num_fill_entries + 1):
-                    new_timestamp = current_timestamp + i * 70
+                    new_timestamp = current_timestamp + i 
                     new_row = {
                         'x': np.nan,
                         'y': np.nan,
