@@ -70,6 +70,7 @@ class FileContainerWidget(QtWidgets.QWidget):
                 font-weight: 600; 
                 padding: 8px 16px; 
                 border-radius: 5px;
+                margin-right: 8px;
             }
             QPushButton:hover {
                 background: #C0C0C0;
@@ -87,9 +88,11 @@ class FileContainerWidget(QtWidgets.QWidget):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../icon/{image_name}'))
 
     def remove_file(self):
-        """Emit signal to remove the file from the UI and uploaded_files list."""
-        self.remove_file_signal.emit(self.file_path, self.file_name)
-        self.deleteLater()  # Schedule this widget for deletion
+        """Emit signal to remove the file from the UI and delete this widget."""
+        self.remove_file_signal.emit(self.file_path, self.file_name)  # Notify parent if needed
+        self.setParent(None)  # Detach from the parent layout
+        self.deleteLater()    # Ensure the widget is scheduled for proper deletion
+
 
     def download_file(self):
         # Create a QFileDialog to prompt the user for a save location

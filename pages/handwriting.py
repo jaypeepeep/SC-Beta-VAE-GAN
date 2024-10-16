@@ -419,7 +419,6 @@ class ModelTrainingThread(QThread):
 
 
 class Handwriting(QtWidgets.QWidget):
-
     def __init__(self, parent=None):
         super(Handwriting, self).__init__(parent)
         self.drawing_done = False
@@ -608,6 +607,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add file containers to the scrollable layout
         for file in self.file_list:
             file_container = FileContainerWidget(file, self)
+            file_container.remove_file_signal.connect(self.remove_file)
             sub_layout.addWidget(file_container)
 
         # Set the scrollable widget
@@ -807,11 +807,32 @@ class Handwriting(QtWidgets.QWidget):
     def remove_file(self, file_path, file_name):
         """Handle the removal of a file from the file list."""
         if file_path in self.file_list:
-            self.file_list.remove(file_path)  # Remove the file from the list
+            self.file_list.remove(file_path)  # Update the list by removing the file
             self.process_log_widget.append_log(f"Removed file: {file_name}")
 
-            # Refresh the display
-            self.update_file_display()  # Refresh the UI with the updated file list
+            # Refresh dropdown or other components referencing file_list
+            self.refresh_file_dropdown()
+
+            # If no files left, reset to the initial drawing page
+            if not self.file_list:
+                self.reset_state()
+                return
+            
+            # If only one file remains, reset and show done page for that single file
+            if len(self.file_list) == 1:
+                self.clear_layout()
+                self.show_done_page(self.file_list[0])
+                return
+
+            # Explicitly remove the widget from the collapsible widget layout
+            layout = self.collapsible_widget.collapsible_layout
+            for i in reversed(range(layout.count())):
+                widget = layout.itemAt(i).widget()
+                if isinstance(widget, FileContainerWidget) and widget.file_path == file_path:
+                    layout.removeWidget(widget)
+                    widget.setParent(None)
+                    widget.deleteLater()
+                    break
 
     def update_file_display(self):
         """Update the display of files in the UI after removal."""
