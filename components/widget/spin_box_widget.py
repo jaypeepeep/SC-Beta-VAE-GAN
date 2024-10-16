@@ -78,3 +78,6 @@ class SpinBoxWidget(QtWidgets.QWidget):
         )
 
         self.layout.addWidget(self.number_input)
+
+    def getValue(self):
+        return self.number_input.value()
