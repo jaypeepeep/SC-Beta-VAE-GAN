@@ -584,45 +584,10 @@ class Handwriting(QtWidgets.QWidget):
             QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
             self.output_widget.setVisible(True)
             self.collapsible_widget_output.toggle_container(True)
-
-        try:
-            # Check if original file exists
-            if not os.path.exists(original_file_path):
-                self.process_log_widget.append_log(f"Error: Original file not found at {original_file_path}")
-                return
-
-            # Create a temporary directory to extract the synthetic data
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Extract the synthetic data from the zip file
-                with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-                    zip_ref.extractall(temp_dir)
-
-                # Get the path of the first extracted synthetic data file
-                synthetic_file = os.path.join(temp_dir, os.listdir(temp_dir)[0])
-
-                # Calculate metrics between the original and synthetic data
-                # metrics = self.calculate_metrics(original_file_path, synthetic_file)
-
-                # Display the original and synthetic data in the SVCpreview widget
-                self.svc_preview.add_graph_containers()
-
-                self.svc_preview.display_file_contents(original_file_path, 0)  # Original file
-                self.svc_preview.display_graph_contents(original_file_path, 0)
-                self.svc_preview.display_handwriting_contents(original_file_path, 0)
-
-                self.svc_preview.display_file_contents(synthetic_file, 1)  # Synthetic file
-                self.svc_preview.display_graph_contents(synthetic_file, 1)
-                self.svc_preview.display_handwriting_contents(synthetic_file, 1)
-
-                # Display metrics in the results widget
-                # self.svc_preview.display_metrics(metrics)
-
-                # Display the results widget and open it
-                self.svc_preview.setVisible(True)
-                self.collapsible_widget_result.toggle_container(True)
-
-        except Exception as e:
-            self.process_log_widget.append_log(f"Error displaying results: {e}")
+        
+        self.update_output_file_display(zip_file_path)
+        self.update_original_absolute_file_display(original_file_path)
+        self.collapsible_widget_result.toggle_container(True)
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
@@ -630,32 +595,92 @@ class Handwriting(QtWidgets.QWidget):
         self.generate_data_button.setEnabled(True)
         self.process_log_widget.append_log("Data generation finished.")
 
-    def update_results_preview(self, zip_file_path):
-        """Unzip the synthetic data and update the results preview."""
-        try:
-            # Unzip the synthetic data
-            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-                zip_ref.extractall("synthetic_output")
-            synthetic_file = os.path.join("synthetic_output", os.listdir("synthetic_output")[0])
+    def get_absolute_paths(self, directory, filenames):
+        """
+        Given a directory and a list of filenames, return a list of absolute paths.
+        
+        Args:
+            directory (str): The base directory where the files are located.
+            filenames (list): A list of filenames (relative paths).
+        
+        Returns:
+            list: A list of absolute paths.
+        """
+        absolute_paths = []
+        for filename in filenames:
+            absolute_path = os.path.abspath(os.path.join(directory, filename))
+            absolute_paths.append(absolute_path)
+        return absolute_paths
 
-            # Get the original file
-            original_file = self.file_list[0]  # Assuming the first file in the list is the original
+    def extract_paths_from_zip(self, zip_path, extract_to):
+        """
+        Extract the .svc files from a zip archive and return their absolute paths.
+        
+        Args:
+            zip_path (str): Path to the zip file containing synthetic data.
+            extract_to (str): Directory where the files will be extracted.
+        
+        Returns:
+            list: A list of absolute paths to the extracted .svc files.
+        """
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            # Extract all .svc files to the specified directory
+            zip_ref.extractall(extract_to)
+        
+        # Gather paths of all extracted .svc files
+        svc_paths = [
+            os.path.abspath(os.path.join(extract_to, file)) 
+            for file in os.listdir(extract_to) if file.endswith('.svc')
+        ]
+        return svc_paths
+    
+    def update_output_file_display(self, zip_file_path):
+        """
+        Update the display of files based on newly generated augmented files.
+        """
+        # Create a unique directory based on the current timestamp
+        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        synthetic_output_dir = os.path.join('extracted_synthetic_data', f'run_{timestamp}')
+        
+        # Ensure the directory exists
+        os.makedirs(synthetic_output_dir, exist_ok=True)
 
-            # Calculate metrics
-            metrics = self.calculate_metrics(original_file, synthetic_file)
+        # Extract paths from the zip file using the new function
+        synthetic_paths = self.extract_paths_from_zip(zip_file_path, synthetic_output_dir)
 
-            # Update the SVC preview widget with the original and synthetic data
-            # self.svc_preview = SVCpreview(input=original_file, output=synthetic_file, metrics=metrics)
+        # Ensure paths are correctly set and the files exist
+        for index, file_path in enumerate(synthetic_paths):
+            if os.path.exists(file_path):
+                if index == 0:  # Display the first file
+                    self.svc_preview.display_file_contents(file_path, 1)
+                    self.svc_preview.display_graph_contents(file_path, 1)
+                    self.svc_preview.display_handwriting_contents(file_path, 1)
 
-            # Update the results text field with metrics
-            self.results_text.setPlainText(f"NRMSE: {metrics['nrmse']:.4f}\n"
-                                           f"Post-Hoc Discriminative Score: {metrics['discriminative_score']:.4f}\n"
-                                           f"Post-Hoc Predictive Score: {metrics['predictive_score']:.4f}\n")
+        self.svc_preview.set_augmented_files(synthetic_paths)
 
-            self.layout.addWidget(self.svc_preview)
+        # Automatically expand the output collapsible widget
+        self.collapsible_widget_output.toggle_container(True)
 
-        except Exception as e:
-            self.process_log_widget.append_log(f"Error updating results preview: {e}", level="ERROR")
+    def update_original_absolute_file_display(self, original_file_path):
+        """
+        Update the display of original absolute files based on newly generated augmented files.
+        """
+        # Convert to absolute paths if not already
+        if not os.path.isabs(original_file_path):
+            uploads_dir = 'original_absolute'  # Make sure this is the correct directory
+            absolute_original_paths = self.get_absolute_paths(uploads_dir, [original_file_path])
+        else:
+            absolute_original_paths = [original_file_path]
+
+        # Use the path(s) to update the SVCPreview
+        for index, file_path in enumerate(absolute_original_paths):
+            if os.path.exists(file_path):
+                if index == 0:  # Display the first file
+                    self.svc_preview.display_file_contents(file_path, 0)
+                    self.svc_preview.display_graph_contents(file_path, 0)
+                    self.svc_preview.display_handwriting_contents(file_path, 0)
+
+        self.svc_preview.set_original_absolute_files(absolute_original_paths)
 
     def calculate_metrics(self, original_file, synthetic_file):
         """Calculate and return the NRMSE, discriminative, and predictive scores."""
