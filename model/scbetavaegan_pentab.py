@@ -86,6 +86,16 @@ def upload_and_process_files(path, num_files_to_use=None):
 
     return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames
 
+
+def save_original_data(data_frames, input_filenames, output_folder='original_absolute'):
+    original_absolute_files = []
+    os.makedirs(output_folder, exist_ok=True)
+    for df, filename in zip(data_frames, input_filenames):
+        save_path = os.path.join(output_folder, filename)
+        df.to_csv(save_path, sep=' ', index=False, header=False)
+        original_absolute_files.append(save_path)
+    return original_absolute_files
+
 def fill_gaps_and_interpolate(data_frames):
     """Fill gaps in the timestamp and interpolate NaN values."""
     for df_idx in range(len(data_frames)):

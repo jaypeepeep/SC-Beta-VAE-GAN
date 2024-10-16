@@ -23,8 +23,8 @@ from components.widget.collapsible_widget import CollapsibleWidget
 from components.widget.file_preview_widget import FilePreviewWidget
 from components.widget.process_log_widget import ProcessLogWidget
 from components.widget.output_widget import OutputWidget
-from components.widget.file_container_widget import FileContainerWidget 
-from components.widget.plot_container_widget import PlotContainerWidget 
+from components.widget.file_container_widget import FileContainerWidget
+from components.widget.plot_container_widget import PlotContainerWidget
 from components.widget.spin_box_widget import SpinBoxWidget
 from components.widget.result_preview_widget import SVCpreview
 from model.scbetavaegan_pentab import (
@@ -39,8 +39,10 @@ from model.scbetavaegan_pentab import (
     train_models,
     calculate_nrmse,
     post_hoc_discriminative_score,
-    ensure_data_compatibility
+    ensure_data_compatibility,
+    save_original_data
 )
+
 
 class ModelTrainingThread(QThread):
     finished = pyqtSignal()
@@ -48,20 +50,35 @@ class ModelTrainingThread(QThread):
     zip_ready = pyqtSignal(str)
     partial_metric_ready = pyqtSignal(str, str)
     metrics_ready = pyqtSignal(dict)
+    original_files_ready = pyqtSignal(list) 
 
-    def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
+    def __init__(
+        self,
+        file_list,
+        uploads_dir,
+        selected_file,
+        num_augmented_files,
+        epochs=10,
+        logger=None,
+    ):
         super().__init__()
         self.uploads_dir = uploads_dir
-        self.selected_file = selected_file 
-        self.num_augmented_files = num_augmented_files  # This is passed to nested_augmentation
+        self.selected_file = selected_file
+        self.num_augmented_files = (
+            num_augmented_files  # This is passed to nested_augmentation
+        )
         self.epochs = epochs
         self.logger = logger
+        self.uploaded_files = file_list
+        self.num_of_files = len(self.uploaded_files)
 
-        timestamp = time.strftime('%Y%m%d_%H%M%S')
-        self.synthetic_data_dir = os.path.join(uploads_dir, f'SyntheticData_{timestamp}')
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        self.synthetic_data_dir = os.path.join(
+            uploads_dir, f"SyntheticData_{timestamp}"
+        )
         os.makedirs(self.synthetic_data_dir, exist_ok=True)
 
-        self.model_output_dir = os.path.join('model', 'pentab_vae_models')
+        self.model_output_dir = os.path.join("model", "pentab_vae_models")
         os.makedirs(self.model_output_dir, exist_ok=True)
 
         self.imputed_folder = os.path.abspath("imputed")
@@ -74,7 +91,17 @@ class ModelTrainingThread(QThread):
         file_path = os.path.join(self.uploads_dir, self.selected_file)
         self.log(f"Using file path: {file_path}")
         try:
-            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
+            (
+                data_frames,
+                processed_data,
+                scalers,
+                avg_data_points,
+                input_filenames,
+                original_data_frames,
+            ) = upload_and_process_files(file_path, self.num_of_files)
+            original_absolute_files = save_original_data(data_frames, input_filenames)
+            self.original_files_ready.emit(original_absolute_files)
+            
             self.log("File loaded and processed successfully.")
             self.log(f"Number of data frames loaded: {len(data_frames)}")
         except Exception as e:
@@ -101,14 +128,23 @@ class ModelTrainingThread(QThread):
         self.log(f"Training started for {self.epochs} epochs...")
         for epoch in range(self.epochs):
             self.log(f"Epoch {epoch + 1}/{self.epochs} in progress...")
-            train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files=self.num_augmented_files, epochs=1, optimizer=optimizer)
+            train_models(
+                vae,
+                lstm_discriminator,
+                processed_data,
+                original_data_frames,
+                data_frames,
+                num_augmented_files=self.num_augmented_files,
+                epochs=1,
+                optimizer=optimizer,
+            )
             self.log(f"Epoch {epoch + 1} completed.")
 
         self.log("Training completed.")
 
         # Step 5: Save the trained model
         model_output_path = os.path.join(self.model_output_dir)
-        model_file_path = os.path.join(self.model_output_dir, 'final_vae_model.h5')
+        model_file_path = os.path.join(self.model_output_dir, "final_vae_model.h5")
         save_model(vae, model_output_path)
         self.log(f"Model saved at {model_output_path}")
 
@@ -119,12 +155,12 @@ class ModelTrainingThread(QThread):
                 num_augmentations=self.num_augmented_files,
                 num_files_to_use=len(processed_data),
                 data_frames=data_frames,
-                scalers=scalers, 
-                input_filenames=input_filenames, 
+                scalers=scalers,
+                input_filenames=input_filenames,
                 original_data_frames=original_data_frames,
                 model_path=model_file_path,
                 avg_data_points=avg_data_points,
-                processed_data=processed_data
+                processed_data=processed_data,
             )
             if augmented_datasets is None:
                 self.log("nested_augmentation returned None.", level="ERROR")
@@ -137,7 +173,13 @@ class ModelTrainingThread(QThread):
             return
 
         # Step 7: Save augmented data as .svc files
-        download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
+        download_augmented_data_with_modified_timestamp(
+            augmented_datasets,
+            scalers,
+            original_data_frames,
+            input_filenames,
+            self.synthetic_data_dir,
+        )
         self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
 
         # Step 8: Zip the synthetic data files
@@ -348,7 +390,7 @@ class ModelTrainingThread(QThread):
     def create_zip(self, directory):
         """Create a zip file from the generated synthetic data."""
         zip_file_path = os.path.join(directory + ".zip")
-        with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+        with zipfile.ZipFile(zip_file_path, "w") as zipf:
             for root, _, files in os.walk(directory):
                 for file in files:
                     zipf.write(os.path.join(root, file), file)
@@ -363,13 +405,15 @@ class ModelTrainingThread(QThread):
         if self.log_signal:
             self.log_signal.emit(message)
 
+
 class Handwriting(QtWidgets.QWidget):
+
     def __init__(self, parent=None):
         super(Handwriting, self).__init__(parent)
         self.drawing_done = False
         self.flask_process = None
         self.file_list = []  # List to store uploaded .svc files
-        self.uploads_dir = os.path.abspath('uploads')
+        self.uploads_dir = os.path.abspath("uploads")
         self.threads = []
         self.setupUi()
 
@@ -414,7 +458,7 @@ class Handwriting(QtWidgets.QWidget):
             item = self.layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-        
+
         # Reset references to deleted widgets
         self.process_log_widget = None
         self.result_preview_widget = None
@@ -460,7 +504,9 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle("Proceed to Handwriting & Drawing")
         message_box.setText("Do you want to start drawing and handwriting?")
-        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+        message_box.setStandardButtons(
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
+        )
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
 
         response = message_box.exec_()
@@ -470,10 +516,12 @@ class Handwriting(QtWidgets.QWidget):
 
     def run_flask_app(self):
         """Run the Flask app located in components/canvas/app.py and open it in the embedded browser."""
-        flask_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../components/canvas/app.py'))
-        
+        flask_app_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../components/canvas/app.py")
+        )
+
         # Run the Flask app as a subprocess
-        self.flask_process = subprocess.Popen(['python', flask_app_path])
+        self.flask_process = subprocess.Popen(["python", flask_app_path])
 
         # Display the embedded browser after a short delay to ensure Flask is running
         QtCore.QTimer.singleShot(5000, self.show_embedded_browser)
@@ -488,25 +536,29 @@ class Handwriting(QtWidgets.QWidget):
         self.layout.addWidget(self.webview)
 
         # Ensure the webview resizes responsively
-        self.webview.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.webview.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
 
         # Poll Flask to check if drawing is done and file is uploaded
-        QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Adjust the delay if necessary
-            
+        QtCore.QTimer.singleShot(
+            5000, self.check_drawing_done
+        )  # Adjust the delay if necessary
+
     def check_drawing_done(self):
         """Periodically check if the drawing is done by querying Flask."""
         try:
             response = requests.get("http://127.0.0.1:5000/check_upload")
             if response.status_code == 200:
                 data = response.json()
-                filename = data.get('filename')
-                if filename.endswith('.svc'):  # Ensure file is an .svc file
+                filename = data.get("filename")
+                if filename.endswith(".svc"):  # Ensure file is an .svc file
                     self.show_done_page(filename)
+                    self.svc_preview.set_uploaded_files(self.file_list)
                     if filename not in self.file_list:  # Avoid duplicate
                         self.file_list.append(filename)
-                        self.update_original_absolute_file_display()
                         print("File list:", self.file_list)
-                        if hasattr(self, 'file_preview_widget'):
+                        if hasattr(self, "file_preview_widget"):
                             self.file_preview_widget.set_uploaded_files(self.file_list)
                 else:
                     self.process_log_widget.append_log(f"Invalid file type: {filename}")
@@ -523,7 +575,9 @@ class Handwriting(QtWidgets.QWidget):
         # Create a scroll area to wrap the collapsible content
         scroll_area = QtWidgets.QScrollArea(self)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        scroll_area.setStyleSheet(
+            "QScrollArea { border: none; background: transparent; }"
+        )
 
         # Create a widget that will be placed inside the scroll area
         scroll_widget = QtWidgets.QWidget()
@@ -536,9 +590,9 @@ class Handwriting(QtWidgets.QWidget):
 
         # Create a container for the scroll area
         sub_container = QWidget()
-        sub_container.setMaximumHeight(300) 
+        sub_container.setMaximumHeight(300)
         sub_layout = QVBoxLayout(sub_container)
-        
+
         # Add file containers to the scrollable layout
         for file in self.file_list:
             file_container = FileContainerWidget(file, self)
@@ -566,7 +620,8 @@ class Handwriting(QtWidgets.QWidget):
 
         # Add the dropdown (QComboBox) for selecting a file to plot
         self.file_dropdown = QtWidgets.QComboBox(self)
-        self.file_dropdown.setStyleSheet("""
+        self.file_dropdown.setStyleSheet(
+            """
             QComboBox {
                 background-color: #033;  
                 color: white; 
@@ -597,7 +652,8 @@ class Handwriting(QtWidgets.QWidget):
                 border: 1px solid #033;    
                 font-family: Montserrat;
                 font-size: 14px;
-        }""")
+        }"""
+        )
         self.file_dropdown.addItems(self.file_list)
         self.file_dropdown.currentIndexChanged.connect(self.on_file_selected)
 
@@ -612,16 +668,16 @@ class Handwriting(QtWidgets.QWidget):
         if self.file_list:
             self.plot_container.loadPlot(self.file_list[0])
 
-
         # Add the slider widget directly to the collapsible widget
         self.spin_box_widget = SpinBoxWidget(1)
         self.collapsible_widget.add_widget(self.spin_box_widget)
 
         # Add "Draw More" and "Clear All" buttons inside the collapsible widget
         button_layout = QtWidgets.QHBoxLayout()
-        
+
         self.draw_more_button = QtWidgets.QPushButton("Draw More", self)
-        self.draw_more_button.setStyleSheet("""
+        self.draw_more_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #003333; 
                 color: white; 
@@ -634,12 +690,14 @@ class Handwriting(QtWidgets.QWidget):
             QPushButton:hover {
                 background-color: #005555; 
             }
-        """)
+        """
+        )
         self.draw_more_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.draw_more_button.clicked.connect(self.run_flask_app)
-        
+
         self.clear_all_button = QtWidgets.QPushButton("Clear All", self)
-        self.clear_all_button.setStyleSheet("""
+        self.clear_all_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #003333; 
                 color: white; 
@@ -652,10 +710,11 @@ class Handwriting(QtWidgets.QWidget):
             QPushButton:hover {
                 background-color: #005555; 
             }
-        """)
+        """
+        )
         self.clear_all_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.clear_all_button.clicked.connect(self.clear_all_drawings)
-        
+
         # Add the buttons to the button layout
         button_layout.addWidget(self.draw_more_button)
         button_layout.addWidget(self.clear_all_button)
@@ -664,7 +723,7 @@ class Handwriting(QtWidgets.QWidget):
         button_widget = QtWidgets.QWidget()  # Wrap buttons in a QWidget
         button_widget.setLayout(button_layout)
         self.collapsible_widget.add_widget(button_widget)
-        
+
         # Add the File Preview Widget
         self.collapsible_widget_file_preview = CollapsibleWidget("File Preview", self)
         scroll_layout.addWidget(self.collapsible_widget_file_preview)
@@ -692,7 +751,9 @@ class Handwriting(QtWidgets.QWidget):
 
         # Generate Synthetic Data button
         button_layout = QtWidgets.QVBoxLayout()
-        self.generate_data_button = QtWidgets.QPushButton("Generate Synthetic Data", self)
+        self.generate_data_button = QtWidgets.QPushButton(
+            "Generate Synthetic Data", self
+        )
         self.generate_data_button.setStyleSheet(
             """
             QPushButton {
@@ -710,12 +771,18 @@ class Handwriting(QtWidgets.QWidget):
             """
         )
         self.generate_data_button.setFixedSize(250, 50)
-        self.generate_data_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor)) # put the button at the bottom
+        self.generate_data_button.setCursor(
+            QtGui.QCursor(QtCore.Qt.PointingHandCursor)
+        )  # put the button at the bottom
         self.generate_data_button.clicked.connect(self.on_generate_data)
 
-        button_layout.addWidget(self.generate_data_button, alignment=QtCore.Qt.AlignCenter)
+        button_layout.addWidget(
+            self.generate_data_button, alignment=QtCore.Qt.AlignCenter
+        )
 
-        spacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacer = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         button_layout.addItem(spacer)
 
         # Adding the button to the main layout
@@ -744,7 +811,7 @@ class Handwriting(QtWidgets.QWidget):
 
     def on_generate_data(self):
         """Start processing the selected .svc files."""
-        uploads_dir = 'uploads'
+        uploads_dir = "uploads"
         num_augmented_files = self.spin_box_widget.number_input.value()
         epochs = 10
 
@@ -757,24 +824,36 @@ class Handwriting(QtWidgets.QWidget):
         self.generate_data_button.setEnabled(False)
 
         file_count = len(self.file_list)
-        self.process_log_widget.append_log(f"Starting data generation for {file_count} file(s)...")
+        self.process_log_widget.append_log(
+            f"Starting data generation for {file_count} file(s)..."
+        )
 
         for selected_file in self.file_list:
-            if not selected_file.endswith('.svc'):
-                self.process_log_widget.append_log(f"Skipping non-.svc file: {selected_file}")
+            if not selected_file.endswith(".svc"):
+                self.process_log_widget.append_log(
+                    f"Skipping non-.svc file: {selected_file}"
+                )
                 continue
 
             # Start a new thread for each file
-            thread = ModelTrainingThread(uploads_dir, selected_file, num_augmented_files, epochs, logger=self.logger)
+            thread = ModelTrainingThread(
+                self.file_list,
+                uploads_dir,
+                selected_file,
+                num_augmented_files,
+                epochs,
+                logger=self.logger,
+            )
             self.threads.append(thread)  # Keep track of threads
             thread.log_signal.connect(self.process_log_widget.append_log)
             thread.zip_ready.connect(self.on_zip_ready)
             thread.metrics_ready.connect(self.on_metrics_ready)
             thread.finished.connect(self.on_thread_finished)
+            thread.original_files_ready.connect(self.update_original_absolute_file_display)  # Connect the new signal
             thread.start()
 
         self.process_log_widget.append_log("All threads started, awaiting results...")
-    
+
     def closeEvent(self, event):
         """Ensure the Flask app process and threads are killed when the main window is closed."""
         # Terminate the Flask process if running
@@ -788,7 +867,7 @@ class Handwriting(QtWidgets.QWidget):
                 thread.wait()  # Wait until it's fully terminated
 
         event.accept()
-    
+
     def on_thread_finished(self):
         """Callback when a single file has finished processing."""
         self.process_log_widget.append_log("A file has finished processing.")
@@ -804,15 +883,20 @@ class Handwriting(QtWidgets.QWidget):
 
     def on_zip_ready(self, zip_file_path):
         # Set the zip path for output widget
-        if hasattr(self.output_widget, 'set_zip_path'):
-            QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
+        if hasattr(self.output_widget, "set_zip_path"):
+            QtCore.QMetaObject.invokeMethod(
+                self.output_widget,
+                "set_zip_path",
+                QtCore.Qt.QueuedConnection,
+                QtCore.Q_ARG(str, zip_file_path),
+            )
             self.output_widget.setVisible(True)
             self.collapsible_widget_output.toggle_container(True)
-        
+
         self.svc_preview.add_graph_containers()
         self.update_output_file_display(zip_file_path)
         self.collapsible_widget_result.toggle_container(True)
-    
+
     def on_metrics_ready(self, metrics):
         """Update the results_text widget with the calculated metrics."""
         # Start building the formatted text for results
@@ -852,11 +936,11 @@ class Handwriting(QtWidgets.QWidget):
     def get_absolute_paths(self, directory, filenames):
         """
         Given a directory and a list of filenames, return a list of absolute paths.
-        
+
         Args:
             directory (str): The base directory where the files are located.
             filenames (list): A list of filenames (relative paths).
-        
+
         Returns:
             list: A list of absolute paths.
         """
@@ -869,38 +953,43 @@ class Handwriting(QtWidgets.QWidget):
     def extract_paths_from_zip(self, zip_path, extract_to):
         """
         Extract the .svc files from a zip archive and return their absolute paths.
-        
+
         Args:
             zip_path (str): Path to the zip file containing synthetic data.
             extract_to (str): Directory where the files will be extracted.
-        
+
         Returns:
             list: A list of absolute paths to the extracted .svc files.
         """
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
             # Extract all .svc files to the specified directory
             zip_ref.extractall(extract_to)
-        
+
         # Gather paths of all extracted .svc files
         svc_paths = [
-            os.path.abspath(os.path.join(extract_to, file)) 
-            for file in os.listdir(extract_to) if file.endswith('.svc')
+            os.path.abspath(os.path.join(extract_to, file))
+            for file in os.listdir(extract_to)
+            if file.endswith(".svc")
         ]
         return svc_paths
-    
+
     def update_output_file_display(self, zip_file_path):
         """
         Update the display of files based on newly generated augmented files.
         """
         # Create a unique directory based on the current timestamp
-        timestamp = time.strftime('%Y%m%d_%H%M%S')
-        synthetic_output_dir = os.path.join('extracted_synthetic_data', f'run_{timestamp}')
-        
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        synthetic_output_dir = os.path.join(
+            "extracted_synthetic_data", f"run_{timestamp}"
+        )
+
         # Ensure the directory exists
         os.makedirs(synthetic_output_dir, exist_ok=True)
 
         # Extract paths from the zip file using the new function
-        synthetic_paths = self.extract_paths_from_zip(zip_file_path, synthetic_output_dir)
+        synthetic_paths = self.extract_paths_from_zip(
+            zip_file_path, synthetic_output_dir
+        )
 
         # Ensure paths are correctly set and the files exist
         for index, file_path in enumerate(synthetic_paths):
@@ -915,39 +1004,55 @@ class Handwriting(QtWidgets.QWidget):
         # Automatically expand the output collapsible widget
         self.collapsible_widget_output.toggle_container(True)
 
-    def update_original_absolute_file_display(self):
-        """
-        Update the display for all original files stored in self.file_list.
-        """
-        # Ensure all file paths in self.file_list are absolute
-        absolute_original_paths = self.get_absolute_paths(self.uploads_dir, self.file_list)
-        os.path.join(self.uploads_dir, self.selected_file)
-
-        # Update `uploaded_files` to make sure SVCpreview has it set
-        self.svc_preview.set_original_absolute_files(absolute_original_paths)
-        print("Updated original absolute paths:", absolute_original_paths)
-
-        # Now update the display for each file
-        for index, file_path in enumerate(self.file_list):
+    def update_original_absolute_file_display(self, original_absolute_files):
+        """Update the display of original absolute files based on newly generated augmented files."""
+        for index, file_path in enumerate(original_absolute_files):
             if os.path.exists(file_path):
-                if index == 0:  # Display only the first file for now
+                if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
                     self.svc_preview.display_handwriting_contents(file_path, 0)
-                else:
-                     print(f"File does not exist: {file_path}")
 
+        self.svc_preview.set_original_absolute_files(original_absolute_files)
 
     def calculate_metrics(self, original_file, synthetic_file):
         """Calculate and return the NRMSE, discriminative, and predictive scores."""
-        original_data = pd.read_csv(original_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
-        synthetic_data = pd.read_csv(synthetic_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+        original_data = pd.read_csv(
+            original_file,
+            sep=" ",
+            names=[
+                "x",
+                "y",
+                "timestamp",
+                "pen_status",
+                "pressure",
+                "azimuth",
+                "altitude",
+            ],
+        )
+        synthetic_data = pd.read_csv(
+            synthetic_file,
+            sep=" ",
+            names=[
+                "x",
+                "y",
+                "timestamp",
+                "pen_status",
+                "pressure",
+                "azimuth",
+                "altitude",
+            ],
+        )
 
         # Compute NRMSE
-        nrmse = calculate_nrmse(original_data[['x', 'y']].values, synthetic_data[['x', 'y']].values)
+        nrmse = calculate_nrmse(
+            original_data[["x", "y"]].values, synthetic_data[["x", "y"]].values
+        )
 
         # Compute Post-Hoc Discriminative Score (you can use the LSTM model for this)
-        discriminative_score = post_hoc_discriminative_score(original_data, synthetic_data)
+        discriminative_score = post_hoc_discriminative_score(
+            original_data, synthetic_data
+        )
 
         # Compute Post-Hoc Predictive Score (LSTM-based predictive model)
         # predictive_score = post_hoc_predictive_score(original_data, synthetic_data)
@@ -963,12 +1068,16 @@ class Handwriting(QtWidgets.QWidget):
         message_box = QtWidgets.QMessageBox(self)
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle("Discard and Retry")
-        message_box.setText("Are you sure you want to discard your current handwriting and start over?")
-        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        message_box.setText(
+            "Are you sure you want to discard your current handwriting and start over?"
+        )
+        message_box.setStandardButtons(
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
         message_box.setDefaultButton(QtWidgets.QMessageBox.No)
-        
+
         message_box.setStyleSheet("QPushButton { font-size: 14px; }")
-        
+
         response = message_box.exec_()
 
         if response == QtWidgets.QMessageBox.Yes:
@@ -998,12 +1107,13 @@ class Handwriting(QtWidgets.QWidget):
         """Update the plot when a different file is selected from the dropdown."""
         selected_file = self.file_dropdown.currentText()
         self.plot_container.loadPlot(selected_file)
-    
+
     def closeEvent(self, event):
         """Ensure the Flask app process is killed when the main window is closed."""
         if self.flask_process:
             self.flask_process.terminate()
         event.accept()
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
