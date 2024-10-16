@@ -9,11 +9,15 @@ from sklearn.manifold import TSNE
 import zipfile
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import shutil
+from keras.utils import custom_object_scope
+from tensorflow.keras.models import load_model
 
 # 1. Load and process the .svc file
 def upload_and_process_files(path, num_files_to_use=None):
-    """Upload and process .svc files for handwriting analysis."""
-    
+    """Upload and process .svc files for handwriting analysis. 
+       Save unscaled data in 'original_absolute' folder.
+    """
     # Check if the path is a directory or a single file
     if os.path.isdir(path):
         svc_files = [f for f in os.listdir(path) if f.endswith('.svc')]
@@ -31,11 +35,6 @@ def upload_and_process_files(path, num_files_to_use=None):
     scalers = []
     input_filenames = []  # List to store input filenames
 
-    num_files = len(svc_files)
-    fig, axs = plt.subplots(1, num_files, figsize=(6*num_files, 6), constrained_layout=True)
-    if num_files == 1:
-        axs = [axs]
-
     # Create the folder if it doesn't exist
     output_folder = 'original_absolute'
     os.makedirs(output_folder, exist_ok=True)
@@ -44,49 +43,44 @@ def upload_and_process_files(path, num_files_to_use=None):
         file_path = os.path.join(directory, filename)
         input_filenames.append(filename)  # Store the filename
         print(f"Reading file: {file_path}")
+        
+        # Read the .svc file data
         df = pd.read_csv(file_path, skiprows=1, header=None, delim_whitespace=True)
         df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
         
         # Modify timestamp to start from 0
         df['timestamp'] = (df['timestamp'] - df['timestamp'].min()).round().astype(int)
         
-        # Save the modified data to the 'original_absolute' folder
-        save_path = os.path.join(output_folder, filename)
-        df.to_csv(save_path, sep=' ', index=False, header=False)
-        
         # Keep a copy of the original data before scaling
         original_data_frames.append(df.copy())  # Save the original unmodified data
         
+        # Save the original unscaled data to the 'original_absolute' folder before scaling
+        save_path = os.path.join(output_folder, filename)
+        df.to_csv(save_path, sep=' ', index=False, header=False)
+        
         # Process the data for use in the model
-        df = df.iloc[:, [0, 1, 2, 3, 4, 5, 6]] 
+        df = df.iloc[:, [0, 1, 2, 3, 4, 5, 6]]  # Select only the relevant columns
         data_frames.append(df)
         scaler = MinMaxScaler()
         normalized_data = scaler.fit_transform(df[['x', 'y', 'timestamp']])
         scalers.append(scaler)
 
-        # Plot with a 90-degree right rotation (swap x and y)
-        on_paper = df[df['pen_status'] == 1]
-        in_air = df[df['pen_status'] == 0]
-        axs[i].scatter(on_paper['x'], -on_paper['y'], c='blue', s=1, alpha=0.7, label='On Paper')  # Swap x and y, negate y
-        axs[i].scatter(in_air['x'], -in_air['y'], c='red', s=1, alpha=0.7, label='In Air')  # Swap x and y, negate y
-        axs[i].set_title(f'Original Data {i + 1}')
-        axs[i].set_xlabel('x')  # x-axis is 'x'
-        axs[i].set_ylabel('-y')  # y-axis is '-y'
-        axs[i].legend()
-        axs[i].set_aspect('equal')
-
-        # Print the first few rows of the timestamp column
+        # Print the first few rows of the timestamp column for debugging
         print(f"Modified timestamps for file {filename}:")
         print(df['timestamp'].head())
         print("\n")
 
-    # Call gap filling and interpolation function
+    # Call gap filling and interpolation function (assuming it's defined somewhere)
     data_frames = fill_gaps_and_interpolate(data_frames)
 
     # Update processed data for all DataFrames
     processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
                       for df, scaler in zip(data_frames, scalers)]
     avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
+
+    print(f"data_frames type: {type(data_frames)}, length: {len(data_frames)}")
+    print(f"scalers type: {type(scalers)}, length: {len(scalers)}")
+    print(f"processed_data type: {type(processed_data)}, length: {len(processed_data)}")
 
     return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames
 
@@ -139,16 +133,27 @@ def fill_gaps_and_interpolate(data_frames):
 
 def convert_and_store_dataframes(input_filenames, data_frames):
     """Convert numeric columns to integers and store processed DataFrames."""
+    imputed_folder = 'imputed'
+    os.makedirs(imputed_folder, exist_ok=True)
     processed_dataframes = []
 
     for input_filename, df in zip(input_filenames, data_frames):
-        # Convert all numeric columns to integers
-        df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
-        
-        # Append the processed DataFrame to the list
-        processed_dataframes.append(df)
+        # Ensure df is a pandas DataFrame
+        if isinstance(df, pd.DataFrame):
+            # Convert all numeric columns to integers
+            df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']] = df[['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']].astype(int)
 
-        print(f"Processed DataFrame for: {input_filename}")
+            # Save the processed DataFrame to the 'imputed' folder with the same input filename
+            save_path = os.path.join(imputed_folder, input_filename)
+            df.to_csv(save_path, sep=' ', index=False, header=False)  # Save without header and index
+
+            # Append the processed DataFrame to the list
+            processed_dataframes.append(df)
+
+            print(f"Processed DataFrame saved as: {input_filename}")
+            print("Processed imputed data: ", processed_dataframes)
+        else:
+            print(f"Skipping non-DataFrame object: {type(df)}")
 
     return processed_dataframes
 
@@ -293,8 +298,8 @@ def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
     optimizer.apply_gradients(zip(gradients, lstm_model.trainable_variables))
     return total_loss
 
-def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001):
-    """Train the VAE and LSTM models."""
+def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001):
+    """Train the VAE and LSTM models and calculate metrics."""
     lstm_optimizer = tf.keras.optimizers.Adam(learning_rate)
     
     train_datasets = [tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(batch_size) for data in processed_data]
@@ -304,8 +309,7 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
     kl_loss_history = []
     nrmse_history = []
 
-    save_dir = "pentab_vae_models"
-    os.makedirs(save_dir, exist_ok=True)
+    avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
 
     for epoch in range(epochs):
         generator_loss = 0 
@@ -324,15 +328,6 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
                     pbar.update(1)
                     pbar.set_postfix({'Generator Loss': float(generator_loss_batch), 'Reconstruction Loss': float(reconstruction_loss), 'KL Loss': float(kl_loss)})
 
-        # Train LSTM every `lstm_interval` epochs after `vae_epochs`
-        if epoch >= vae_epochs and (epoch - vae_epochs) % lstm_interval == 0:
-            for data in processed_data:
-                augmented_data = vae.decode(tf.random.normal(shape=(data.shape[0], latent_dim))).numpy()
-                real_data = tf.expand_dims(data, axis=0)
-                generated_data = tf.expand_dims(augmented_data, axis=0)
-                lstm_loss = train_lstm_step(lstm_discriminator, real_data, generated_data, lstm_optimizer)
-            print(f'LSTM training at epoch {epoch+1}: Discriminator Loss = {lstm_loss.numpy()}')
-
         avg_generator_loss = generator_loss / num_batches  # Update the average calculation
         avg_reconstruction_loss = reconstruction_loss_sum / num_batches
         avg_kl_loss = kl_loss_sum / num_batches
@@ -341,22 +336,13 @@ def train_models(vae, lstm_discriminator, processed_data, epochs=10, vae_epochs=
         reconstruction_loss_history.append(avg_reconstruction_loss)
         kl_loss_history.append(avg_kl_loss)
 
-        # Calculate NRMSE
-        nrmse_sum = 0
-        for data in processed_data:
-            augmented_data = vae.decode(tf.random.normal(shape=(data.shape[0], latent_dim))).numpy()
-            rmse = np.sqrt(mean_squared_error(data[:, :2], augmented_data[:, :2]))
-            nrmse = rmse / (data[:, :2].max() - data[:, :2].min())
-            nrmse_sum += nrmse
+        # Generate synthetic data and calculate NRMSE
+        augmented_datasets = generate_augmented_datasets(vae, processed_data, data_frames, num_augmented_files, avg_data_points)
+        nrmse_epoch, avg_nrmse = calculate_nrmse_for_augmented_data(original_data_frames, augmented_datasets)
+        nrmse_history.append(avg_nrmse)
+        print(f"NRMSE for epoch {epoch + 1}: {avg_nrmse:.4f}")
         
-        nrmse_avg = nrmse_sum / len(processed_data)
-        nrmse_history.append(nrmse_avg)
-
-        print(f"Epoch {epoch+1}: Generator Loss = {avg_generator_loss:.6f}, Reconstruction Loss = {avg_reconstruction_loss:.6f}, KL Divergence Loss = {avg_kl_loss:.6f}")
-        print(f"NRMSE = {nrmse_avg:.6f}")
-
     return generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history
-
 
 def post_process_pen_status(pen_status, threshold=0.5, min_segment_length=5):
     """Smooth out rapid changes in pen status."""
@@ -375,8 +361,21 @@ def generate_augmented_datasets(model, processed_data, data_frames, num_augmente
     augmented_datasets = []
     num_input_files = len(processed_data)
 
+    # Validate that processed_data is a list of arrays
+    if not isinstance(processed_data, list):
+        raise ValueError(f"Expected processed_data to be a list, but got {type(processed_data)}")
+
+    for data in processed_data:
+        if not isinstance(data, (np.ndarray, list)):
+            raise ValueError(f"Expected each element in processed_data to be a NumPy array or list, but got {type(data)}")
+
     for i in range(num_augmented_files):
         selected_data = processed_data[i % num_input_files]
+
+        # Validate selected_data again before proceeding
+        if not isinstance(selected_data, (np.ndarray, list)):
+            raise ValueError(f"Expected selected_data to be a NumPy array or list, but got {type(selected_data)}")
+
         original_data = data_frames[i % num_input_files]  # Use original unprocessed data
         pressure_azimuth_altitude = original_data[['pressure', 'azimuth', 'altitude']].values
         
@@ -456,69 +455,178 @@ def visualize_augmented_data(augmented_datasets, scalers, original_data_frames, 
 
     return all_augmented_data  # Return the list of augmented datasets after scaling back
 
+def visualize_augmented_data_from_directory(directory):
+    augmented_files = [f for f in os.listdir(directory) if f.startswith('augmented_') and f.endswith('.svc')]
+    num_files = len(augmented_files)
+    if num_files == 0:
+        print("No augmented data files found in the directory.")
+        return
+    
+    fig, axs = plt.subplots(1, num_files, figsize=(6 * num_files, 6), constrained_layout=True)
+    if num_files == 1:
+        axs = [axs]
+    
+    for i, filename in enumerate(augmented_files):
+        file_path = os.path.join(directory, filename)
+        df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+        df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+        
+        on_paper = df[df['pen_status'] == 1]
+        in_air = df[df['pen_status'] == 0]
+
+        axs[i].scatter(on_paper['y'], on_paper['x'], c='b', s=1, alpha=0.7, label='On Paper')
+        axs[i].scatter(in_air['y'], in_air['x'], c='r', s=1, alpha=0.7, label='In Air')
+        axs[i].set_title(f'Augmented Data {i + 1}')
+        axs[i].set_xlabel('y')
+        axs[i].set_ylabel('x')
+        axs[i].invert_xaxis()
+        axs[i].set_aspect('equal')
+        axs[i].legend()
+    
+    plt.show()
+
+def get_unique_filename(directory, filename):
+    base, extension = os.path.splitext(filename)
+    counter = 1
+    while os.path.exists(os.path.join(directory, filename)):
+        filename = f"{base}({counter}){extension}"
+        counter += 1
+    return filename
+
 # 9. Download augmented data function
-def download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, original_filenames, directory='augmented_data'):
-    """Download augmented datasets to the specified directory with integer values."""
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data', directory2='augmented_data_nested'):
+    global all_augmented_data  # Access the global list
+
+    if not os.path.exists(directory1):
+        os.makedirs(directory1)
+    
+    if not os.path.exists(directory2):
+        os.makedirs(directory2)
 
     for i, (augmented_data, scaler, original_df, original_filename) in enumerate(zip(augmented_datasets, scalers, original_data_frames, original_filenames)):
-        # Inverse transform the augmented data
-        augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
+        # Check if augmented_data is a list and convert to NumPy array if needed
+        if isinstance(augmented_data, list):
+            augmented_data = np.array(augmented_data)  # Convert list to NumPy array
         
-        # Round to integers
-        augmented_xyz_int = np.rint(augmented_xyz).astype(int)
+        print(f"augmented_data shape before inverse_transform: {augmented_data.shape}")
+        # Check dimensions and handle accordingly
+        if augmented_data.ndim == 3:
+            augmented_data = augmented_data.reshape(-1, augmented_data.shape[-1])
         
-        # Get pen status from augmented data
-        pen_status = augmented_data[:, 3].astype(int)
-        
-        # Prepare pressure, azimuth, altitude data
+        if isinstance(augmented_data, np.ndarray):
+            augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
+            augmented_xyz_int = np.rint(augmented_xyz).astype(int)
+            pen_status = augmented_data[:, 3].astype(int)
+        else:
+            raise TypeError(f"Expected augmented_data to be a NumPy array, but got {type(augmented_data)}")
+
         original_paa = original_df[['pressure', 'azimuth', 'altitude']].values
         
-        # If augmented data is longer, extend original_paa by repeating the last row
         if len(augmented_data) > len(original_paa):
-            last_row = original_paa[-1:]  # Get the last row
-            repeat_count = len(augmented_data) - len(original_paa)
-            extended_rows = np.tile(last_row, (repeat_count, 1))  # Repeat last row
-            original_paa = np.vstack((original_paa, extended_rows))  # Stack to original data
+            original_paa = repeat_backwards(original_paa, len(augmented_data))
         
-        # Round pressure, azimuth, altitude to integers
         original_paa_int = np.rint(original_paa).astype(int)
         
-        # Combine all data
+        new_timestamps = np.zeros(len(augmented_data), dtype=int)
+        increment_sequence = [7, 8]
+        current_time = 0
+        for idx in range(len(augmented_data)):
+            new_timestamps[idx] = current_time
+            current_time += increment_sequence[idx % 2]
+
+        augmented_xyz_int[:, 2] = new_timestamps
+
         augmented_data_original_scale = np.column_stack((
             augmented_xyz_int,
             pen_status,
             original_paa_int[:len(augmented_data)]
         ))
 
-        # Construct the new file name to match the original file name
-        augmented_filename = f"augmented_{original_filename}"
-        augmented_file_path = os.path.join(directory, augmented_filename)
+        # Use the original filename for nested directory
+        nested_filename = original_filename
+        nested_file_path = os.path.join(directory2, nested_filename)
 
-        # Save the augmented data to a file
+        # For augmented_data directory, add 'augmented_' prefix and handle duplicates
+        augmented_filename = f"synthetic_{original_filename}"
+        augmented_filename = get_unique_filename(directory1, augmented_filename)
+        augmented_file_path = os.path.join(directory1, augmented_filename)
+
         np.savetxt(augmented_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
+        np.savetxt(nested_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
+
+        # Only store augmented data from the augmented_data directory
+        all_augmented_data.append(augmented_data_original_scale)
 
         print(f"Augmented data saved to {augmented_file_path}")
+        print(f"Augmented data saved to {nested_file_path}")
         print(f"Shape of augmented data for {original_filename}: {augmented_data_original_scale.shape}")
+
+    return all_augmented_data  # Return augmented data if needed
+
+# Nested augmentation function
+def nested_augmentation(num_augmentations, num_files_to_use, data_frames, scalers, input_filenames, original_data_frames, model_path, avg_data_points, processed_data):
+    print(f"Inside nested_augmentation: processed_data type={type(processed_data)}, value={processed_data}")
+    vae_pretrained = load_pretrained_vae(model_path)
+    if vae_pretrained is None:
+        print("Error: Pretrained VAE model could not be loaded. Augmentation process halted.")
+        return
+    print("Pretrained VAE model loaded.")
+
+    # Use existing data for the first iteration
+    # global scalers, input_filenames, original_data_frames
+
+
+    # Check processed_data before passing it
+    if isinstance(processed_data, (list, np.ndarray)):
+        num_files_to_use = len(processed_data)
+    else:
+        raise ValueError(f"processed_data is not iterable, got: {type(processed_data)}")
+
+    for iteration in range(num_augmentations):
+        print(f"Starting augmentation iteration {iteration + 1}")
+        print(f"processed_data before iteration {iteration + 1}: type={type(processed_data)}, shape={[arr.shape for arr in processed_data]}")
+        
+        if iteration > 0:
+            # Update the data for subsequent iterations
+            directory = 'augmented_data_nested'
+            data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
+            print(f"processed_data after processing in iteration {iteration + 1}: type={type(processed_data)}, value={processed_data}")
+        print(f"Calling generate_augmented_datasets with processed_data shape: {[arr.shape for arr in processed_data]}")
+        augmented_datasets = generate_augmented_datasets(vae_pretrained, processed_data, data_frames, num_augmentations, avg_data_points,
+                                                     base_latent_variability, latent_variability_range)
+        print(f"augmented_datasets: {[type(dataset) for dataset in augmented_datasets]}")
+        
+        # Clear augmented_data_nested directory
+        if os.path.exists('augmented_data_nested'):
+            shutil.rmtree('augmented_data_nested')
+        os.makedirs('augmented_data_nested')
+
+        print(f"augmented_datasets: {type(augmented_datasets)}, scalers: {type(scalers)}, original_data_frames: {type(original_data_frames)}, original_filenames: {type(input_filenames)}")
+        download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames)
+        print(f"Completed augmentation iteration {iteration + 1}")
+    
+    # Clear the augmented_data_nested directory after the last iteration
+    if os.path.exists('augmented_data_nested'):
+        shutil.rmtree('augmented_data_nested')
+        print("Cleared augmented_data_nested directory after the final iteration.")
+    
+    print("Nested augmentation process completed.")
+    return augmented_datasets, scalers, original_data_frames, input_filenames
+    # visualize_augmented_data_from_directory('augmented_data')
 
 # 10. Repeat backwards function
 def repeat_backwards(original_paa, augmented_length):
-    """Repeat original data backwards to fill the required augmented length."""
     repeat_count = augmented_length - len(original_paa)
-
     if repeat_count <= 0:
         return original_paa
-
     backwards_rows = np.empty((0, original_paa.shape[1]))
     for i in range(repeat_count):
-        row_to_repeat = original_paa[-(i + 1)]  # Get the i-th row from the end
+        row_to_repeat = original_paa[-(i % len(original_paa) + 1)]
         backwards_rows = np.vstack((backwards_rows, row_to_repeat))
-
     return np.vstack((original_paa, backwards_rows))
 
 # 11. Calculate NRMSE
-def calculate_nrmse(original, predicted): 
+def calculate_nrmse(original, predicted):
     """Calculate the Normalized Root Mean Squared Error (NRMSE)."""
     if original.shape != predicted.shape:
         raise ValueError("The shapes of the original and predicted datasets must match.")
@@ -529,17 +637,37 @@ def calculate_nrmse(original, predicted):
     
     return nrmse
 
+def get_matching_augmented_files(original_file, augmented_folder):
+    base_name = os.path.basename(original_file)
+    base_name_without_ext = os.path.splitext(base_name)[0]
+    pattern = os.path.join(augmented_folder, f"synthetic_{base_name_without_ext}*.svc")
+    matching_files = glob(pattern)
+    
+    # Sort files based on the number in parentheses, with the base file (no number) first
+    def sort_key(filename):
+        match = re.search(r'\((\d+)\)', filename)
+        return int(match.group(1)) if match else -1
+    
+    return sorted(matching_files, key=sort_key)
+
 def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list):
     """Calculate NRMSE for a list of original and augmented datasets."""
     nrmse_values = []
 
     for i, (original_df, augmented) in enumerate(zip(original_data_frames, augmented_data_list)):
+        # Extract relevant columns from original data
         original_array = original_df[['x', 'y', 'timestamp', 'pen_status']].values
         augmented_array = augmented[:, :4]  # Assuming first 4 columns match original data structure
-
-        nrmse = calculate_nrmse(original_array, augmented_array)
+        
+        # Trim to the shorter length to ensure shapes match
+        min_length = min(len(original_array), len(augmented_array))
+        original_array_trimmed = original_array[:min_length]
+        augmented_array_trimmed = augmented_array[:min_length]
+        
+        # Calculate NRMSE with the trimmed arrays
+        nrmse = calculate_nrmse(original_array_trimmed, augmented_array_trimmed)
         nrmse_values.append(nrmse)
-        print(f"NRMSE for dataset {i+1}: {nrmse:.4f}")
+        print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
 
     # Calculate average NRMSE
     average_nrmse = np.mean(nrmse_values)
@@ -588,7 +716,7 @@ def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
         X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
 
         model = create_lstm_classifier((1, X_train.shape[2]))
-        model.fit(X_train, y_train, epochs=3, batch_size=256, verbose=1)
+        model.fit(X_train, y_train, epochs=3, batch_size=256, verbose=0)
 
         y_pred = (model.predict(X_test) > 0.5).astype(int)
         accuracy = accuracy_score(y_test, y_pred)
@@ -597,6 +725,8 @@ def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
     mean_accuracy = np.mean(accuracies)
     std_accuracy = np.std(accuracies)
 
+    print(f"Post-Hoc Discriminative Score: Mean Accuracy = {mean_accuracy:.4f}, Std = {std_accuracy:.4f}")
+    
     return mean_accuracy, std_accuracy
 
 # 14. Prepare data for LSTM
@@ -609,8 +739,8 @@ def prepare_data(df, time_steps=5):
     # Create sequences of length `time_steps`
     X, y = [], []
     for i in range(len(data_scaled) - time_steps):
-        X.append(data_scaled[i:i+time_steps])
-        y.append(data_scaled[i+time_steps])
+        X.append(data_scaled[i:i + time_steps])
+        y.append(data_scaled[i + time_steps])
     
     return np.array(X), np.array(y), scaler
 
@@ -634,19 +764,7 @@ def evaluate_model(model, X_test, y_test, scaler):
     
     # Compute MAPE for each test sample
     mape = mean_absolute_percentage_error(y_test_rescaled, y_pred_rescaled)
-    print(f"\nMAPE: {mape * 100:.2f}%")
-    
-    # Interpretation of MAPE
-    if mape < 0.1:
-        interpretation = "Excellent prediction"
-    elif mape < 0.2:
-        interpretation = "Good prediction"
-    elif mape < 0.5:
-        interpretation = "Fair prediction"
-    else:
-        interpretation = "Poor prediction"
-    
-    print(f"Interpretation: {interpretation}")
+    print(f"MAPE: {mape * 100:.2f}%")
     
     return mape
 
@@ -673,8 +791,8 @@ def k_fold_cross_validation(X, y, scaler, n_splits=10):
         y_train, y_test = y[train_index], y[test_index]
         
         # Create and train the model for each fold
-        model = create_lstm_classifier((X_train.shape[1], X_train.shape[2]))
-        model.fit(X_train, y_train, epochs=5, batch_size=512, verbose=0, callbacks=[CustomCallback()])
+        model = create_model((X_train.shape[1], X_train.shape[2]))
+        model.fit(X_train, y_train, epochs=5, batch_size=512, verbose=0)
         
         # Evaluate the model and store MAPE
         mape = evaluate_model(model, X_test, y_test, scaler)
@@ -684,7 +802,7 @@ def k_fold_cross_validation(X, y, scaler, n_splits=10):
     mean_mape = np.mean(mape_values)
     std_mape = np.std(mape_values)
 
-    print(f"\nMean MAPE: {mean_mape * 100:.2f}%")
+    print(f"Mean MAPE: {mean_mape * 100:.2f}%")
     print(f"Standard Deviation of MAPE: {std_mape * 100:.2f}%")
 
     return mean_mape, std_mape
@@ -754,3 +872,8 @@ learning_rate = 0.001
 vae = VAE(latent_dim, beta)
 optimizer = tf.keras.optimizers.Adam(learning_rate)
 lstm_discriminator = LSTMDiscriminator()
+
+# Global latent variability settings
+base_latent_variability = 100.0
+latent_variability_range = (0.99, 1.01)
+all_augmented_data = []

@@ -9,25 +9,32 @@ let hideInAir = false; // Flag to control visibility of in-air drawings
 // Array to store drawing data
 const drawingData = [];
 
+let lastDrawTime = 0;
+let lastX, lastY;
+let rafId;
+let lastTimestamp = 0;
+let lastRecordedTime = 0;
+const INTERVAL = 0.2; // 3 milliseconds = 100 plots per second
+let startTime = 0;
+
 // Set up the initial drawing properties
 ctx.strokeStyle = 'black'; // Default drawing color
 ctx.lineWidth = 2; // Width of the drawing line
 ctx.lineJoin = 'round'; // Smooth line joins
 ctx.lineCap = 'round'; // Smooth line caps
 
-// Altitude value
-const minVal = 490;
-const maxVal = 710;
-const valStep = 10;
-let altitudeDefault = minVal;
-let holdCounter = 10;
-
-
 // Scaling factor to amplify pixel coordinates
 const scalingFactor = 100; // Adjust this factor to achieve the desired range
 
 // Maximum value for pressure (based on reference values)
 const maxPressure = 255; // Adjust this value if needed
+
+// Function to convert altitude from radians to a scaled whole number
+function convertAltitude(radians) {
+    const degrees = radians * (180 / Math.PI); // Convert radians to degrees
+    const scaledAltitude = Math.round(degrees * 10); // Scale and round to achieve a value similar to 3 digits
+    return scaledAltitude;
+}
 
 // Function to convert pressure to a scaled whole number
 function convertPressure(pressure) {
@@ -50,55 +57,23 @@ function computeAzimuth() {
 }
 
 // Function to handle drawing and recording data
-function draw(x, y, pressure, azimuth, altitude) {
-    const timestamp = Math.floor(performance.now() * 1000); // Timestamp in microseconds
-    const penStatus = isDrawing ? 1 : 0;
-
-    const scaledX = Math.round(x * scalingFactor);
-    const scaledY = Math.round(y * scalingFactor);
-    const scaledAltitude = altitude;
-    const scaledPressure = convertPressure(pressure);
-    const computedAzimuth = computeAzimuth();
-
+function draw(x, y) {
     if (isDrawing) {
         ctx.lineTo(x, y);
         ctx.stroke();
-
-        // Interpolating multiple points between the last point and the current point
-        for (let i = 1; i <= 5; i++) { // Adjust the number for more/less dots
-            const interpolatedX = scaledX - (scaledX - lastX) * (i / 5);
-            const interpolatedY = scaledY - (scaledY - lastY) * (i / 5);
-            addDrawingData(interpolatedX, interpolatedY, timestamp, penStatus, computedAzimuth, scaledAltitude, scaledPressure);
-        }
-
-        lastX = scaledX; // Update lastX
-        lastY = scaledY; // Update lastY
-    } else {
-        if (!hideInAir) {
-            ctx.strokeStyle = 'red';
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
+    } else if (!hideInAir) {
+        ctx.strokeStyle = 'red';
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
     }
-
-    // Store the current position for future interpolations
-    lastX = scaledX;
-    lastY = scaledY;
-
-    // Store the data for the actual drawn point
-    addDrawingData(scaledX, scaledY, timestamp, penStatus, computedAzimuth, scaledAltitude, scaledPressure);
 }
 
 
 // Function to add data to the array
 function addDrawingData(x, y, timestamp, penStatus, azimuth, altitude, pressure) {
-    // Round x and y to ensure they are whole numbers
-    const roundedX = Math.round(x);
-    const roundedY = Math.round(y);
-
-    drawingData.push([roundedX, roundedY, timestamp, penStatus, azimuth, altitude, pressure]);
+    drawingData.push([x, y, timestamp, penStatus, azimuth, altitude, pressure]);
 }
 
 // Function to convert array data to SVC string
@@ -180,48 +155,58 @@ canvas.addEventListener('pointerdown', (e) => {
     ctx.strokeStyle = 'black';
     ctx.beginPath();
     ctx.moveTo(e.offsetX, e.offsetY);
+    lastRecordedTime = performance.now();
+    if (startTime === 0) {
+        startTime = lastRecordedTime;
+    }
 });
 
 // Stop drawing when the pen is up or mouse is released
 canvas.addEventListener('pointerup', () => {
     isDrawing = false;
-    ctx.beginPath(); // Reset the path
+    ctx.beginPath();
 });
-
-// Function to generate simulated altitude values
-function generateAltitude() {
-    if (holdCounter > 0) {
-        holdCounter--;
-    } else {
-        const changeDirection = Math.random() < 0.5;
-
-        if (changeDirection) {
-            altitudeDefault += valStep;
-        } else {
-            altitudeDefault -= valStep;
-        }
-
-        if (altitudeDefault > maxVal) {
-            altitudeDefault = maxVal;
-        } else if (altitudeDefault < minVal) {
-            altitudeDefault = minVal;
-        }
-
-        holdCounter = 10;
-    }
-
-    return altitudeDefault;
-}
 
 // Draw on the canvas while the pen is moving
-canvas.addEventListener('pointermove', (e) => {
-    const x = e.offsetX;
-    const y = e.offsetY;
-    const pressure = e.pressure || 0; // Default pressure to 0 if not available
-    const azimuth = e.azimuthAngle || 0; // Default azimuth to 0 if not available
-    const altitude = generateAltitude(); // Default altitude to 0 if not available
-    draw(x, y, pressure, azimuth, altitude);
-});
+canvas.addEventListener('pointermove', handlePointerMove);
+
+function handlePointerMove(e) {
+    const currentTime = performance.now();
+    
+    if (startTime === 0) {
+        startTime = currentTime;
+    }
+    
+    if (currentTime - lastRecordedTime >= INTERVAL) {
+        const x = e.offsetX;
+        const y = e.offsetY;
+        const pressure = e.pressure || 0;
+        const azimuth = e.azimuthAngle || 0;
+        const altitude = e.altitudeAngle || 0;
+        
+        recordPoint(x, y, currentTime, pressure, azimuth, altitude);
+        
+        lastRecordedTime = currentTime;
+    }
+    
+    // Always update visual feedback
+    draw(e.offsetX, e.offsetY);
+}
+
+function recordPoint(x, y, time, pressure, azimuth, altitude) {
+    const penStatus = isDrawing ? 1 : 0;
+
+    const scaledX = Math.round(x * scalingFactor);
+    const scaledY = Math.round(y * scalingFactor);
+    const scaledAltitude = convertAltitude(altitude);
+    const scaledPressure = convertPressure(pressure);
+    const computedAzimuth = computeAzimuth();
+
+    // Convert to centiseconds and round to nearest integer
+    const relativeTime = Math.round((time - startTime) / 10);
+
+    addDrawingData(scaledX, scaledY, relativeTime, penStatus, computedAzimuth, scaledAltitude, scaledPressure);
+}
 
 // Prevent default actions for touch events to avoid scrolling
 canvas.addEventListener('touchstart', preventDefault, { passive: false });

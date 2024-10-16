@@ -4,9 +4,12 @@ import os
 import sys
 import time
 import shutil
+import tempfile
 import zipfile
+import numpy as np
+import pandas as pd
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
@@ -18,34 +21,37 @@ from components.widget.file_container_widget import FileContainerWidget
 from components.widget.plot_container_widget import PlotContainerWidget 
 from components.widget.spin_box_widget import SpinBoxWidget
 from components.widget.result_preview_widget import SVCpreview
-from pages.local import Local
 from model.scbetavaegan_pentab import (
     upload_and_process_files,
+    process_dataframes,
+    convert_and_store_dataframes,
     generate_augmented_datasets,
+    nested_augmentation,
     save_model,
-    download_augmented_data_as_integers,
+    download_augmented_data_with_modified_timestamp,
     VAE,
     LSTMDiscriminator,
     train_models,
-    plot_training_history
+    plot_training_history,
+    calculate_nrmse,
+    post_hoc_discriminative_score
 )
 
 class ModelTrainingThread(QThread):
     finished = pyqtSignal()
     log_signal = pyqtSignal(str)
-    zip_ready = pyqtSignal(str)  # Signal to indicate the zip file is ready
-    # figures_ready = pyqtSignal(object, object)  # Signal to emit figures
+    zip_ready = pyqtSignal(str, str)
 
     def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
         super().__init__()
         self.uploads_dir = uploads_dir
         self.selected_file = selected_file 
-        self.num_augmented_files = num_augmented_files
+        self.num_augmented_files = num_augmented_files  # This is passed to nested_augmentation
         self.epochs = epochs
         self.logger = logger
 
         timestamp = time.strftime('%Y%m%d_%H%M%S')
-        self.synthetic_data_dir = os.path.join(uploads_dir, f'synthetic_data_{timestamp}')
+        self.synthetic_data_dir = os.path.join(uploads_dir, f'SyntheticData_{timestamp}')
         os.makedirs(self.synthetic_data_dir, exist_ok=True)
 
         self.model_output_dir = os.path.join('model', 'pentab_vae_models')
@@ -60,53 +66,81 @@ class ModelTrainingThread(QThread):
         try:
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(file_path)
             self.log("File loaded and processed successfully.")
+            self.log(f"Number of data frames loaded: {len(data_frames)}")
+            self.log("Processed data: ", processed_data)
         except Exception as e:
             self.log(f"Error processing file: {e}", level="ERROR")
             self.finished.emit()
             return
 
-        # Step 2: Initialize the VAE model and LSTM Discriminator
+        # Step 2: Process and save the loaded dataframes
+        self.log("Converting and saving the processed dataframes...")
+        convert_and_store_dataframes(input_filenames, data_frames)
+        self.log("Data frames converted and saved.")
+
+        self.log("Processing the data frames...")
+        process_dataframes(data_frames)
+        self.log("Processing of data frames completed.")
+
+        # Step 3: Initialize the VAE model and LSTM Discriminator
         vae = VAE(latent_dim=512, beta=0.000001)
         lstm_discriminator = LSTMDiscriminator()
         self.log("VAE and LSTM Discriminator initialized.")
 
-        # Step 3: Train the model with uploaded data
+        # Step 4: Train the model with uploaded data
         self.log(f"Training started for {self.epochs} epochs...")
-        generator_loss_history = []
-        reconstruction_loss_history = []
-        kl_loss_history = []
-        nrmse_history = []
-
         for epoch in range(self.epochs):
             self.log(f"Epoch {epoch + 1}/{self.epochs} in progress...")
-            train_models(vae, lstm_discriminator, processed_data, epochs=1)
+            train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files=self.num_augmented_files, epochs=1)
             self.log(f"Epoch {epoch + 1} completed.")
 
         self.log("Training completed.")
 
-        # Step 4: Save the trained model
-        model_output_path = os.path.join(self.model_output_dir, 'trained_vae_model.h5')
+        # Step 5: Save the trained model
+        model_output_path = os.path.join(self.model_output_dir)
+        model_file_path = os.path.join(self.model_output_dir, 'final_vae_model.h5')
         save_model(vae, model_output_path)
         self.log(f"Model saved at {model_output_path}")
 
-        # Step 5: Generate augmented data
-        self.log("Generating augmented data...")
-        augmented_datasets = generate_augmented_datasets(vae, processed_data, data_frames, self.num_augmented_files, avg_data_points)
-        self.log("Synthetic data generation completed.")
+        self.log(f"processed_data before nested augmentation: type={type(processed_data)}, length={len(processed_data) if isinstance(processed_data, (list, np.ndarray)) else 'N/A'}")
+        for i, data in enumerate(processed_data):
+            self.log(f"processed_data[{i}] type: {type(data)}, value: {data}")
 
-        # Step 6: Save augmented data as .svc files
-        download_augmented_data_as_integers(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
+        # Step 6: Generate augmented data using nested_augmentation
+        self.log("Generating nested augmented data...")
+        try:
+            # Pass the necessary arguments to nested_augmentation
+            augmented_datasets = nested_augmentation(
+                num_augmentations=self.num_augmented_files,
+                num_files_to_use=len(processed_data),
+                data_frames=data_frames,
+                scalers=scalers, 
+                input_filenames=input_filenames, 
+                original_data_frames=original_data_frames,
+                model_path=model_file_path,
+                avg_data_points=avg_data_points,
+                processed_data=processed_data
+            )
+            if augmented_datasets is None:
+                print("nested_augmentation returned None.")
+                return
+            self.log("Nested synthetic data generation completed.")
+        except Exception as e:
+            self.log(f"Error during nested augmentation: {e}", level="ERROR")
+            self.finished.emit()
+            return
+
+        # Step 7: Save augmented data as .svc files
+        download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, input_filenames, self.synthetic_data_dir)
         self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
 
-        # Step 7: Zip the synthetic data files
+        # Step 8: Zip the synthetic data files
         zip_file_path = self.create_zip(self.synthetic_data_dir)
         self.log(f"Zipped synthetic data saved at {zip_file_path}")
 
-        # Notify the main thread that the zip file is ready
-        self.zip_ready.emit(zip_file_path)
-
-        # Step 8: Get the training loss and NRMSE figures
-        # fig_loss, fig_nrmse = plot_training_history(generator_loss_history, reconstruction_loss_history, kl_loss_history, nrmse_history)
+        original_file_path = os.path.join('original_absolute', self.selected_file)
+        print("Path: ", original_file_path)
+        self.zip_ready.emit(zip_file_path, original_file_path)
 
         # Notify completion
         self.finished.emit()
@@ -132,17 +166,11 @@ class ModelTrainingThread(QThread):
 class Handwriting(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Handwriting, self).__init__(parent)
-        self.drawing_done = False  # State to check if done button was clicked
-        self.flask_process = None  # To keep track of the Flask process
-        self.current_filename = None
-        self.file_list = []
+        self.drawing_done = False
+        self.flask_process = None
+        self.file_list = []  # List to store uploaded .svc files
+        self.threads = []
         self.setupUi()
-
-    def setupUi(self):
-        """Initial setup for the drawing page or Flask app depending on the file_list state."""
-        self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.setAlignment(QtCore.Qt.AlignTop)
-        self.layout.setContentsMargins(50, 0, 50, 50)
 
     def setupUi(self):
         """Initial setup for the drawing page or Flask app depending on the file_list state."""
@@ -163,15 +191,10 @@ class Handwriting(QtWidgets.QWidget):
         self.result_preview_widget = SVCpreview(self)
         self.layout.addWidget(self.result_preview_widget)
 
-        # Initialize Plot Container Widget for training history plots
-        # self.plot_container = PlotContainerWidget(self)
-        # self.layout.addWidget(self.plot_container)
-
         # Set widgets initially collapsed
         self.process_log_widget.setVisible(False)
         self.output_widget.setVisible(False)
         self.result_preview_widget.setVisible(False)
-        # self.plot_container.setVisible(False)
 
         # Check if there is existing handwriting data (i.e., file_list is not empty)
         if self.file_list:
@@ -187,9 +210,6 @@ class Handwriting(QtWidgets.QWidget):
             item = self.layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-            if item.layout():
-                self.clear_layout_recursively(item.layout())
-            del item
         
         # Reset references to deleted widgets
         self.process_log_widget = None
@@ -229,20 +249,16 @@ class Handwriting(QtWidgets.QWidget):
 
         # Connect the button's click events
         drawButton.clicked.connect(self.show_confirmation_dialog)
+
     def show_confirmation_dialog(self):
         """Show a confirmation dialog before proceeding to the drawing page."""
         message_box = QtWidgets.QMessageBox(self)
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle("Proceed to Handwriting & Drawing")
-        message_box.setText(
-            "Do you want to start drawing and handwriting?"
-        )
+        message_box.setText("Do you want to start drawing and handwriting?")
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
 
-        # Apply stylesheet to customize button font size
-        message_box.setStyleSheet("QPushButton { font-size: 14px; }")
-    
         response = message_box.exec_()
 
         if response == QtWidgets.QMessageBox.Ok:
@@ -280,16 +296,18 @@ class Handwriting(QtWidgets.QWidget):
             if response.status_code == 200:
                 data = response.json()
                 filename = data.get('filename')
-                self.show_done_page(filename)  # Pass the filename to the next page
-                self.file_list.append(filename)
-                if hasattr(self, 'file_preview_widget'):
-                    self.file_preview_widget.set_uploaded_files(self.file_list)
+                if filename.endswith('.svc'):  # Ensure file is an .svc file
+                    self.show_done_page(filename)
+                    if filename not in self.file_list:  # Avoid duplicate
+                        self.file_list.append(filename)
+                        if hasattr(self, 'file_preview_widget'):
+                            self.file_preview_widget.set_uploaded_files(self.file_list)
+                else:
+                    self.process_log_widget.append_log(f"Invalid file type: {filename}")
             else:
-                print("File not uploaded yet, retrying...")
-                QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Retry after delay
+                QtCore.QTimer.singleShot(5000, self.check_drawing_done)
         except requests.ConnectionError:
-            print("Flask server not ready, retrying...")
-            QtCore.QTimer.singleShot(5000, self.check_drawing_done)  # Retry after delay if connection failed
+            QtCore.QTimer.singleShot(5000, self.check_drawing_done)
 
     def show_done_page(self, filename):
         """Show the page after the drawing is completed."""
@@ -305,7 +323,7 @@ class Handwriting(QtWidgets.QWidget):
         scroll_widget = QtWidgets.QWidget()
         scroll_layout = QtWidgets.QVBoxLayout(scroll_widget)
         scroll_layout.setAlignment(QtCore.Qt.AlignTop)
-        ##
+
         # Create a scrollable widget
         sub_area = QScrollArea()
         sub_area.setWidgetResizable(True)
@@ -389,7 +407,7 @@ class Handwriting(QtWidgets.QWidget):
 
 
         # Add the slider widget directly to the collapsible widget
-        self.spin_box_widget = SpinBoxWidget(0)
+        self.spin_box_widget = SpinBoxWidget(1)
         self.collapsible_widget.add_widget(self.spin_box_widget)
 
         # Add "Draw More" and "Clear All" buttons inside the collapsible widget
@@ -462,9 +480,7 @@ class Handwriting(QtWidgets.QWidget):
         # Call the collapsible widget component for result
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
         scroll_layout.addWidget(self.collapsible_widget_result)
-
-        # Add the svc preview widget for input
-        self.svc_preview = SVCpreview(filename, 0)
+        self.svc_preview = SVCpreview(input=filename)
         self.collapsible_widget_result.add_widget(self.svc_preview)
 
         # Generate Synthetic Data button
@@ -499,61 +515,165 @@ class Handwriting(QtWidgets.QWidget):
         scroll_layout.addLayout(button_layout)
 
         # Automatically open file preview widget after 2 secs
-        QtCore.QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
+        QTimer.singleShot(2000, lambda: self.collapsible_widget_file_preview.toggle_container(True))
         
     def on_generate_data(self):
-        """Start the process to generate synthetic data using the user's selected file."""
-        uploads_dir = 'uploads' 
-        num_augmented_files = 10
+        """Start processing the selected .svc files."""
+        uploads_dir = 'uploads'
+        num_augmented_files = self.spin_box_widget.number_input.value()
         epochs = 10
 
-        selected_file = self.file_dropdown.currentText()
-
-        if not selected_file:
-            self.process_log_widget.append_log("No file selected.")
+        if not self.file_list:
+            self.process_log_widget.append_log("No files available for processing.")
             return
 
         self.process_log_widget.setVisible(True)
-
+        self.collapsible_widget_process_log.toggle_container(True)
         self.generate_data_button.setEnabled(False)
 
-        # Start the model training thread with the selected file
-        self.model_thread = ModelTrainingThread(uploads_dir, selected_file, num_augmented_files, epochs, logger=self.logger)
-        self.model_thread.log_signal.connect(self.process_log_widget.append_log) 
-        self.model_thread.zip_ready.connect(self.on_zip_ready) 
-        # self.model_thread.figures_ready.connect(self.display_training_plots)
-        self.model_thread.finished.connect(self.on_training_finished)
-        self.model_thread.start()
+        file_count = len(self.file_list)
+        self.process_log_widget.append_log(f"Starting data generation for {file_count} file(s)...")
 
-    # def display_training_plots(self, fig_loss, fig_nrmse):
-       # """Display the training loss and NRMSE plots in the result widget."""
-        # Use the PlotContainerWidget to display the training loss plot
-        # self.plot_container.load_plot_from_figure(fig_loss)  # Assuming you want to display fig_loss
-        # self.plot_container.setVisible(True)  # Make the plot container visible
+        for selected_file in self.file_list:
+            if not selected_file.endswith('.svc'):
+                self.process_log_widget.append_log(f"Skipping non-.svc file: {selected_file}")
+                continue
 
-    def on_zip_ready(self, zip_file_path):
-        if self.result_preview_widget and hasattr(self.result_preview_widget, 'set_zip_path'):
-            # Set the zip path for result preview widget
-            QtCore.QMetaObject.invokeMethod(self.result_preview_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
-            self.result_preview_widget.setVisible(True)
+            # Start a new thread for each file
+            thread = ModelTrainingThread(uploads_dir, selected_file, num_augmented_files, epochs, logger=self.logger)
+            self.threads.append(thread)  # Keep track of threads
+            thread.log_signal.connect(self.process_log_widget.append_log)
+            thread.zip_ready.connect(self.on_zip_ready)
+            thread.finished.connect(self.on_thread_finished)
+            thread.start()
 
+        self.process_log_widget.append_log("All threads started, awaiting results...")
+    
+    def closeEvent(self, event):
+        """Ensure the Flask app process and threads are killed when the main window is closed."""
+        # Terminate the Flask process if running
+        if self.flask_process:
+            self.flask_process.terminate()
+
+        # Stop all running threads
+        for thread in self.threads:
+            if thread.isRunning():
+                thread.quit()  # Stop the thread
+                thread.wait()  # Wait until it's fully terminated
+
+        event.accept()
+    
+    def on_thread_finished(self):
+        """Callback when a single file has finished processing."""
+        self.process_log_widget.append_log("A file has finished processing.")
+
+        # Check if all threads are done before re-enabling the button
+        for thread in self.threads:
+            if thread.isFinished():
+                self.threads.remove(thread)  # Remove finished threads
+
+        if not self.threads:  # If all threads are finished
+            self.process_log_widget.append_log("All files have finished processing.")
+            self.generate_data_button.setEnabled(True)
+
+    def on_zip_ready(self, zip_file_path, original_file_path):
         # Set the zip path for output widget
         if hasattr(self.output_widget, 'set_zip_path'):
             QtCore.QMetaObject.invokeMethod(self.output_widget, "set_zip_path", QtCore.Qt.QueuedConnection, QtCore.Q_ARG(str, zip_file_path))
             self.output_widget.setVisible(True)
+            self.collapsible_widget_output.toggle_container(True)
+
+        try:
+            # Check if original file exists
+            if not os.path.exists(original_file_path):
+                self.process_log_widget.append_log(f"Error: Original file not found at {original_file_path}")
+                return
+
+            # Create a temporary directory to extract the synthetic data
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Extract the synthetic data from the zip file
+                with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                    zip_ref.extractall(temp_dir)
+
+                # Get the path of the first extracted synthetic data file
+                synthetic_file = os.path.join(temp_dir, os.listdir(temp_dir)[0])
+
+                # Calculate metrics between the original and synthetic data
+                # metrics = self.calculate_metrics(original_file_path, synthetic_file)
+
+                # Display the original and synthetic data in the SVCpreview widget
+                self.svc_preview.add_graph_containers()
+
+                self.svc_preview.display_file_contents(original_file_path, 0)  # Original file
+                self.svc_preview.display_graph_contents(original_file_path, 0)
+                self.svc_preview.display_handwriting_contents(original_file_path, 0)
+
+                self.svc_preview.display_file_contents(synthetic_file, 1)  # Synthetic file
+                self.svc_preview.display_graph_contents(synthetic_file, 1)
+                self.svc_preview.display_handwriting_contents(synthetic_file, 1)
+
+                # Display metrics in the results widget
+                # self.svc_preview.display_metrics(metrics)
+
+                # Display the results widget and open it
+                self.svc_preview.setVisible(True)
+                self.collapsible_widget_result.toggle_container(True)
+
+        except Exception as e:
+            self.process_log_widget.append_log(f"Error displaying results: {e}")
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
+        self.generate_data_button.setText("Generate Synthetic Data")
         self.generate_data_button.setEnabled(True)
         self.process_log_widget.append_log("Data generation finished.")
 
-    def update_results_widget(self, zip_path):
-        """Display the contents of the zip file in the Results widget."""
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            files = zip_ref.namelist()
-            for file in files:
-                self.results_widget.addItem(f"File: {file}")
+    def update_results_preview(self, zip_file_path):
+        """Unzip the synthetic data and update the results preview."""
+        try:
+            # Unzip the synthetic data
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall("synthetic_output")
+            synthetic_file = os.path.join("synthetic_output", os.listdir("synthetic_output")[0])
 
+            # Get the original file
+            original_file = self.file_list[0]  # Assuming the first file in the list is the original
+
+            # Calculate metrics
+            metrics = self.calculate_metrics(original_file, synthetic_file)
+
+            # Update the SVC preview widget with the original and synthetic data
+            # self.svc_preview = SVCpreview(input=original_file, output=synthetic_file, metrics=metrics)
+
+            # Update the results text field with metrics
+            self.results_text.setPlainText(f"NRMSE: {metrics['nrmse']:.4f}\n"
+                                           f"Post-Hoc Discriminative Score: {metrics['discriminative_score']:.4f}\n"
+                                           f"Post-Hoc Predictive Score: {metrics['predictive_score']:.4f}\n")
+
+            self.layout.addWidget(self.svc_preview)
+
+        except Exception as e:
+            self.process_log_widget.append_log(f"Error updating results preview: {e}", level="ERROR")
+
+    def calculate_metrics(self, original_file, synthetic_file):
+        """Calculate and return the NRMSE, discriminative, and predictive scores."""
+        original_data = pd.read_csv(original_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+        synthetic_data = pd.read_csv(synthetic_file, sep=' ', names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+
+        # Compute NRMSE
+        nrmse = calculate_nrmse(original_data[['x', 'y']].values, synthetic_data[['x', 'y']].values)
+
+        # Compute Post-Hoc Discriminative Score (you can use the LSTM model for this)
+        discriminative_score = post_hoc_discriminative_score(original_data, synthetic_data)
+
+        # Compute Post-Hoc Predictive Score (LSTM-based predictive model)
+        # predictive_score = post_hoc_predictive_score(original_data, synthetic_data)
+
+        return {
+            "nrmse": nrmse,
+            "discriminative_score": discriminative_score,
+            # "predictive_score": predictive_score
+        }
 
     def show_reset_confirmation_dialog(self):
         """Show a confirmation dialog before resetting the state."""
@@ -574,6 +694,15 @@ class Handwriting(QtWidgets.QWidget):
     def clear_all_drawings(self):
         """Clear all added files and reset the state."""
         self.file_list.clear()  # Empty the file list
+
+        # Stop all running threads when clearing all drawings
+        for thread in self.threads:
+            if thread.isRunning():
+                thread.quit()
+                thread.wait()
+
+        self.threads.clear()  # Clear the thread list after stopping them
+
         self.show_drawing_page()  # Go back to the initial drawing page
 
     def reset_state(self):

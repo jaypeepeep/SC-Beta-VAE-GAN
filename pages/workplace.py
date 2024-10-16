@@ -44,11 +44,15 @@ from PyQt5.QtWidgets import QMessageBox
 from glob import glob
 import re
 
+from PyQt5.QtWidgets import QApplication
+
+
 class GenerateDataWorker(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
     progress = pyqtSignal(str)  # For logging progress
     generation_complete = pyqtSignal()
+    metrics = pyqtSignal(str)
 
     def __init__(self, workplace):
 
@@ -66,14 +70,14 @@ class GenerateDataWorker(QThread):
 
     def run(self):
         plt.close('all')
-        tf.keras.backend.clear_session()
         try:
             self.progress.emit("Starting data generation process...")
+            self.progress.emit(f"There are {self.num_augmentations} augmentations to generate per file.")
             # Move all the generation logic here
             self.timestamp = time.strftime("%Y%m%d-%H%M%S")
             self.folder_name = f"SyntheticData_{self.timestamp}"
             self.output_dir = os.path.join(
-                os.path.dirname(__file__), "../uploads", self.folder_name
+                os.path.dirname(__file__), "../files/uploads", self.folder_name
             )
 
             if not os.path.exists(self.output_dir):
@@ -137,7 +141,7 @@ class GenerateDataWorker(QThread):
             )  ##dito sa processed data naka_store
             print(f"Average number of data points: {self.avg_data_points}")
 
-            self.progress.emit("Processing time series data and filling gaps...")
+            self.progress.emit("Processing time series data and masking gaps...")
             for self.df_idx in range(len(self.data_frames)):
                 self.progress.emit(f"Processing file {self.df_idx + 1}/{len(self.data_frames)}")
                 self.df = self.data_frames[
@@ -234,7 +238,7 @@ class GenerateDataWorker(QThread):
                 np.mean([self.df.shape[0] for self.df in self.data_frames])
             )
 
-            self.imputed_folder = 'imputed'
+            self.imputed_folder = 'files/imputed'
             os.makedirs(self.imputed_folder, exist_ok=True)
 
             self.processed_dataframes = []
@@ -320,6 +324,7 @@ class GenerateDataWorker(QThread):
 
     def train_model(self):
         try:
+            tf.keras.backend.clear_session()
             # Initialize LSTM discriminator and optimizer
             self.lstm_discriminator = scbetavaegan.LSTMDiscriminator()
             self.lstm_optimizer = tf.keras.optimizers.Adam(
@@ -575,6 +580,8 @@ class GenerateDataWorker(QThread):
 
             plt.tight_layout()
 
+            self.progress.emit("Model training completed. Saving model...")
+
             # Get the number of files in the 'pre-trained' folder
             self.num_files_pretrained = len([name for name in os.listdir(self.save_dir) if os.path.isfile(os.path.join(self.save_dir, name))])
 
@@ -583,7 +590,8 @@ class GenerateDataWorker(QThread):
             self.vae.save(self.model_save_path)
             print(f"VAE model saved at {self.model_save_path}.")
 
-            self.generate_synthetic_data(os.path.basename(self.model_save_path), self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frame)
+            self.progress.emit("Starting synthetic data generation...")
+            self.generate_synthetic_data(os.path.basename(self.model_save_path), self.data_frames, self.processed_data, self.scalers, self.avg_data_points, self.input_filenames, self.original_data_frames)
 
         except Exception as e:
             self.error.emit(str(e) + "\n" + traceback.format_exc())
@@ -595,8 +603,10 @@ class GenerateDataWorker(QThread):
             self.latent_variability_range = (0.99, 1.01)
             self.all_augmented_data = [] 
 
-            self.all_augmented_filepaths = scbetavaegan.nested_augmentation(self.all_augmented_data, self.num_augmentations, self.num_files_to_use, pretrained_filename, self.base_latent_variability, self.latent_variability_range, data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames)
+            self.progress.emit(f"Generating synthetic data using {pretrained_filename}...")
+            self.all_augmented_filepaths, self.augmented_zip_filepath = scbetavaegan.nested_augmentation(self.all_augmented_data, self.num_augmentations, self.num_files_to_use, pretrained_filename, self.base_latent_variability, self.latent_variability_range, data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames)
             
+            self.progress.emit("Synthetic data generation completed.")
             self.generation_complete.emit()
             self.result_preview(input_filenames)
         except Exception as e:
@@ -604,30 +614,42 @@ class GenerateDataWorker(QThread):
 
     def result_preview(self, input_filenames):
         try:
+            self.progress.emit("Starting result preview and analysis...")
             # Define the folders directly in the notebook cell
-            self.imputed_folder = "imputed"
-            self.augmented_folder = "augmented_data"
+            self.imputed_folder = "files/imputed"
+            self.augmented_folder = "files/augmented_data"
 
             # Process the files and calculate NRMSE
+            self.progress.emit("Calculating NRMSE for generated data...")
             self.results = scbetavaegan.process_files_NRMSE(self.imputed_folder, self.augmented_folder, input_filenames)
-
             # Display the results
+            self.progress.emit("=== RESULTS: NRMSE ANALYSIS ===")
             for self.original_file, self.nrmse_values in self.results.items():
                 print(f"Results for {self.original_file}:")
+                self.progress.emit(f"Results for {self.original_file}:")
+                QApplication.processEvents()
                 for i, self.nrmse in enumerate(self.nrmse_values):
                     self.augmented_version = f"({i})" if i > 0 else "base"
+                    QApplication.processEvents()
                     print(f"  NRMSE for augmented version {self.augmented_version}: {self.nrmse:.4f}")
                 
                 if self.nrmse_values:
                     self.avg_nrmse = np.mean(self.nrmse_values)
+                    self.progress.emit(f"  Average NRMSE: {self.avg_nrmse:.4f}")
+                    QApplication.processEvents()
                     print(f"  Average NRMSE: {self.avg_nrmse:.4f}")
                 print()
+                self.progress.emit("")
 
             # Calculate and display the overall average NRMSE
             self.all_nrmse = [self.nrmse for self.nrmse_list in self.results.values() for self.nrmse in self.nrmse_list]
             self.overall_avg_nrmse = np.mean(self.all_nrmse)
             print(f"Overall Average NRMSE: {self.overall_avg_nrmse:.4f}")
+            self.progress.emit(f"Overall Average NRMSE: {self.overall_avg_nrmse:.4f}")
+            self.metrics.emit("NRMSE")
+            self.progress.emit("=== END OF NRMSE ANALYSIS ===")
 
+            self.progress.emit("Calculating post-hoc discriminative score...")
             # Process files, without NRMSE
             self.real_data, self.synthetic_data = scbetavaegan.process_files_PHDS(self.imputed_folder, self.augmented_folder, input_filenames)
 
@@ -635,6 +657,12 @@ class GenerateDataWorker(QThread):
             self.mean_accuracy, self.std_accuracy = scbetavaegan.post_hoc_discriminative_score(self.real_data, self.synthetic_data)
 
             print(f"Mean accuracy: {self.mean_accuracy:.4f} (±{self.std_accuracy:.4f})")
+            self.progress.emit("=== RESULTS: POST-HOC DISCRIMINATIVE SCORE ===")
+            self.progress.emit(f"Mean accuracy: {self.mean_accuracy:.4f} (±{self.std_accuracy:.4f})")
+            self.metrics.emit("PHDS")
+            self.progress.emit("=== END OF POST-HOC DISCRIMINATIVE SCORE ===")
+
+            self.progress.emit("Calculating post-hoc predictive score...")
 
             self.X, self.y, self.scaler = scbetavaegan.prepare_data(self.data_frames[0])
 
@@ -643,13 +671,15 @@ class GenerateDataWorker(QThread):
             self.mape_values = []
             for self.fold, (self.train_index, self.test_index) in enumerate(self.kf.split(self.X), start=1):
                 print(f"\n--- Fold {self.fold} ---")
+                self.progress.emit(f"Processing fold {self.fold} of 10...")
+                QApplication.processEvents()
                 
                 # Split data into training and testing sets for this fold
                 self.X_train, self.X_test = self.X[self.train_index], self.X[self.test_index]
                 self.y_train, self.y_test = self.y[self.train_index], self.y[self.test_index]
 
                 self.model = scbetavaegan.create_model((self.X_train.shape[1], self.X_train.shape[2]))
-                self.model.fit(self.X_train, self.y_train, epochs=5, batch_size=512, verbose=3, callbacks=[scbetavaegan.CustomCallback()])
+                self.model.fit(self.X_train, self.y_train, epochs=2, batch_size=1024, verbose=3, callbacks=[scbetavaegan.CustomCallback()])
                 
                 # Evaluate the model and store MAPE
                 self.mape = scbetavaegan.evaluate_model(self.model, self.X_test, self.y_test, self.scaler)
@@ -659,6 +689,14 @@ class GenerateDataWorker(QThread):
             # Step 5: Calculate Mean and Standard Deviation of MAPE
             self.mean_mape = np.mean(self.mape_values)
             self.std_mape = np.std(self.mape_values)
+
+            self.progress.emit("=== RESULTS: POST-HOC PREDICTIVE SCORE ===")
+            self.progress.emit(f"Mean MAPE: {self.mean_mape * 100:.2f}%")
+            self.progress.emit(f"Standard Deviation of MAPE: {self.std_mape * 100:.2f}%")
+            self.metrics.emit("PHPS")
+            self.progress.emit("=== END OF POST-HOC PREDICTIVE SCORE ===")
+
+            self.progress.emit("Result preview and analysis completed.")
 
             print(f"\nMean MAPE: {self.mean_mape * 100:.2f}%")
             print(f"Standard Deviation of MAPE: {self.std_mape * 100:.2f}%")
@@ -760,6 +798,7 @@ class Workplace(QtWidgets.QWidget):
         # Proceed only if the user confirms with 'Yes'
         if confirmation:
             self.process_log_widget.clear()
+            self.model_widget.uncheck_checkbox()
             self.svc_preview.clear()
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
@@ -782,6 +821,7 @@ class Workplace(QtWidgets.QWidget):
             self.worker.progress.connect(
                 self.logger.info
             )  # Connect directly to logger.info
+            self.worker.metrics.connect(self.on_generation_results)
 
             # Start the thread
             self.worker.start()
@@ -800,6 +840,8 @@ class Workplace(QtWidgets.QWidget):
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
             self.collapsible_widget_process_log.toggle_container(True)
+            if self.selected_model == "EMOTHAW.h5":
+                self.svc_preview.add_graph_containers()
             # Disable the generate button and change text
             self.generate_data_button.setEnabled(False)
             self.generate_data_button.setText("Generating...")
@@ -815,6 +857,7 @@ class Workplace(QtWidgets.QWidget):
             self.worker.progress.connect(self.logger.info)  # Connect directly to logger.info
             self.worker.generation_complete.connect(self.on_generation_finished)
             self.worker.finished.connect(self.on_generation_complete)
+            self.worker.metrics.connect(self.on_generation_results)
 
             # Start the worker
             self.worker.start()
@@ -823,6 +866,8 @@ class Workplace(QtWidgets.QWidget):
         # Re-enable the generate button
         self.generate_data_button.setEnabled(True)
         self.generate_data_button.setText("Generate Synthetic Data")
+
+        self.model_widget.refresh_file_list()
 
         # Clean up
         if self.worker:
@@ -837,10 +882,23 @@ class Workplace(QtWidgets.QWidget):
 
         self.update_output_file_display(self.worker.all_augmented_filepaths)
         self.update_original_absolute_file_display(self.worker.original_absolute_files)
+        self.output_widget.set_zip_path(self.worker.augmented_zip_filepath)
 
         # Expand relevant sections
         self.collapsible_widget_output.toggle_container(True)
         self.collapsible_widget_result.toggle_container(True)
+
+    def on_generation_results(self, results):
+        if results == "NRMSE":
+            self.svc_preview.add_result_text("Normalized Root Mean Square Error (NRMSE)")
+            self.svc_preview.add_result_text(f"\tOverall Average NRMSE: {self.worker.overall_avg_nrmse:.4f}")
+        elif results == "PHDS":
+            self.svc_preview.add_result_text("\nPost-Hoc Discriminative Score (PHDS)")
+            self.svc_preview.add_result_text(f"\tMean accuracy: {self.worker.mean_accuracy:.4f} (±{self.worker.std_accuracy:.4f})")
+        elif results == "PHPS":
+            self.svc_preview.add_result_text("\nPost-Hoc Predictive Score (PHPS)")
+            self.svc_preview.add_result_text(f"\tMean MAPE: {self.worker.mean_mape * 100:.2f}%")
+            self.svc_preview.add_result_text(f"\tStandard Deviation of MAPE: {self.worker.std_mape * 100:.2f}%")
 
     def on_generation_error(self, error_message):
         # Re-enable the generate button
@@ -867,7 +925,11 @@ class Workplace(QtWidgets.QWidget):
         msg.setIcon(QMessageBox.Critical)
         msg.setText("Error")
         msg.setInformativeText(message)
-        msg.setWindowTitle("Error")
+
+        if message == "Please upload a file first":
+            msg.setWindowTitle("File Upload Error")
+        else:
+            msg.setWindowTitle("Model Selection Error")
         
         # Set custom icon
         icon = QIcon("icon/icon.ico")
@@ -969,24 +1031,10 @@ class Workplace(QtWidgets.QWidget):
         self.collapsible_widget_process_log.add_widget(self.process_log_widget)
 
     def setup_output_collapsible(self):
+        # Add the Output Widget
         self.collapsible_widget_output = CollapsibleWidget("Output", self)
         self.scroll_layout.addWidget(self.collapsible_widget_output)
-
-        # Create a scroll area for output files
-        self.output_scroll_area = QtWidgets.QScrollArea(self)
-        self.output_scroll_area.setWidgetResizable(True)
-
-
-        # Create a container to hold the file widgets and its layout
-        self.output_file_container_widget = QtWidgets.QWidget(self)
-        self.output_file_container_layout = QtWidgets.QVBoxLayout(self.output_file_container_widget)
-
-        # Add the output file container widget to the scroll area
-        self.output_scroll_area.setWidget(self.output_file_container_widget)
-        self.collapsible_widget_output.add_widget(self.output_scroll_area)
-
         self.output_widget = OutputWidget(self)
-        self.output_widget.clearUI.connect(self.clear_all_ui)
         self.collapsible_widget_output.add_widget(self.output_widget)
 
     def setup_result_collapsible(self):
@@ -1095,30 +1143,20 @@ class Workplace(QtWidgets.QWidget):
 
     def update_output_file_display(self, all_augmented_filepaths):
         """Update the display of files based on newly generated augmented files."""
-        # Clear existing widgets in the output file container layout
-        for i in reversed(range(self.output_file_container_layout.count())):
-            widget = self.output_file_container_layout.itemAt(i).widget()
-            if widget is not None:
-                widget.deleteLater()
-                self.output_file_container_layout.removeWidget(widget)
-
         for index, file_path in enumerate(all_augmented_filepaths):
             # Verify the file still exists before displaying it
             if os.path.exists(file_path):
                 new_output_file_container = FileContainerWidget(file_path, self)
                 new_output_file_container.hide_retry_button()
                 new_output_file_container.hide_remove_button()
-                self.output_file_container_layout.addWidget(new_output_file_container)
 
                 # Check if this is the first file
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
+                    self.svc_preview.display_emothaw_contents(file_path, 1)
 
         self.svc_preview.set_augmented_files(all_augmented_filepaths)
-
-        # Ensure the output scroll area is visible
-        self.output_scroll_area.setVisible(True)
 
         # Automatically expand the output collapsible widget
         self.collapsible_widget_output.toggle_container(True)
@@ -1131,6 +1169,7 @@ class Workplace(QtWidgets.QWidget):
                 if index == 0:  # This means it's the first file
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
+                    self.svc_preview.display_emothaw_contents(file_path, 0)
 
         
         self.svc_preview.set_original_absolute_files(original_absolute_files)
@@ -1160,6 +1199,8 @@ class Workplace(QtWidgets.QWidget):
         self.file_preview_widget.clear()
         self.process_log_widget.clear()
         self.svc_preview.clear()
+        self.model_widget.uncheck_checkbox()
+        self.model_widget.slider_widget.resetValue()
         
         # Collapse all widgets except Input
         self.collapsible_widget_preview.toggle_container(False)

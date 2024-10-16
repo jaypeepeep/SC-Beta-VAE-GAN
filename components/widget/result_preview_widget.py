@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class SVCpreview(QtWidgets.QWidget):
-    def __init__(self, input=None, output=None, parent=None):
+    def __init__(self, input=None, output=None, metrics=None, parent=None):
         super(SVCpreview, self).__init__(parent)
         self.setupUi()
         self.uploaded_files = []
@@ -20,6 +20,8 @@ class SVCpreview(QtWidgets.QWidget):
         if output:
             self.display_file_contents(output, 1)  # Display content in the second text preview
             self.display_graph_contents(output, 1)
+        if metrics:
+            self.display_metrics(metrics)
 
     def setupUi(self):
         self.container_widget = QtWidgets.QWidget(self)
@@ -76,7 +78,7 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Graph container for input
         self.input_graph_container = QtWidgets.QWidget(self.container_widget)
-        self.input_graph_container.setFixedHeight(300)
+        self.input_graph_container.setFixedHeight(400)
         self.input_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
         self.input_graph_layout = QtWidgets.QVBoxLayout(self.input_graph_container)
         self.text_preview1_layout.addWidget(self.input_graph_container)
@@ -127,9 +129,8 @@ class SVCpreview(QtWidgets.QWidget):
         )
         self.text_preview2_layout.addWidget(self.text_preview2)
 
-        # Graph container for output
         self.output_graph_container = QtWidgets.QWidget(self.container_widget)
-        self.output_graph_container.setFixedHeight(300)
+        self.output_graph_container.setFixedHeight(400)
         self.output_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
         self.output_graph_layout = QtWidgets.QVBoxLayout(self.output_graph_container)
         self.text_preview2_layout.addWidget(self.output_graph_container)
@@ -144,7 +145,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
         self.results_text.setReadOnly(True)
-        self.results_text.setFixedHeight(100)
+        self.results_text.setFixedHeight(225)
         self.results_text.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
         )
@@ -154,6 +155,123 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Set the layout for the widget
         self.setLayout(self.container_layout)
+
+    def add_graph_containers(self):
+        # Graph container for output
+        self.second_output_graph_container = QtWidgets.QWidget(self.container_widget)
+        self.second_output_graph_container.setFixedHeight(500)
+        self.second_output_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
+        self.second_output_graph_layout = QtWidgets.QVBoxLayout(self.second_output_graph_container)
+        self.text_preview2_layout.addWidget(self.second_output_graph_container)
+
+        # Second graph container for input
+        self.second_input_graph_container = QtWidgets.QWidget(self.container_widget)
+        self.second_input_graph_container.setFixedHeight(500)
+        self.second_input_graph_container.setStyleSheet("background-color: #f0f0f0; border: 1px solid #dcdcdc;")
+        self.second_input_graph_layout = QtWidgets.QVBoxLayout(self.second_input_graph_container)
+        self.text_preview1_layout.addWidget(self.second_input_graph_container)
+
+    def remove_graph_containers(self):
+        # Remove and delete the second output graph container
+        if hasattr(self, 'second_output_graph_container'):
+            self.text_preview2_layout.removeWidget(self.second_output_graph_container)
+            self.second_output_graph_container.deleteLater()
+            del self.second_output_graph_container
+            del self.second_output_graph_layout
+
+        # Remove and delete the second input graph container
+        if hasattr(self, 'second_input_graph_container'):
+            self.text_preview1_layout.removeWidget(self.second_input_graph_container)
+            self.second_input_graph_container.deleteLater()
+            del self.second_input_graph_container
+            del self.second_input_graph_layout
+
+    def display_handwriting_contents(self, file_path, preview_index):
+        try:
+            df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+            df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+            
+            # Separate strokes based on pen status
+            on_surface = df[df['pen_status'] == 1]
+            in_air = df[df['pen_status'] == 0]
+
+            # Create the plot
+            fig, ax = plt.subplots(figsize=(6, 6))
+            ax.scatter(on_surface['x'], -on_surface['y'], c='b', s=1, alpha=0.7, label='On Surface')
+            ax.scatter(in_air['x'], -in_air['y'], c='r', s=1, alpha=0.7, label='In Air')
+            ax.set_title(f'Time Series Handwriting Visualization for {os.path.basename(file_path)}')
+            ax.set_xlabel('y')
+            ax.set_ylabel('x')
+            ax.invert_yaxis()
+            ax.set_aspect('equal')
+            ax.legend()
+
+            ax.invert_yaxis() 
+
+            canvas = FigureCanvas(fig)
+            if preview_index == 0:
+                self.clear_layout(self.second_input_graph_layout)
+                self.second_input_graph_layout.addWidget(canvas)
+                canvas.draw() 
+            else:
+                self.clear_layout(self.second_output_graph_layout)
+                self.second_output_graph_layout.addWidget(canvas)
+                canvas.draw() 
+
+        except:
+            pass
+
+    def display_emothaw_contents(self, file_path, preview_index):
+        try:
+            df = pd.read_csv(file_path, delim_whitespace=True, header=None)
+            df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
+            
+            # Separate strokes based on pen status
+            on_surface = df[df['pen_status'] == 1]
+            in_air = df[df['pen_status'] == 0]
+
+            # Create the plot
+            fig, ax = plt.subplots(figsize=(6, 6))
+            ax.scatter(on_surface['y'], on_surface['x'], c='b', s=1, alpha=0.7, label='On Surface')
+            ax.scatter(in_air['y'], in_air['x'], c='r', s=1, alpha=0.7, label='In Air')
+            ax.set_title(f'Time Series Handwriting Visualization for {os.path.basename(file_path)}')
+            ax.set_xlabel('y')
+            ax.set_ylabel('x')
+            ax.invert_yaxis()
+            ax.set_aspect('equal')
+            ax.legend()
+
+            ax.set_xlim(ax.get_xlim()[::-1])  # Reverse the x-axis limits
+            ax.set_ylim(ax.get_ylim()[::-1])  # Reverse the y-axis limits
+
+
+            canvas = FigureCanvas(fig)
+            if preview_index == 0:
+                self.clear_layout(self.second_input_graph_layout)
+                self.second_input_graph_layout.addWidget(canvas)
+                canvas.draw() 
+            else:
+                self.clear_layout(self.second_output_graph_layout)
+                self.second_output_graph_layout.addWidget(canvas)
+                canvas.draw() 
+
+        except:
+            pass
+
+    def add_result_text(self, text):
+  
+        # Get the current text
+        current_text = self.results_text.toPlainText()
+        
+        # If there's already text, add a newline before the new text
+        if current_text:
+            new_text = current_text + "\n" + text
+        else:
+            new_text = text
+        
+        # Set the updated text
+        self.results_text.setPlainText(new_text)
+        
 
     def display_file_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate text preview."""
@@ -372,6 +490,7 @@ class SVCpreview(QtWidgets.QWidget):
             full_path = next(f for f in self.original_absolute_files if os.path.basename(f) == selected_file)
             self.display_file_contents(full_path, 0)
             self.display_graph_contents(full_path, 0)
+            self.display_handwriting_contents(full_path, 0)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph1(full_path))
 
@@ -484,6 +603,7 @@ class SVCpreview(QtWidgets.QWidget):
             full_path = next(f for f in self.augmented_files if os.path.basename(f) == selected_file)
             self.display_file_contents(full_path, 1)
             self.display_graph_contents(full_path, 1)
+            self.display_handwriting_contents(full_path, 1)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph(full_path))
 
@@ -510,10 +630,13 @@ class SVCpreview(QtWidgets.QWidget):
         self.clear_layout(self.input_graph_layout)
         self.clear_layout(self.output_graph_layout)
 
+        self.remove_graph_containers()
+
         # Update the widget
         self.update()
 
 
+    @QtCore.pyqtSlot(str)
     def set_zip_path(self, zip_path):
         """Handle the ZIP file, list contents, and possibly display relevant file contents."""
         if not zipfile.is_zipfile(zip_path):
@@ -521,23 +644,31 @@ class SVCpreview(QtWidgets.QWidget):
             return
         
         try:
-            # Open the ZIP file and display its contents
+            # Extract the zip contents to a temporary directory
+            temp_dir = os.path.join(os.getcwd(), 'temp_extracted')
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
             with zipfile.ZipFile(zip_path, 'r') as zipf:
+                zipf.extractall(temp_dir)  # Extract all files in the zip to temp directory
                 file_list = zipf.namelist()
 
-                # Set the first file content in preview 1 and the second in preview 2 (if they exist)
+                # Make sure at least one file exists
                 if len(file_list) > 0:
-                    with zipf.open(file_list[0]) as file1:
-                        content1 = file1.read().decode("utf-8", errors="ignore")
+                    file1_path = os.path.join(temp_dir, file_list[0])
+                    with open(file1_path, 'r') as file1:
+                        content1 = file1.read()
                         self.filename1.setText(file_list[0])
                         self.text_preview1.setPlainText(content1)
+
+                # If there is a second file, display it in the second preview
                 if len(file_list) > 1:
-                    with zipf.open(file_list[1]) as file2:
-                        content2 = file2.read().decode("utf-8", errors="ignore")
+                    file2_path = os.path.join(temp_dir, file_list[1])
+                    with open(file2_path, 'r') as file2:
+                        content2 = file2.read()
                         self.filename2.setText(file_list[1])
                         self.text_preview2.setPlainText(content2)
 
-                self.results_text.setPlainText("Results:")
-
+                self.results_text.setPlainText("Results displayed successfully.")
         except Exception as e:
             self.results_text.setPlainText(f"Error reading ZIP file: {str(e)}")

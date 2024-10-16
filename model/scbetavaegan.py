@@ -14,6 +14,7 @@ from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import load_model
 from keras.utils import custom_object_scope
 import shutil
+import time
 
 from glob import glob
 import re
@@ -76,7 +77,7 @@ def upload_and_process_files(directory, num_files_to_use=None):
 
     return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames  # Return original data
 
-def save_original_data(data_frames, input_filenames, output_folder='original_absolute'):
+def save_original_data(data_frames, input_filenames, output_folder='files/original_absolute'):
     original_absolute_files = []
     os.makedirs(output_folder, exist_ok=True)
     for df, filename in zip(data_frames, input_filenames):
@@ -307,7 +308,7 @@ def get_unique_filename(directory, filename):
         counter += 1
     return filename
 
-def download_augmented_data_with_modified_timestamp(all_augmented_data, augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data', directory2='augmented_data_nested'):
+def download_augmented_data_with_modified_timestamp(all_augmented_data, augmented_datasets, scalers, original_data_frames, original_filenames, directory1='files/augmented_data', directory2='files/augmented_data_nested'):
     global all_augmented_filepaths
 
     if not os.path.exists(directory1):
@@ -377,20 +378,41 @@ def nested_augmentation(all_augmented_data, num_augmentations, num_files_to_use,
         
         if iteration > 0:
             # Only update the data for subsequent iterations
-            directory = 'augmented_data_nested'
+            directory = 'files/augmented_data_nested'
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
         
         augmented_datasets = generate_augmented_data(data_frames, vae_pretrained, num_files_to_use, avg_data_points, processed_data, 
                                                      base_latent_variability, latent_variability_range)
         
         # Clear augmented_data_nested directory
-        if os.path.exists('augmented_data_nested'):
-            shutil.rmtree('augmented_data_nested')
-        os.makedirs('augmented_data_nested')
+        if os.path.exists('files/augmented_data_nested'):
+            shutil.rmtree('files/augmented_data_nested')
+        os.makedirs('files/augmented_data_nested')
         
         download_augmented_data_with_modified_timestamp(all_augmented_data, augmented_datasets, scalers, original_data_frames, input_filenames)
 
         print(f"Completed augmentation iteration {iteration + 1}")
+
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    folder_name = f"SyntheticData_{timestamp}"
+    output_dir = os.path.join(
+        os.path.dirname(__file__), "../files/augmented_data", folder_name
+    )
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    for file_path in all_augmented_filepaths:
+        if os.path.exists(file_path):
+            file_name = os.path.basename(file_path)
+            destination_path = os.path.join(output_dir, file_name)
+            shutil.copy(file_path, destination_path)
+    
+    # Zip the output_dir
+    zip_file_path = shutil.make_archive(output_dir, 'zip', output_dir)
+
+    # Delete the folder after zipping
+    shutil.rmtree(output_dir)
     
     # Clear augmented_data_nested directory after the last iteration
     if os.path.exists('augmented_data_nested'):
@@ -398,15 +420,18 @@ def nested_augmentation(all_augmented_data, num_augmentations, num_files_to_use,
         print("Cleared augmented_data_nested directory after the final iteration.")
     
     print("Nested augmentation process completed.")
-    visualize_augmented_data_from_directory('augmented_data')
+    visualize_augmented_data_from_directory('files/augmented_data')
 
-    return all_augmented_filepaths
+    return all_augmented_filepaths, zip_file_path
 
 def read_svc_file(file_path):
     return pd.read_csv(file_path, sep=' ', header=None, 
                        names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
 
 def calculate_nrmse(original, predicted):
+    global all_augmented_filepaths
+    all_augmented_filepaths = []
+
     if original.shape != predicted.shape:
         raise ValueError("The shapes of the original and predicted datasets must match.")
     mse = np.mean((original - predicted) ** 2)
@@ -522,7 +547,7 @@ def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
         model = create_lstm_classifier((1, X_train.shape[2]))
         
         # Train model and show epoch progress for this fold
-        history = model.fit(X_train, y_train, epochs=2, batch_size=512, verbose=1)
+        history = model.fit(X_train, y_train, epochs=1, batch_size=1024, verbose=1)
 
         y_pred = (model.predict(X_test) > 0.5).astype(int)
         accuracy = accuracy_score(y_test, y_pred)
