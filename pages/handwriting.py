@@ -9,6 +9,11 @@ import zipfile
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from glob import glob
+import re
+from sklearn.model_selection import KFold
+from sklearn.metrics import mean_squared_error, accuracy_score, mean_absolute_percentage_error
+from sklearn.preprocessing import MinMaxScaler
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
@@ -34,9 +39,6 @@ from model.scbetavaegan_pentab import (
     train_models,
     calculate_nrmse,
     post_hoc_discriminative_score,
-    calculate_nrmse_for_augmented_data,
-    k_fold_cross_validation,
-    prepare_data_for_lstm,
     ensure_data_compatibility
 )
 
@@ -44,6 +46,7 @@ class ModelTrainingThread(QThread):
     finished = pyqtSignal()
     log_signal = pyqtSignal(str)
     zip_ready = pyqtSignal(str)
+    partial_metric_ready = pyqtSignal(str, str)
     metrics_ready = pyqtSignal(dict)
 
     def __init__(self, uploads_dir, selected_file, num_augmented_files, epochs=10, logger=None):
@@ -60,6 +63,9 @@ class ModelTrainingThread(QThread):
 
         self.model_output_dir = os.path.join('model', 'pentab_vae_models')
         os.makedirs(self.model_output_dir, exist_ok=True)
+
+        self.imputed_folder = os.path.abspath("imputed")
+        self.augmented_folder = os.path.abspath("augmented_data")
 
     def run(self):
         self.log("Starting the process for file: " + self.selected_file)
@@ -140,48 +146,202 @@ class ModelTrainingThread(QThread):
 
         self.zip_ready.emit(zip_file_path)
 
+        # Step 8: Directly Load and Compare Files for Metrics
         self.log("Calculating metrics for generated synthetic data...")
-
         metrics = {}
 
-        # Convert synthetic data if needed
-        augmented_datasets = [np.array(data) if isinstance(data, list) else data for data in augmented_datasets]
+        # --- Embedded Functions for File Loading and Metrics ---
+        def read_svc_file(file_path):
+            """Log file reading and read SVC file data."""
+            print(f"Reading file: {file_path}")
+            return pd.read_csv(file_path, sep=' ', header=None, names=['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude'])
+        
+        def calculate_nrmse(original, predicted):
+            """Calculate NRMSE between original and predicted datasets."""
+            if original.shape != predicted.shape:
+                raise ValueError("The shapes of the original and predicted datasets must match.")
+            mse = np.mean((original - predicted) ** 2)
+            rmse = np.sqrt(mse)
+            nrmse = rmse / (np.max(original) - np.min(original))
+            return nrmse
+        
+        def get_matching_augmented_files(original_file_path, augmented_folder):
+            """Get matching augmented files based on original file names."""
+            base_name = os.path.basename(original_file_path)
+            base_name_without_ext = os.path.splitext(base_name)[0]
+            print(f"Finding matching augmented files for: {base_name_without_ext}")
 
-        # Step 9: Calculate Metrics
-        # 9.1. NRMSE Calculation
+            # Update pattern to match augmented file naming correctly
+            pattern = os.path.join(augmented_folder, f"synthetic_{base_name_without_ext}*.svc")
+            matching_files = glob(pattern)
+
+            # Log the matched files
+            if matching_files:
+                print(f"Matched files: {matching_files}")
+            else:
+                print(f"No matching augmented files found for: {base_name_without_ext}")
+
+            def sort_key(filename):
+                match = re.search(r'\((\d+)\)', filename)
+                return int(match.group(1)) if match else -1
+            
+            return sorted(matching_files, key=sort_key)
+
+        def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list):
+            """Calculate NRMSE for a list of original and augmented datasets."""
+            nrmse_values = []
+
+            for i, (original_df, augmented) in enumerate(zip(original_data_frames, augmented_data_list)):
+                print(f"Processing original dataset {i + 1} and its corresponding augmented data.")
+                original_array = original_df[['x', 'y', 'timestamp', 'pen_status']].values
+
+                # Ensure augmented is a NumPy array and check its shape
+                if isinstance(augmented, pd.DataFrame):
+                    augmented = augmented.values
+                elif not isinstance(augmented, np.ndarray):
+                    raise ValueError(f"Unexpected data type for augmented data: {type(augmented)}")
+
+                # Ensure augmented has at least 4 columns
+                if augmented.shape[1] < 4:
+                    raise ValueError(f"Augmented data has fewer than 4 columns: {augmented.shape}")
+
+                augmented_array = augmented[:, :4]
+                original_array, augmented_array = ensure_data_compatibility(original_array, augmented_array)
+
+                try:
+                    nrmse = calculate_nrmse(original_array, augmented_array)
+                    nrmse_values.append(nrmse)
+                    print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
+                except ValueError as e:
+                    print(f"Error calculating NRMSE for dataset {i + 1}: {e}")
+
+            average_nrmse = np.mean(nrmse_values) if nrmse_values else float('nan')
+            print(f"Average NRMSE: {average_nrmse:.4f}")
+            return nrmse_values, average_nrmse
+
+        def create_lstm_classifier(input_shape):
+            """Create and compile an LSTM model."""
+            model = tf.keras.Sequential([
+                tf.keras.layers.LSTM(64, return_sequences=True, input_shape=input_shape),
+                tf.keras.layers.LSTM(32),
+                tf.keras.layers.Dense(1, activation='sigmoid')
+            ])
+            model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+            return model
+        
+        def prepare_data_for_lstm(real_data, synthetic_data):
+            """Prepare real and synthetic data for LSTM input."""
+            n_features = min(real_data.shape[1], synthetic_data.shape[1])
+            real_data_trimmed = real_data[:, :n_features]
+            synthetic_data_trimmed = synthetic_data[:, :n_features]
+            X = np.vstack((real_data_trimmed, synthetic_data_trimmed))
+            y = np.concatenate((np.ones(len(real_data)), np.zeros(len(synthetic_data))))
+            return X, y
+
+        def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
+            """Calculate the post-hoc discriminative score using K-Fold cross-validation."""
+            X, y = prepare_data_for_lstm(real_data, synthetic_data)
+            kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+            accuracies = []
+
+            for train_index, test_index in kf.split(X):
+                X_train, X_test = X[train_index], X[test_index]
+                y_train, y_test = y[train_index], y[test_index]
+
+                X_train = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
+                X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
+
+                model = create_lstm_classifier((1, X_train.shape[2]))
+                model.fit(X_train, y_train, epochs=3, batch_size=256, verbose=0)
+                y_pred = (model.predict(X_test) > 0.5).astype(int)
+                accuracy = accuracy_score(y_test, y_pred)
+                accuracies.append(accuracy)
+
+            mean_accuracy = np.mean(accuracies)
+            std_accuracy = np.std(accuracies)
+            print(f"Post-Hoc Discriminative Score: Mean Accuracy = {mean_accuracy:.4f}, Std = {std_accuracy:.4f}")
+            return mean_accuracy, std_accuracy
+        
+        def prepare_data(df, time_steps=5):
+            """Prepare the data for LSTM input by creating sequences of specified length."""
+            data = df[['x', 'y']].values
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            data_scaled = scaler.fit_transform(data)
+
+            X, y = [], []
+            for i in range(len(data_scaled) - time_steps):
+                X.append(data_scaled[i:i + time_steps])
+                y.append(data_scaled[i + time_steps])
+            return np.array(X), np.array(y), scaler
+        
+        def create_model(input_shape):
+            """Create and compile an LSTM model."""
+            model = tf.keras.Sequential()
+            model.add(tf.keras.layers.LSTM(50, return_sequences=True, input_shape=input_shape))
+            model.add(tf.keras.layers.Dropout(0.2))  # Adding dropout to introduce randomness
+            model.add(tf.keras.layers.LSTM(50))
+            model.add(tf.keras.layers.Dropout(0.2))
+            model.add(tf.keras.layers.Dense(2))  # Predict x and y
+            model.compile(optimizer='adam', loss='mse')
+            return model
+        
+        def evaluate_model(model, X_test, y_test, scaler):
+            """Evaluate the model using MAPE."""
+            y_pred = model.predict(X_test)
+            y_pred_rescaled = scaler.inverse_transform(y_pred)
+            y_test_rescaled = scaler.inverse_transform(y_test)
+            mape = mean_absolute_percentage_error(y_test_rescaled, y_pred_rescaled)
+            print(f"MAPE: {mape * 100:.2f}%")
+            return mape
+
+        def k_fold_cross_validation(X, y, scaler, n_splits=10):
+            """Perform K-Fold cross-validation on the LSTM model and return mean and std of MAPE."""
+            kf = KFold(n_splits=n_splits, shuffle=True, random_state=np.random.randint(1000))
+            mape_values = []
+            for train_index, test_index in kf.split(X):
+                X_train, X_test = X[train_index], X[test_index]
+                y_train, y_test = y[train_index], y[test_index]
+
+                model = create_model((X_train.shape[1], X_train.shape[2]))
+                model.fit(X_train, y_train, epochs=5, batch_size=512, verbose=0)
+                mape = evaluate_model(model, X_test, y_test, scaler)
+                mape_values.append(mape)
+
+            mean_mape = np.mean(mape_values)
+            std_mape = np.std(mape_values)
+            print(f"Mean MAPE: {mean_mape * 100:.2f}%")
+            print(f"Standard Deviation of MAPE: {std_mape * 100:.2f}%")
+            return mean_mape, std_mape
+
         try:
-            nrmse_values, average_nrmse = calculate_nrmse_for_augmented_data(original_data_frames, augmented_datasets)
-            metrics["Average NRMSE"] = average_nrmse
+            self.log("Loading original data for metrics comparison...")
+            original_file_paths = [os.path.join(self.imputed_folder, f) for f in input_filenames]
+            original_data = [read_svc_file(file_path) for file_path in original_file_paths]
+            self.log("Loading augmented data for metrics comparison...")
+            augmented_files = []
+            for original_file_path in original_file_paths:
+                matching_files = get_matching_augmented_files(original_file_path, self.augmented_folder)
+                augmented_files.extend(matching_files)
+            augmented_data = [read_svc_file(aug_file) for aug_file in augmented_files]
+
+            nrmse_values, average_nrmse = calculate_nrmse_for_augmented_data(original_data, augmented_data)
+            metrics["Normalized Root Mean Square Error (NRMSE)"] = average_nrmse
             self.log(f"Average NRMSE: {average_nrmse:.4f}")
+
+            real_data, synthetic_data = np.concatenate(original_data), np.concatenate(augmented_data)
+            mean_acc, std_acc = post_hoc_discriminative_score(real_data, synthetic_data)
+            metrics["Discriminative Mean Accuracy"] = mean_acc
+            metrics["Discriminative Accuracy Std"] = std_acc
+
+            X, y, scaler = prepare_data(data_frames[0])
+            mean_mape, std_mape = k_fold_cross_validation(X, y, scaler)
+            metrics["Mean MAPE"] = mean_mape
+            metrics["Standard Deviation of MAPE"] = std_mape
+
         except Exception as e:
             self.log(f"Error calculating NRMSE: {e}", level="ERROR")
             metrics["Average NRMSE"] = "Error"
-
-        try:
-            original_array, synthetic_array = ensure_data_compatibility(original_data_frames[0].values, augmented_datasets[0])
-            discriminative_mean, discriminative_std = post_hoc_discriminative_score(
-                original_array, synthetic_array
-            )
-            metrics["Discriminative Score Mean"] = discriminative_mean
-            metrics["Discriminative Score Std"] = discriminative_std
-            self.log(f"Discriminative Score: Mean = {discriminative_mean:.4f}, Std = {discriminative_std:.4f}")
-        except Exception as e:
-            self.log(f"Error calculating Discriminative Score: {e}", level="ERROR")
-            metrics["Discriminative Score"] = "Error"
-
-        try:
-            X, y = prepare_data_for_lstm(original_data_frames[0].values, augmented_datasets[0])
-            mean_mape, std_mape = k_fold_cross_validation(X, y, scalers[0], n_splits=10)
-            metrics["Predictive Score Mean MAPE"] = mean_mape * 100
-            metrics["Predictive Score Std MAPE"] = std_mape * 100
-            self.log(f"Predictive Score (MAPE): Mean = {mean_mape * 100:.2f}%, Std = {std_mape * 100:.2f}%")
-        except Exception as e:
-            self.log(f"Error calculating Predictive Score (MAPE): {e}", level="ERROR")
-            metrics["Predictive Score"] = "Error"
-
-        # Emit the metrics
         self.metrics_ready.emit(metrics)
-
         # Notify completion
         self.finished.emit()
 
@@ -636,11 +796,33 @@ class Handwriting(QtWidgets.QWidget):
     
     def on_metrics_ready(self, metrics):
         """Update the results_text widget with the calculated metrics."""
-        metrics_text = "Calculated Metrics:\n"
-        for key, value in metrics.items():
-            metrics_text += f"{key}: {value}\n"
-        
+        # Start building the formatted text for results
+        metrics_text = ""
+
+        # Normalized Root Mean Square Error (NRMSE)
+        if "Normalized Root Mean Square Error (NRMSE)" in metrics:
+            overall_avg_nrmse = metrics["Normalized Root Mean Square Error (NRMSE)"]
+            metrics_text += "Normalized Root Mean Square Error (NRMSE)\n"
+            metrics_text += f"\tOverall Average NRMSE: {overall_avg_nrmse:.4f}\n\n"
+
+        # Post-Hoc Discriminative Score (PHDS)
+        if "Discriminative Mean Accuracy" in metrics and "Discriminative Accuracy Std" in metrics:
+            mean_acc = metrics["Discriminative Mean Accuracy"]
+            std_acc = metrics["Discriminative Accuracy Std"]
+            metrics_text += "Post-Hoc Discriminative Score (PHDS)\n"
+            metrics_text += f"\tMean accuracy: {mean_acc:.4f} (±{std_acc:.4f})\n\n"
+
+        # Post-Hoc Predictive Score (PHPS)
+        if "Mean MAPE" in metrics and "Standard Deviation of MAPE" in metrics:
+            mean_mape = metrics["Mean MAPE"] * 100  # Convert to percentage
+            std_mape = metrics["Standard Deviation of MAPE"] * 100  # Convert to percentage
+            metrics_text += "Post-Hoc Predictive Score (PHPS)\n"
+            metrics_text += f"\tMean MAPE: {mean_mape:.2f}%\n"
+            metrics_text += f"\tStandard Deviation of MAPE: {std_mape:.2f}%\n"
+
+        # Update the text in the results preview widget
         self.svc_preview.results_text.setPlainText(metrics_text)
+
 
     def on_training_finished(self):
         """Callback when training and data generation is finished."""
