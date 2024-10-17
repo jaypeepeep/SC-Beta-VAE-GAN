@@ -1123,7 +1123,6 @@ class Workplace(QtWidgets.QWidget):
             if os.path.exists(file_path):
                 new_file_container = FileContainerWidget(file_path, self)
                 new_file_container.hide_download_button()
-                new_file_container.hide_retry_button()
                 new_file_container.remove_file_signal.connect(self.handle_file_removal)  # Connect remove signal
                 self.file_container_layout.addWidget(new_file_container)
 
@@ -1147,7 +1146,6 @@ class Workplace(QtWidgets.QWidget):
             # Verify the file still exists before displaying it
             if os.path.exists(file_path):
                 new_output_file_container = FileContainerWidget(file_path, self)
-                new_output_file_container.hide_retry_button()
                 new_output_file_container.hide_remove_button()
 
                 # Check if this is the first file
