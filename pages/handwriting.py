@@ -40,7 +40,8 @@ from model.scbetavaegan_pentab import (
     calculate_nrmse,
     post_hoc_discriminative_score,
     ensure_data_compatibility,
-    save_original_data
+    save_original_data,
+    fill_gaps_and_interpolate
 )
 
 
@@ -51,9 +52,11 @@ class ModelTrainingThread(QThread):
     partial_metric_ready = pyqtSignal(str, str)
     metrics_ready = pyqtSignal(dict)
     original_files_ready = pyqtSignal(list) 
+    augmented_files_ready = pyqtSignal(list)
 
     def __init__(
         self,
+        handwriting_dir,
         file_list,
         uploads_dir,
         selected_file,
@@ -71,10 +74,12 @@ class ModelTrainingThread(QThread):
         self.logger = logger
         self.uploaded_files = file_list
         self.num_of_files = len(self.uploaded_files)
+        self.handwriting_dir = handwriting_dir
 
         timestamp = time.strftime("%Y%m%d_%H%M%S")
+        self.folder_name = f"SyntheticData_{timestamp}"
         self.synthetic_data_dir = os.path.join(
-            uploads_dir, f"SyntheticData_{timestamp}"
+            uploads_dir, self.folder_name
         )
         os.makedirs(self.synthetic_data_dir, exist_ok=True)
 
@@ -85,11 +90,10 @@ class ModelTrainingThread(QThread):
         self.augmented_folder = os.path.abspath("augmented_data")
 
     def run(self):
-        self.log("Starting the process for file: " + self.selected_file)
+        self.log("Starting the process for file: " + self.handwriting_dir)
 
         # Step 1: Load only the selected .svc file from the uploads directory
-        file_path = os.path.join(self.uploads_dir, self.selected_file)
-        self.log(f"Using file path: {file_path}")
+        self.log(f"Using file path: {self.handwriting_dir}")
         try:
             (
                 data_frames,
@@ -98,7 +102,7 @@ class ModelTrainingThread(QThread):
                 avg_data_points,
                 input_filenames,
                 original_data_frames,
-            ) = upload_and_process_files(file_path, self.num_of_files)
+            ) = upload_and_process_files(self.handwriting_dir, self.num_of_files)
             original_absolute_files = save_original_data(data_frames, input_filenames)
             self.original_files_ready.emit(original_absolute_files)
             
@@ -111,6 +115,7 @@ class ModelTrainingThread(QThread):
 
         # Step 2: Process and save the loaded dataframes
         self.log("Converting and saving the processed dataframes...")
+        data_frames = fill_gaps_and_interpolate(data_frames)
         convert_and_store_dataframes(input_filenames, data_frames)
         self.log("Data frames converted and saved.")
 
@@ -151,7 +156,7 @@ class ModelTrainingThread(QThread):
         # Step 6: Generate augmented data using nested_augmentation
         self.log("Generating nested augmented data...")
         try:
-            augmented_datasets = nested_augmentation(
+            augmented_datasets, self.all_augmented_path = nested_augmentation(
                 num_augmentations=self.num_augmented_files,
                 num_files_to_use=len(processed_data),
                 data_frames=data_frames,
@@ -162,6 +167,7 @@ class ModelTrainingThread(QThread):
                 avg_data_points=avg_data_points,
                 processed_data=processed_data,
             )
+            self.augmented_files_ready.emit(self.all_augmented_path)
             if augmented_datasets is None:
                 self.log("nested_augmentation returned None.", level="ERROR")
                 self.finished.emit()
@@ -564,6 +570,18 @@ class Handwriting(QtWidgets.QWidget):
                 data = response.json()
                 filename = data.get("filename")
                 if filename.endswith(".svc"):  # Ensure file is an .svc file
+                    timestamp = time.strftime("%Y%m%d_%H%M%S")
+                    self.folder_name = f"HandwritingData_{timestamp}"
+                    self.handwriting_data_dir = os.path.join(
+                        self.uploads_dir, self.folder_name
+                    )
+                    os.makedirs(self.handwriting_data_dir, exist_ok=True)
+                    # Define the source and destination paths
+                    source_file = os.path.join(self.uploads_dir, filename)
+                    dest_file = os.path.join(self.handwriting_data_dir, filename)
+
+                    # Copy the file to the handwriting directory
+                    shutil.copy(source_file, dest_file)
                     self.show_done_page(filename)
                     self.svc_preview.set_uploaded_files(self.file_list)
                     if filename not in self.file_list:  # Avoid duplicate
@@ -846,7 +864,8 @@ class Handwriting(QtWidgets.QWidget):
         """Start processing the selected .svc files."""
         uploads_dir = "uploads"
         num_augmented_files = self.spin_box_widget.number_input.value()
-        epochs = 100
+        epochs = 350
+        self.svc_preview.remove_graph_containers()
 
         if not self.file_list:
             self.process_log_widget.append_log("No files available for processing.")
@@ -855,6 +874,8 @@ class Handwriting(QtWidgets.QWidget):
         self.process_log_widget.setVisible(True)
         self.collapsible_widget_process_log.toggle_container(True)
         self.generate_data_button.setEnabled(False)
+        self.generate_data_button.setText("Generating...")
+        self.svc_preview.add_graph_containers()
 
         file_count = len(self.file_list)
         self.process_log_widget.append_log(
@@ -870,6 +891,7 @@ class Handwriting(QtWidgets.QWidget):
 
             # Start a new thread for each file
             thread = ModelTrainingThread(
+                self.handwriting_data_dir,
                 self.file_list,
                 uploads_dir,
                 selected_file,
@@ -883,6 +905,7 @@ class Handwriting(QtWidgets.QWidget):
             thread.metrics_ready.connect(self.on_metrics_ready)
             thread.finished.connect(self.on_thread_finished)
             thread.original_files_ready.connect(self.update_original_absolute_file_display)  # Connect the new signal
+            thread.augmented_files_ready.connect(self.update_output_file_display)
             thread.start()
 
         self.process_log_widget.append_log("All threads started, awaiting results...")
@@ -926,8 +949,6 @@ class Handwriting(QtWidgets.QWidget):
             self.output_widget.setVisible(True)
             self.collapsible_widget_output.toggle_container(True)
 
-        self.svc_preview.add_graph_containers()
-        self.update_output_file_display(zip_file_path)
         self.collapsible_widget_result.toggle_container(True)
 
     def on_metrics_ready(self, metrics):
@@ -1006,33 +1027,20 @@ class Handwriting(QtWidgets.QWidget):
         ]
         return svc_paths
 
-    def update_output_file_display(self, zip_file_path):
+    def update_output_file_display(self, augmented_files):
         """
         Update the display of files based on newly generated augmented files.
         """
-        # Create a unique directory based on the current timestamp
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        synthetic_output_dir = os.path.join(
-            "extracted_synthetic_data", f"run_{timestamp}"
-        )
-
-        # Ensure the directory exists
-        os.makedirs(synthetic_output_dir, exist_ok=True)
-
-        # Extract paths from the zip file using the new function
-        synthetic_paths = self.extract_paths_from_zip(
-            zip_file_path, synthetic_output_dir
-        )
 
         # Ensure paths are correctly set and the files exist
-        for index, file_path in enumerate(synthetic_paths):
+        for index, file_path in enumerate(augmented_files):
             if os.path.exists(file_path):
                 if index == 0:  # Display the first file
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
                     self.svc_preview.display_handwriting_contents(file_path, 1)
 
-        self.svc_preview.set_augmented_files(synthetic_paths)
+        self.svc_preview.set_augmented_files(augmented_files)
 
         # Automatically expand the output collapsible widget
         self.collapsible_widget_output.toggle_container(True)
