@@ -375,7 +375,7 @@ class ModelTrainingThread(QThread):
             self.log("Loading augmented data for metrics comparison...")
             augmented_files = []
             for original_file_path in original_file_paths:
-                matching_files = get_matching_augmented_files(original_file_path, self.all_augmented_path)
+                matching_files = get_matching_augmented_files(original_file_path, self.augmented_folder)
                 augmented_files.extend(matching_files)
             augmented_data = [read_svc_file(aug_file) for aug_file in augmented_files]
 
@@ -864,7 +864,7 @@ class Handwriting(QtWidgets.QWidget):
         """Start processing the selected .svc files."""
         uploads_dir = "uploads"
         num_augmented_files = self.spin_box_widget.number_input.value()
-        epochs = 400
+        epochs = 350
         self.svc_preview.remove_graph_containers()
 
         if not self.file_list:
@@ -874,6 +874,7 @@ class Handwriting(QtWidgets.QWidget):
         self.process_log_widget.setVisible(True)
         self.collapsible_widget_process_log.toggle_container(True)
         self.generate_data_button.setEnabled(False)
+        self.generate_data_button.setText("Generating...")
         self.svc_preview.add_graph_containers()
 
         file_count = len(self.file_list)
