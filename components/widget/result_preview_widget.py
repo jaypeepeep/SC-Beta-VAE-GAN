@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtWidgets import QTableWidgetItem
 import os
 import zipfile
 import pandas as pd
@@ -174,6 +175,16 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Add the horizontal layout to the container layout
         self.container_layout.addLayout(self.preview_layout)
+
+        # Results table area
+        self.results_table = QtWidgets.QTableWidget(self.container_widget)
+        self.results_table.setFixedHeight(300)
+        self.results_table.setStyleSheet(
+            "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
+        )
+        self.results_table.setColumnCount(0)  
+        self.results_table.setRowCount(0)  
+        self.container_layout.addWidget(self.results_table)
 
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
@@ -376,6 +387,72 @@ class SVCpreview(QtWidgets.QWidget):
             else:
                 self.text_preview2.setPlainText(error_message)
 
+
+    def display_table_contents(self, filename, preview_index):
+        """Read the contents of the file and display it in a comparison table format."""
+        try:
+            # Ensure the file path is absolute
+            if not os.path.isabs(filename):
+                filename = os.path.abspath(filename)
+
+            # Check if the file exists before attempting to read
+            if not os.path.exists(filename):
+                raise FileNotFoundError(f"File not found: {filename}")
+
+            # Read the content of the file
+            with open(filename, "r") as file:
+                lines = file.readlines()
+
+            # Assuming the first line is a header, split it into columns
+            header = lines[0].strip().split()
+            data = [line.strip().split() for line in lines[1:]]
+
+            # Define a mapping between the preview index and the corresponding columns
+            start_col = 0 if preview_index == 0 else 1
+
+            # Set the number of rows and columns in the table
+            num_rows = len(data)
+            num_columns = len(header) * 2  # We need double columns for comparison
+
+            # Initialize the table if it's the first time
+            if preview_index == 0:
+                self.results_table.setColumnCount(num_columns)
+                self.results_table.setRowCount(num_rows)
+
+                # Set the column headers for comparison
+                comparison_header = [f"{field}{i+1}" for i in range(2) for field in header]
+                self.results_table.setHorizontalHeaderLabels(comparison_header)
+
+            # Populate the table with data
+            for row_index, row_data in enumerate(data):
+                for col_index, value in enumerate(row_data):
+                    # Calculate column for alternating placement of data
+                    table_col = col_index * 2 + start_col
+                    current_item = self.results_table.item(row_index, table_col)
+                    
+                    # If preview_index == 1, ensure we are placing in the second column set (without overwriting)
+                    if preview_index == 1 and current_item is not None:
+                        # Append the new file's data into the next column (maintaining previous column)
+                        self.results_table.setItem(row_index, table_col, QTableWidgetItem(value))
+                    else:
+                        # Place data normally when preview_index == 0 or there is no existing data
+                        self.results_table.setItem(row_index, table_col, QTableWidgetItem(value))
+
+            # Update filename labels accordingly
+            if preview_index == 0:
+                self.filename1.setText(os.path.basename(filename))
+            else:
+                self.filename2.setText(os.path.basename(filename))
+
+        except Exception as e:
+            error_message = f"Error reading file: {str(e)}"
+            if preview_index == 0:
+                self.text_preview1.setPlainText(error_message)
+            else:
+                self.text_preview2.setPlainText(error_message)
+
+
+
     def display_graph_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate graph preview."""
         try:
@@ -532,6 +609,7 @@ class SVCpreview(QtWidgets.QWidget):
                 self.display_file_contents(first_file, 0)
                 self.display_graph_contents(first_file, 0)
                 self.display_handwriting_contents(first_file, 0)
+                self.display_table_contents(first_file, 0)
             except Exception as e:
                 print(f"Error displaying the first uploaded file: {e}")
 
@@ -638,6 +716,7 @@ class SVCpreview(QtWidgets.QWidget):
             self.display_file_contents(full_path, 0)
             self.display_graph_contents(full_path, 0)
             self.display_handwriting_contents(full_path, 0)
+            self.display_table_contents(full_path, 0)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph1(full_path))
 
@@ -757,6 +836,7 @@ class SVCpreview(QtWidgets.QWidget):
             self.display_file_contents(full_path, 1)
             self.display_graph_contents(full_path, 1)
             self.display_handwriting_contents(full_path, 1)
+            self.display_table_contents(full_path, 1)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph(full_path))
 
