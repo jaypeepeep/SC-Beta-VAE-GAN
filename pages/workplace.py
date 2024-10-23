@@ -1294,6 +1294,7 @@ class Workplace(QtWidgets.QWidget):
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
                     self.svc_preview.display_emothaw_contents(file_path, 1)
+                    self.svc_preview.display_table_contents(file_path, 1)
 
         self.svc_preview.set_augmented_files(all_augmented_filepaths)
 
@@ -1309,6 +1310,7 @@ class Workplace(QtWidgets.QWidget):
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
                     self.svc_preview.display_emothaw_contents(file_path, 0)
+                    self.svc_preview.display_table_contents(file_path, 0)
 
         self.svc_preview.set_original_absolute_files(original_absolute_files)
 
