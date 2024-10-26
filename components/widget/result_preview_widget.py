@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QTableWidgetItem
 import os
 import zipfile
@@ -433,10 +434,22 @@ class SVCpreview(QtWidgets.QWidget):
                     # If preview_index == 1, ensure we are placing in the second column set (without overwriting)
                     if preview_index == 1 and current_item is not None:
                         # Append the new file's data into the next column (maintaining previous column)
-                        self.results_table.setItem(row_index, table_col, QTableWidgetItem(value))
+                        item = QTableWidgetItem(value)
+                        self.results_table.setItem(row_index, table_col, item)
                     else:
                         # Place data normally when preview_index == 0 or there is no existing data
-                        self.results_table.setItem(row_index, table_col, QTableWidgetItem(value))
+                        item = QTableWidgetItem(value)
+                        self.results_table.setItem(row_index, table_col, item)
+                    
+                    # Add color to the columns
+                    if preview_index == 0:
+                        item.setForeground(QColor("black"))
+                    else:
+                        item.setForeground(QColor("green"))
+                    
+                    # Add color to nan values
+                    if value.lower() == 'nan':
+                        item.setForeground(QColor("red"))
 
             # Update filename labels accordingly
             if preview_index == 0:
