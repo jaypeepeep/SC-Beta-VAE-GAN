@@ -1039,6 +1039,7 @@ class Handwriting(QtWidgets.QWidget):
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
                     self.svc_preview.display_handwriting_contents(file_path, 1)
+                    self.svc_preview.display_table_contents(file_path, 1)
 
         self.svc_preview.set_augmented_files(augmented_files)
 
@@ -1053,6 +1054,7 @@ class Handwriting(QtWidgets.QWidget):
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
                     self.svc_preview.display_handwriting_contents(file_path, 0)
+                    self.svc_preview.display_table_contents(file_path, 0)
 
         self.svc_preview.set_original_absolute_files(original_absolute_files)
 
