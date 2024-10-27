@@ -1,18 +1,9 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
-<<<<<<< HEAD
 from PyQt5.QtWidgets import (
-    QTableWidgetItem,
-    QVBoxLayout,
-    QLabel,
-    QTableWidget,
-    QWidget,
-    QHBoxLayout,
+    QTableWidgetItem
 )
-=======
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableWidgetItem
->>>>>>> origin/main
 import os
 import zipfile
 import pandas as pd
@@ -436,112 +427,6 @@ class SVCpreview(QtWidgets.QWidget):
             num_rows = len(data)
             num_columns = len(header) * 2  # We need double columns for comparison
 
-<<<<<<< HEAD
-            # Create a layout to hold the header and table
-            layout = QVBoxLayout()
-
-            # Create a label for the column headers
-            header_labels = [
-                "x",
-                "x2",
-                "y",
-                "y2",
-                "timestamp",
-                "timestamp 2",
-                "pen_status",
-                "pen status 2",
-                "pressure",
-                "pressure 2",
-                "azimuth",
-                "azimuth 2",
-                "altitude",
-                "altitude 2",
-            ]
-
-            # Add the header labels to the layout
-            header_widget = QWidget()
-            header_layout = QVBoxLayout()
-
-            # Create a horizontal layout for header labels
-            header_row = QWidget()
-            header_row_layout = QHBoxLayout()
-            for label in header_labels:
-                header_row_layout.addWidget(QLabel(label))
-            header_row.setLayout(header_row_layout)
-
-            header_layout.addWidget(header_row)
-            header_widget.setLayout(header_layout)
-            layout.addWidget(header_widget)
-
-            # Initialize the results table
-            self.results_table = QTableWidget()
-            self.results_table.setColumnCount(num_columns)
-            self.results_table.setRowCount(num_rows)
-
-            # Set the column headers for comparison
-            comparison_header = [
-                f"{field}{i + 1}" for i in range(2) for field in header
-            ]
-            self.results_table.setHorizontalHeaderLabels(comparison_header)
-
-            # Populate the table with data, inserting NaN when a gap is detected
-            row_index = 0
-            while row_index < num_rows:
-                if row_index < len(data):
-                    row_data = data[row_index]
-                    for col_index, value in enumerate(row_data):
-                        # Calculate column for alternating placement of data
-                        table_col = col_index * 2 + start_col
-                        self.results_table.setItem(
-                            row_index, table_col, QTableWidgetItem(value)
-                        )
-
-                    # Check for gaps and fill them
-                    if row_index > 0:
-                        prev_timestamp = timestamps[row_index - 1]
-                        current_timestamp = timestamps[row_index]
-
-                        # Calculate the gap between the two timestamps
-                        timestamp_gap = current_timestamp - prev_timestamp
-
-                        # Only fill if there's a significant gap
-                        if timestamp_gap > gap_threshold:
-                            # Calculate how many NaNs to fill based on the gap
-                            fill_count = int(
-                                timestamp_gap // 8
-                            )  # How many 8-unit intervals fit into the gap
-
-                            # Ensure to fill NaNs while maintaining the proximity of timestamps
-                            for fill_index in range(1, fill_count + 1):
-                                new_timestamp = prev_timestamp + fill_index * 8
-
-                                # Ensure new timestamp is still within the gap threshold
-                                if new_timestamp < current_timestamp:
-                                    row_index += 1
-                                    for col_index in range(len(header)):
-                                        table_col = col_index * 2 + start_col
-                                        self.results_table.setItem(
-                                            row_index,
-                                            table_col,
-                                            QTableWidgetItem("NaN"),
-                                        )
-                                else:
-                                    break
-
-                    # Increment the row index for the next iteration
-                    row_index += 1
-                else:
-                    # If there is no data for this row, fill with NaN for preview_index 0
-                    for col_index in range(len(header)):
-                        table_col = col_index * 2 + start_col
-                        self.results_table.setItem(
-                            row_index, table_col, QTableWidgetItem("NaN")
-                        )
-                    row_index += 1  # Ensure to move to the next row
-
-            layout.addWidget(self.results_table)
-            self.setLayout(layout)  # Assuming this is in a QWidget class
-=======
             # Set the size of the table and make the header resizable
             self.results_table.setMinimumSize(800, 400)
             self.results_table.horizontalHeader().setStretchLastSection(True)
@@ -588,7 +473,6 @@ class SVCpreview(QtWidgets.QWidget):
                     # Add color to nan values
                     if value.lower() == 'nan':
                         item.setForeground(QColor("red"))
->>>>>>> origin/main
 
             # Update filename labels accordingly
             if preview_index == 0:
