@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
+<<<<<<< HEAD
 from PyQt5.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
@@ -7,6 +8,11 @@ from PyQt5.QtWidgets import (
     QWidget,
     QHBoxLayout,
 )
+=======
+from PyQt5.QtGui import QColor
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTableWidgetItem
+>>>>>>> origin/main
 import os
 import zipfile
 import pandas as pd
@@ -408,6 +414,9 @@ class SVCpreview(QtWidgets.QWidget):
             # Read the content of the file
             with open(filename, "r") as file:
                 lines = file.readlines()
+            
+            # Set the header titles
+            headers = ["x", "y", "time stamp", "pen status", "azimuth", "altitude", "pressure"]
 
             # Assuming the first line is a header, split it into columns
             header = lines[0].strip().split()
@@ -427,6 +436,7 @@ class SVCpreview(QtWidgets.QWidget):
             num_rows = len(data)
             num_columns = len(header) * 2  # We need double columns for comparison
 
+<<<<<<< HEAD
             # Create a layout to hold the header and table
             layout = QVBoxLayout()
 
@@ -531,12 +541,63 @@ class SVCpreview(QtWidgets.QWidget):
 
             layout.addWidget(self.results_table)
             self.setLayout(layout)  # Assuming this is in a QWidget class
+=======
+            # Set the size of the table and make the header resizable
+            self.results_table.setMinimumSize(800, 400)
+            self.results_table.horizontalHeader().setStretchLastSection(True)
+            self.results_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+
+            # Initialize the table if it's the first time
+            if preview_index == 0:
+                self.results_table.setColumnCount(num_columns)
+                self.results_table.setRowCount(num_rows)
+
+                # Set the column headers for comparison
+                comparison_header = [header for header in headers for _ in range(2)]
+                self.results_table.setHorizontalHeaderLabels(comparison_header)
+                self.results_table.horizontalHeader().setVisible(True)
+
+                # Set the height for the header
+                header = self.results_table.horizontalHeader()
+                header.setDefaultAlignment(Qt.AlignLeft)
+                header.setMinimumHeight(80)
+
+            # Populate the table with data
+            for row_index, row_data in enumerate(data):
+                for col_index, value in enumerate(row_data):
+                    # Calculate column for alternating placement of data
+                    table_col = col_index * 2 + start_col
+                    current_item = self.results_table.item(row_index, table_col)
+                    
+                    # If preview_index == 1, ensure we are placing in the second column set (without overwriting)
+                    if preview_index == 1 and current_item is not None:
+                        # Append the new file's data into the next column (maintaining previous column)
+                        item = QTableWidgetItem(value)
+                        self.results_table.setItem(row_index, table_col, item)
+                    else:
+                        # Place data normally when preview_index == 0 or there is no existing data
+                        item = QTableWidgetItem(value)
+                        self.results_table.setItem(row_index, table_col, item)
+                    
+                    # Add color to the columns
+                    if preview_index == 0:
+                        item.setForeground(QColor("black"))
+                    else:
+                        item.setForeground(QColor("green"))
+                    
+                    # Add color to nan values
+                    if value.lower() == 'nan':
+                        item.setForeground(QColor("red"))
+>>>>>>> origin/main
 
             # Update filename labels accordingly
             if preview_index == 0:
                 self.filename1.setText(os.path.basename(filename))
             else:
                 self.filename2.setText(os.path.basename(filename))
+            
+            self.results_table.resizeColumnsToContents()
+            self.results_table.resizeRowsToContents()
 
         except Exception as e:
             error_message = f"Error reading file: {str(e)}"
