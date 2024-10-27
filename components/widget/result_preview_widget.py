@@ -1,13 +1,13 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5.QtGui import QColor
 import os
 import zipfile
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtCore import Qt
 
 
 class SVCpreview(QtWidgets.QWidget):
@@ -82,7 +82,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.select_file_button1.clicked.connect(self.select_file)
         self.filename_button_layout1.addWidget(
             self.select_file_button1, alignment=QtCore.Qt.AlignRight
-        )
+        ) 
 
         # Add the filename and button layout to the first text preview layout
         self.text_preview1_layout.addLayout(self.filename_button_layout1)
@@ -387,11 +387,10 @@ class SVCpreview(QtWidgets.QWidget):
             if preview_index == 0:
                 self.text_preview1.setPlainText(error_message)
             else:
-                self.text_preview2.setPlainText(error_message)
-
+                    self.text_preview2.setPlainText(error_message)
 
     def display_table_contents(self, filename, preview_index):
-        """Read the contents of the file and display it in a comparison table format."""
+        """Read the contents of the file and display it in a comparison table format, inserting NaNs where gaps are detected."""
         try:
             # Ensure the file path is absolute
             if not os.path.isabs(filename):
@@ -412,68 +411,104 @@ class SVCpreview(QtWidgets.QWidget):
             header = lines[0].strip().split()
             data = [line.strip().split() for line in lines[1:]]
 
+            # The timestamp is in the third column, index 2
+            timestamp_idx = 2
+            timestamps = [float(row[timestamp_idx]) for row in data]
+
+            # Define the gap threshold
+            gap_threshold = 10  # Adjusted to allow a maximum gap of 10 units
+
             # Define a mapping between the preview index and the corresponding columns
             start_col = 0 if preview_index == 0 else 1
 
-            # Set the number of rows and columns in the table
+            # Initialize the number of rows and columns in the table
             num_rows = len(data)
             num_columns = len(header) * 2  # We need double columns for comparison
 
-            # Set the size of the table and make the header resizable
-            self.results_table.setMinimumSize(800, 400)
-            self.results_table.horizontalHeader().setStretchLastSection(True)
-            self.results_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-
-            # Initialize the table if it's the first time
+            # Initialize the table for preview_index 0, set column headers and row count
             if preview_index == 0:
                 self.results_table.setColumnCount(num_columns)
                 self.results_table.setRowCount(num_rows)
 
-                # Set the column headers for comparison
-                comparison_header = [header for header in headers for _ in range(2)]
+                # Set the comparison header with alternating columns
+                comparison_header = [f"{title}1" if i % 2 == 0 else f"{title}2" for title in headers for i in range(2)]
                 self.results_table.setHorizontalHeaderLabels(comparison_header)
                 self.results_table.horizontalHeader().setVisible(True)
 
-                # Set the height for the header
+                # Adjust header settings for better readability
+                self.results_table.setMinimumSize(800, 300)
+                self.results_table.horizontalHeader().setStretchLastSection(True)
+                self.results_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
                 header = self.results_table.horizontalHeader()
                 header.setDefaultAlignment(Qt.AlignLeft)
                 header.setMinimumHeight(80)
 
-            # Populate the table with data
-            for row_index, row_data in enumerate(data):
-                for col_index, value in enumerate(row_data):
-                    # Calculate column for alternating placement of data
-                    table_col = col_index * 2 + start_col
-                    current_item = self.results_table.item(row_index, table_col)
-                    
-                    # If preview_index == 1, ensure we are placing in the second column set (without overwriting)
-                    if preview_index == 1 and current_item is not None:
-                        # Append the new file's data into the next column (maintaining previous column)
+            # Determine max rows for filling the table based on data length
+            max_rows = max(self.results_table.rowCount(), num_rows)
+            self.results_table.setRowCount(max_rows)
+
+            # Populate the table with data, inserting NaN when a gap is detected
+            row_index = 0
+            while row_index < max_rows:
+                if row_index < len(data):
+                    row_data = data[row_index]
+                    for col_index, value in enumerate(row_data):
+                        # Calculate column for alternating placement of data
+                        table_col = col_index * 2 + start_col
                         item = QTableWidgetItem(value)
+                        
+                        # Set text color based on preview_index
+                        if value == 'NaN':
+                            item.setForeground(QColor("red"))
+                        else:
+                            item.setForeground(QColor("black") if preview_index == 0 else QColor("green"))
+                        
                         self.results_table.setItem(row_index, table_col, item)
-                    else:
-                        # Place data normally when preview_index == 0 or there is no existing data
-                        item = QTableWidgetItem(value)
-                        self.results_table.setItem(row_index, table_col, item)
-                    
-                    # Add color to the columns
-                    if preview_index == 0:
-                        item.setForeground(QColor("black"))
-                    else:
-                        item.setForeground(QColor("green"))
-                    
-                    # Add color to nan values
-                    if value.lower() == 'nan':
-                        item.setForeground(QColor("red"))
+
+                    # Check for gaps and fill them
+                    if row_index > 0:
+                        prev_timestamp = timestamps[row_index - 1]
+                        current_timestamp = timestamps[row_index]
+
+                        # Calculate the gap between the two timestamps
+                        timestamp_gap = current_timestamp - prev_timestamp
+
+                        # Only fill if there's a significant gap
+                        if timestamp_gap > gap_threshold:
+                            # Calculate how many NaNs to fill based on the gap
+                            fill_count = int(timestamp_gap // 8)  # How many 8-unit intervals fit into the gap
+
+                            # Ensure to fill NaNs while maintaining the proximity of timestamps
+                            for fill_index in range(1, fill_count + 1):
+                                new_timestamp = prev_timestamp + fill_index * 8
+
+                                # Ensure new timestamp is still within the gap threshold
+                                if new_timestamp < current_timestamp:
+                                    row_index += 1
+                                    for col_index in range(len(header)):
+                                        table_col = col_index * 2 + start_col
+                                        nan_item = QTableWidgetItem('NaN')
+                                        nan_item.setForeground(QColor("red"))
+                                        self.results_table.setItem(row_index, table_col, nan_item)
+                                else:
+                                    break
+
+                    # Increment the row index for the next iteration
+                    row_index += 1
+                else:
+                    # If there is no data for this row, fill with NaN for preview_index 0
+                    for col_index in range(len(header)):
+                        table_col = col_index * 2 + start_col
+                        nan_item = QTableWidgetItem('NaN')
+                        nan_item.setForeground(QColor("red"))
+                        self.results_table.setItem(row_index, table_col, nan_item)
+                    row_index += 1  # Ensure to move to the next row
 
             # Update filename labels accordingly
             if preview_index == 0:
                 self.filename1.setText(os.path.basename(filename))
             else:
                 self.filename2.setText(os.path.basename(filename))
-            
-            self.results_table.resizeColumnsToContents()
-            self.results_table.resizeRowsToContents()
 
         except Exception as e:
             error_message = f"Error reading file: {str(e)}"
@@ -481,6 +516,7 @@ class SVCpreview(QtWidgets.QWidget):
                 self.text_preview1.setPlainText(error_message)
             else:
                 self.text_preview2.setPlainText(error_message)
+
 
 
 
