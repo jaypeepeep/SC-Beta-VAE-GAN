@@ -88,7 +88,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.select_file_button1.clicked.connect(self.select_file)
         self.filename_button_layout1.addWidget(
             self.select_file_button1, alignment=QtCore.Qt.AlignRight
-        ) 
+        )
 
         # Add the filename and button layout to the first text preview layout
         self.text_preview1_layout.addLayout(self.filename_button_layout1)
@@ -393,11 +393,11 @@ class SVCpreview(QtWidgets.QWidget):
             if preview_index == 0:
                 self.text_preview1.setPlainText(error_message)
             else:
-                    self.text_preview2.setPlainText(error_message)
- 
+                self.text_preview2.setPlainText(error_message)
+
 
     def display_table_contents(self, filename, preview_index):
-        """Read the contents of the file and display it in a comparison table format, inserting NaNs where gaps are detected."""
+        """Read the contents of the file and display it in a comparison table format."""
         try:
             # Ensure the file path is absolute
             if not os.path.isabs(filename):
@@ -418,20 +418,14 @@ class SVCpreview(QtWidgets.QWidget):
             header = lines[0].strip().split()
             data = [line.strip().split() for line in lines[1:]]
 
-            # The timestamp is in the third column, index 2
-            timestamp_idx = 2
-            timestamps = [float(row[timestamp_idx]) for row in data]
-
-            # Define the gap threshold
-            gap_threshold = 10  # Adjusted to allow a maximum gap of 10 units
-
             # Define a mapping between the preview index and the corresponding columns
             start_col = 0 if preview_index == 0 else 1
 
-            # Initialize the number of rows and columns in the table
+            # Set the number of rows and columns in the table
             num_rows = len(data)
             num_columns = len(header) * 2  # We need double columns for comparison
 
+<<<<<<< HEAD
 <<<<<<< HEAD
             # Set the size of the table and make the header resizable
             self.results_table.setMinimumSize(800, 400)
@@ -481,30 +475,32 @@ class SVCpreview(QtWidgets.QWidget):
                         item.setForeground(QColor("red"))
 =======
             # Set the row count to the maximum of the current table or the incoming data
+=======
+            # Initialize the table if it's the first time
+>>>>>>> parent of ed44bb5 (feat: add NaN values for comparison table)
             if preview_index == 0:
                 self.results_table.setColumnCount(num_columns)
                 self.results_table.setRowCount(num_rows)
 
                 # Set the column headers for comparison
-                comparison_header = [f"{field}{i + 1}" for i in range(2) for field in header]
+                comparison_header = [f"{field}{i+1}" for i in range(2) for field in header]
                 self.results_table.setHorizontalHeaderLabels(comparison_header)
 
-                # Set max_rows for the case of preview_index 0
-                max_rows = num_rows
-            else:
-                # For preview_index 1, determine the max rows including the current data
-                max_rows = max(self.results_table.rowCount(), num_rows)
-                self.results_table.setRowCount(max_rows)
-
-            # Populate the table with data, inserting NaN when a gap is detected
-            row_index = 0
-            while row_index < max_rows:
-                if row_index < len(data):
-                    row_data = data[row_index]
-                    for col_index, value in enumerate(row_data):
-                        # Calculate column for alternating placement of data
-                        table_col = col_index * 2 + start_col
+            # Populate the table with data
+            for row_index, row_data in enumerate(data):
+                for col_index, value in enumerate(row_data):
+                    # Calculate column for alternating placement of data
+                    table_col = col_index * 2 + start_col
+                    current_item = self.results_table.item(row_index, table_col)
+                    
+                    # If preview_index == 1, ensure we are placing in the second column set (without overwriting)
+                    if preview_index == 1 and current_item is not None:
+                        # Append the new file's data into the next column (maintaining previous column)
                         self.results_table.setItem(row_index, table_col, QTableWidgetItem(value))
+                    else:
+                        # Place data normally when preview_index == 0 or there is no existing data
+                        self.results_table.setItem(row_index, table_col, QTableWidgetItem(value))
+<<<<<<< HEAD
 
                     # Check for gaps and fill them
                     if row_index > 0:
@@ -541,6 +537,8 @@ class SVCpreview(QtWidgets.QWidget):
                         self.results_table.setItem(row_index, table_col, QTableWidgetItem('NaN'))
                     row_index += 1  # Ensure to move to the next row
 >>>>>>> parent of be3d7a6 (fix: resolve issues with imported libraries)
+=======
+>>>>>>> parent of ed44bb5 (feat: add NaN values for comparison table)
 
             # Update filename labels accordingly
             if preview_index == 0:
