@@ -20,3 +20,4 @@ __pycache__/
 /uploads/
 /original_absolute/
 /model/pentab_vae_models/
+/prompt.txt
