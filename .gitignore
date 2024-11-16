@@ -20,4 +20,6 @@ imputed/
 uploads/
 original_absolute/
 model/pentab_vae_models/
+model/augmented_data/
 model/original_absolute/
+
