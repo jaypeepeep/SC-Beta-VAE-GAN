@@ -1,0 +1,216 @@
+2024-11-16 19:19:05,601 - INFO - Starting to process SVC folder.
+2024-11-16 19:19:05,613 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 19:19:06,416 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 19:19:11,171 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 19:23:18,219 - INFO - Starting to process SVC folder.
+2024-11-16 19:23:18,277 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 19:24:59,989 - INFO - Starting to process SVC folder.
+2024-11-16 19:24:59,990 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 19:25:00,664 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 19:25:03,154 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 19:42:04,407 - INFO - Found 7 files to process.
+2024-11-16 19:42:50,476 - INFO - Found 7 files to process.
+2024-11-16 19:42:57,079 - INFO - Found 7 files to process.
+2024-11-16 19:42:57,122 - INFO - Found 7 files to process.
+2024-11-16 19:42:57,166 - INFO - Found 7 files to process.
+2024-11-16 19:42:57,291 - INFO - Found 7 files to process.
+2024-11-16 19:43:06,963 - INFO - Found 7 files to process.
+2024-11-16 19:43:06,994 - INFO - Found 7 files to process.
+2024-11-16 19:43:07,042 - INFO - Found 7 files to process.
+2024-11-16 19:43:07,761 - INFO - Found 7 files to process.
+2024-11-16 19:43:14,747 - INFO - Found 7 files to process.
+2024-11-16 19:43:14,819 - INFO - Found 7 files to process.
+2024-11-16 19:43:15,407 - INFO - Found 7 files to process.
+2024-11-16 19:43:15,622 - INFO - Found 7 files to process.
+2024-11-16 19:43:22,652 - INFO - Found 7 files to process.
+2024-11-16 19:43:22,718 - INFO - Found 7 files to process.
+2024-11-16 19:43:23,662 - INFO - Found 7 files to process.
+2024-11-16 19:43:23,743 - INFO - Found 7 files to process.
+2024-11-16 19:43:30,735 - INFO - Found 7 files to process.
+2024-11-16 19:43:30,767 - INFO - Found 7 files to process.
+2024-11-16 19:43:31,688 - INFO - Found 7 files to process.
+2024-11-16 19:43:31,738 - INFO - Found 7 files to process.
+2024-11-16 19:44:09,025 - INFO - Starting to process SVC folder.
+2024-11-16 19:44:22,987 - INFO - Starting to process SVC folder.
+2024-11-16 19:44:22,988 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 19:44:23,809 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 19:44:28,227 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 19:52:44,158 - INFO - Starting to process SVC folder.
+2024-11-16 19:52:44,158 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 19:52:45,345 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 19:52:48,022 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 19:53:59,859 - INFO - Starting to process SVC folder.
+2024-11-16 19:53:59,859 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 19:54:00,720 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 19:54:03,391 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 19:55:18,979 - INFO - Starting to process SVC folder.
+2024-11-16 19:55:18,979 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 19:55:19,755 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 19:55:22,498 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:01:22,259 - INFO - Successfully processed and saved: collection1u00001s00001_hw00001.svc
+2024-11-16 20:01:22,260 - INFO - Processing file: collection1u00001s00001_hw00002.svc
+2024-11-16 20:06:19,835 - INFO - Starting to process SVC folder.
+2024-11-16 20:06:19,835 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 20:06:20,932 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:06:24,640 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:09:40,879 - INFO - Error processing collection1u00001s00001_hw00001.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:09:40,953 - INFO - Error processing collection1u00001s00001_hw00002.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:09:40,953 - INFO - Error processing collection1u00001s00001_hw00003.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:09:40,953 - INFO - Error processing collection1u00001s00001_hw00004.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:09:40,953 - INFO - Error processing collection1u00001s00001_hw00005.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:09:40,953 - INFO - Error processing collection1u00001s00001_hw00006.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:09:40,953 - INFO - Error processing collection1u00001s00001_hw00007.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:11:54,210 - INFO - Error processing collection1u00001s00001_hw00001.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:11:54,210 - INFO - Error processing collection1u00001s00001_hw00002.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:11:54,210 - INFO - Error processing collection1u00001s00001_hw00003.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:11:54,210 - INFO - Error processing collection1u00001s00001_hw00004.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:11:54,210 - INFO - Error processing collection1u00001s00001_hw00005.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:11:54,210 - INFO - Error processing collection1u00001s00001_hw00006.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:11:54,210 - INFO - Error processing collection1u00001s00001_hw00007.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:08,266 - INFO - No GPU devices found, using CPU
+2024-11-16 20:14:08,279 - INFO - Starting processing of 7 files
+2024-11-16 20:14:13,854 - INFO - No GPU devices found, using CPU
+2024-11-16 20:14:13,866 - INFO - No GPU devices found, using CPU
+2024-11-16 20:14:13,895 - INFO - No GPU devices found, using CPU
+2024-11-16 20:14:13,987 - INFO - No GPU devices found, using CPU
+2024-11-16 20:14:17,053 - INFO - Progress: 1/7 files - Error processing collection1u00001s00001_hw00004.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:17,053 - INFO - Progress: 2/7 files - Error processing collection1u00001s00001_hw00001.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:17,053 - INFO - Progress: 3/7 files - Error processing collection1u00001s00001_hw00003.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:17,053 - INFO - Progress: 4/7 files - Error processing collection1u00001s00001_hw00002.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:17,149 - INFO - Progress: 5/7 files - Error processing collection1u00001s00001_hw00005.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:17,149 - INFO - Progress: 6/7 files - Error processing collection1u00001s00001_hw00006.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:17,149 - INFO - Progress: 7/7 files - Error processing collection1u00001s00001_hw00007.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:14:17,236 - INFO - Completed processing 7 files in 8.96 seconds
+2024-11-16 20:15:43,348 - INFO - No GPU devices found, using CPU
+2024-11-16 20:15:43,364 - INFO - Starting processing of 7 files
+2024-11-16 20:15:48,462 - INFO - No GPU devices found, using CPU
+2024-11-16 20:15:48,462 - INFO - No GPU devices found, using CPU
+2024-11-16 20:15:48,475 - INFO - No GPU devices found, using CPU
+2024-11-16 20:15:48,531 - INFO - No GPU devices found, using CPU
+2024-11-16 20:15:48,778 - INFO - Progress: 1/7 files - Error processing collection1u00001s00001_hw00002.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:15:48,840 - INFO - Progress: 2/7 files - Error processing collection1u00001s00001_hw00001.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:15:48,864 - INFO - Progress: 3/7 files - Error processing collection1u00001s00001_hw00003.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:15:48,880 - INFO - Progress: 4/7 files - Error processing collection1u00001s00001_hw00004.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:15:48,927 - INFO - Progress: 5/7 files - Error processing collection1u00001s00001_hw00006.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:15:48,942 - INFO - Progress: 6/7 files - Error processing collection1u00001s00001_hw00005.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:15:48,974 - INFO - Progress: 7/7 files - Error processing collection1u00001s00001_hw00007.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:15:49,080 - INFO - Completed processing 7 files in 5.72 seconds
+2024-11-16 20:17:11,222 - INFO - No GPU devices found, using CPU
+2024-11-16 20:17:11,238 - INFO - Starting processing of 7 files
+2024-11-16 20:17:16,202 - INFO - No GPU devices found, using CPU
+2024-11-16 20:17:16,217 - INFO - No GPU devices found, using CPU
+2024-11-16 20:17:16,264 - INFO - No GPU devices found, using CPU
+2024-11-16 20:17:16,295 - INFO - No GPU devices found, using CPU
+2024-11-16 20:17:16,452 - INFO - Progress: 1/7 files - Error processing collection1u00001s00001_hw00002.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:17:16,452 - INFO - Progress: 2/7 files - Error processing collection1u00001s00001_hw00001.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:17:16,494 - INFO - Progress: 3/7 files - Error processing collection1u00001s00001_hw00003.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:17:16,508 - INFO - Progress: 4/7 files - Error processing collection1u00001s00001_hw00004.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:17:16,559 - INFO - Progress: 5/7 files - Error processing collection1u00001s00001_hw00005.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:17:16,559 - INFO - Progress: 6/7 files - Error processing collection1u00001s00001_hw00006.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:17:16,594 - INFO - Progress: 7/7 files - Error processing collection1u00001s00001_hw00007.svc: cannot compute Mul as input #1(zero-based) was expected to be a float tensor but is a int32 tensor [Op:Mul] name: 
+2024-11-16 20:17:16,639 - INFO - Completed processing 7 files in 5.40 seconds
+2024-11-16 20:17:51,699 - INFO - Starting to process SVC folder.
+2024-11-16 20:17:51,699 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 20:17:52,718 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:17:55,481 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:19:36,179 - INFO - Starting to process SVC folder.
+2024-11-16 20:19:36,179 - INFO - Processing file: collection1u00001s00001_hw00001.svc
+2024-11-16 20:19:36,898 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:19:39,311 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:21:26,153 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:18: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:21:28,954 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\TIMEGAN.py:129: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:26:08,895 - INFO - Starting parallel processing with 3 processes
+2024-11-16 20:26:24,997 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-16 20:26:25,191 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-16 20:26:25,389 - INFO - Starting processing of file: collection1u00001s00001_hw00003.svc
+2024-11-16 20:26:26,680 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:26:26,792 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:26:26,987 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:26:33,400 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:26:33,533 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:26:33,741 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:28:02,243 - INFO - Starting processing of file: collection1u00001s00001_hw00004.svc
+2024-11-16 20:28:02,256 - INFO - Starting processing of file: collection1u00001s00001_hw00005.svc
+2024-11-16 20:28:02,256 - INFO - Starting processing of file: collection1u00001s00001_hw00006.svc
+2024-11-16 20:28:03,208 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:28:03,215 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:28:03,226 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:28:15,155 - INFO - Starting parallel processing with 3 processes
+2024-11-16 20:28:21,093 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-16 20:28:21,140 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-16 20:28:21,140 - INFO - Starting processing of file: collection1u00001s00001_hw00003.svc
+2024-11-16 20:28:22,012 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:28:22,093 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:28:22,094 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:28:25,329 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:28:25,364 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:28:25,395 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:38:38,421 - INFO - Starting parallel processing with 3 processes
+2024-11-16 20:38:45,710 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-16 20:38:45,730 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-16 20:38:45,873 - INFO - Starting processing of file: collection1u00001s00001_hw00003.svc
+2024-11-16 20:38:46,811 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:38:46,853 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:38:46,987 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:20: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-16 20:38:50,362 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:38:50,400 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 20:38:50,506 - WARNING - From c:\Users\JM\Desktop\Projects\Thesis-Project\timegan\main.py:131: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-16 21:17:09,561 - INFO - Completed processing file collection1u00001s00001_hw00001.svc. Time taken: 2303.85 seconds
+2024-11-16 21:17:09,561 - INFO - Starting processing of file: collection1u00001s00001_hw00004.svc
+2024-11-16 21:49:11,419 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 4225.69 seconds
+2024-11-16 21:49:11,419 - INFO - Starting processing of file: collection1u00001s00001_hw00005.svc
+2024-11-16 21:51:01,975 - INFO - Completed processing file collection1u00001s00001_hw00003.svc. Time taken: 4336.10 seconds
+2024-11-16 21:51:01,975 - INFO - Starting processing of file: collection1u00001s00001_hw00006.svc
+2024-11-16 22:08:03,758 - INFO - Completed processing file collection1u00001s00001_hw00004.svc. Time taken: 3054.20 seconds
+2024-11-16 22:08:03,774 - INFO - Starting processing of file: collection1u00001s00001_hw00007.svc
+2024-11-16 22:18:35,914 - INFO - Completed processing file collection1u00001s00001_hw00005.svc. Time taken: 1764.50 seconds
+2024-11-16 22:41:09,531 - INFO - Completed processing file collection1u00001s00001_hw00006.svc. Time taken: 3007.56 seconds
+2024-11-16 22:49:12,097 - INFO - Completed processing file collection1u00001s00001_hw00007.svc. Time taken: 2468.32 seconds
+2024-11-16 22:49:12,241 - INFO - 
+Processing Summary:
+2024-11-16 22:49:12,241 - INFO - Total files processed: 7
+2024-11-16 22:49:12,241 - INFO - Successfully processed: 7
+2024-11-16 22:49:12,241 - INFO - Failed to process: 0
+2024-11-16 22:49:12,241 - INFO - Total wall time: 7833.82 seconds
+2024-11-16 22:49:12,241 - INFO - Total processing time: 21160.21 seconds
