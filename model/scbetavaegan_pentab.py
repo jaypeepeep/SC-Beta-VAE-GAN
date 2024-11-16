@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import re
+from glob import glob
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, accuracy_score, mean_absolute_percentage_error
 from sklearn.model_selection import KFold
@@ -13,19 +15,12 @@ import shutil
 from keras.utils import custom_object_scope
 from tensorflow.keras.models import load_model
 
-# 1. Load and process the .svc file
-def upload_and_process_files(path, num_files_to_use=None):
-    """Upload and process .svc files for handwriting analysis. 
-       Save unscaled data in 'original_absolute' folder.
-    """
-    # Check if the path is a directory or a single file
-    if os.path.isdir(path):
-        svc_files = [f for f in os.listdir(path) if f.endswith('.svc')]
-        directory = path
-    else:
-        svc_files = [os.path.basename(path)]  # Only use the single file
-        directory = os.path.dirname(path)  # Get the directory from the file path
+all_augmented_filepath = []
 
+# 1. Load and process the .svc file
+def upload_and_process_files(directory, num_files_to_use=None):
+    svc_files = [f for f in os.listdir(directory) if f.endswith('.svc')]
+    
     # If num_files_to_use is specified, only take that many files sequentially
     if num_files_to_use:
         svc_files = svc_files[:num_files_to_use]  # Take the first num_files_to_use files
@@ -35,16 +30,14 @@ def upload_and_process_files(path, num_files_to_use=None):
     scalers = []
     input_filenames = []  # List to store input filenames
 
-    # Create the folder if it doesn't exist
-    output_folder = 'original_absolute'
-    os.makedirs(output_folder, exist_ok=True)
+    num_files = len(svc_files)
+    fig, axs = plt.subplots(1, num_files, figsize=(6*num_files, 6), constrained_layout=True)
+    if num_files == 1:
+        axs = [axs]
 
     for i, filename in enumerate(svc_files):
         file_path = os.path.join(directory, filename)
         input_filenames.append(filename)  # Store the filename
-        print(f"Reading file: {file_path}")
-        
-        # Read the .svc file data
         df = pd.read_csv(file_path, skiprows=1, header=None, delim_whitespace=True)
         df.columns = ['x', 'y', 'timestamp', 'pen_status', 'pressure', 'azimuth', 'altitude']
         
@@ -54,35 +47,39 @@ def upload_and_process_files(path, num_files_to_use=None):
         # Keep a copy of the original data before scaling
         original_data_frames.append(df.copy())  # Save the original unmodified data
         
-        # Save the original unscaled data to the 'original_absolute' folder before scaling
-        save_path = os.path.join(output_folder, filename)
-        df.to_csv(save_path, sep=' ', index=False, header=False)
-        
         # Process the data for use in the model
-        df = df.iloc[:, [0, 1, 2, 3, 4, 5, 6]]  # Select only the relevant columns
+        df = df.iloc[:, [0, 1, 2, 3, 4, 5, 6]] 
         data_frames.append(df)
         scaler = MinMaxScaler()
         normalized_data = scaler.fit_transform(df[['x', 'y', 'timestamp']])
         scalers.append(scaler)
 
-        # Print the first few rows of the timestamp column for debugging
-        print(f"Modified timestamps for file {filename}:")
-        print(df['timestamp'].head())
-        print("\n")
+        on_paper = df[df['pen_status'] == 1]
+        in_air = df[df['pen_status'] == 0]
+        axs[i].scatter(-on_paper['y'], on_paper['x'], c='blue', s=1, alpha=0.7, label='On Paper')
+        axs[i].scatter(-in_air['y'], in_air['x'], c='red', s=1, alpha=0.7, label='In Air')
+        axs[i].set_title(f'Original Data {i + 1}')
+        axs[i].set_xlabel('-y')
+        axs[i].set_ylabel('x')
+        axs[i].legend()
+        axs[i].set_aspect('equal')
 
-    # Call gap filling and interpolation function (assuming it's defined somewhere)
-    data_frames = fill_gaps_and_interpolate(data_frames)
 
-    # Update processed data for all DataFrames
     processed_data = [np.column_stack((scaler.transform(df[['x', 'y', 'timestamp']]), df['pen_status'].values)) 
                       for df, scaler in zip(data_frames, scalers)]
     avg_data_points = int(np.mean([df.shape[0] for df in data_frames]))
 
-    print(f"data_frames type: {type(data_frames)}, length: {len(data_frames)}")
-    print(f"scalers type: {type(scalers)}, length: {len(scalers)}")
-    print(f"processed_data type: {type(processed_data)}, length: {len(processed_data)}")
+    return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames  # Return original data
 
-    return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames
+
+def save_original_data(data_frames, input_filenames, output_folder='original_absolute'):
+    original_absolute_files = []
+    os.makedirs(output_folder, exist_ok=True)
+    for df, filename in zip(data_frames, input_filenames):
+        save_path = os.path.join(output_folder, filename)
+        df.to_csv(save_path, sep=' ', index=False, header=False)
+        original_absolute_files.append(save_path)
+    return original_absolute_files
 
 def fill_gaps_and_interpolate(data_frames):
     """Fill gaps in the timestamp and interpolate NaN values."""
@@ -95,17 +92,17 @@ def fill_gaps_and_interpolate(data_frames):
 
         # Calculate time differences and identify gaps
         df['time_diff'] = df['timestamp'].diff()
-        gap_indices = df.index[df['time_diff'] > 30000].tolist()
+        gap_indices = df.index[df['time_diff'] > 1].tolist()
 
         new_rows = []
         for idx in gap_indices:
             if idx + 1 < len(df):
                 current_timestamp = df.at[idx, 'timestamp']
                 next_timestamp = df.at[idx + 1, 'timestamp']
-                num_fill_entries = (next_timestamp - current_timestamp) // 20000
+                num_fill_entries = (next_timestamp - current_timestamp) // 1
 
                 for i in range(1, num_fill_entries + 1):
-                    new_timestamp = current_timestamp + i * 70
+                    new_timestamp = current_timestamp + i * 1
                     new_row = {
                         'x': np.nan,
                         'y': np.nan,
@@ -298,10 +295,20 @@ def train_lstm_step(lstm_model, real_data, generated_data, optimizer):
     optimizer.apply_gradients(zip(gradients, lstm_model.trainable_variables))
     return total_loss
 
-def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=512, learning_rate=0.001):
+def train_models(vae, lstm_discriminator, processed_data, original_data_frames, data_frames, num_augmented_files, epochs=10, vae_epochs=200, lstm_interval=50, batch_size=256, learning_rate=0.001, optimizer=None):
     """Train the VAE and LSTM models and calculate metrics."""
+    
+    # Use the passed optimizer, or create a new one if none is provided
+    if optimizer is None:
+        optimizer = tf.keras.optimizers.Adam(learning_rate)
+    
     lstm_optimizer = tf.keras.optimizers.Adam(learning_rate)
     
+    # Make sure the optimizer knows the variables it will be optimizing
+    dummy_input = tf.random.normal((1, 4))  # Assume input shape is (batch, 4)
+    vae(dummy_input)  # This will force the VAE to build and register variables
+    optimizer.apply_gradients([(tf.zeros_like(var), var) for var in vae.trainable_variables])
+
     train_datasets = [tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(batch_size) for data in processed_data]
 
     generator_loss_history = []
@@ -495,7 +502,7 @@ def get_unique_filename(directory, filename):
 
 # 9. Download augmented data function
 def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data', directory2='augmented_data_nested'):
-    global all_augmented_data  # Access the global list
+    global all_augmented_data, all_augmented_filepath  # Access the global list
 
     if not os.path.exists(directory1):
         os.makedirs(directory1)
@@ -514,6 +521,8 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
             augmented_data = augmented_data.reshape(-1, augmented_data.shape[-1])
         
         if isinstance(augmented_data, np.ndarray):
+            if augmented_data.ndim == 1:
+                augmented_data = augmented_data.reshape(-1, 4)
             augmented_xyz = scaler.inverse_transform(augmented_data[:, :3])
             augmented_xyz_int = np.rint(augmented_xyz).astype(int)
             pen_status = augmented_data[:, 3].astype(int)
@@ -551,6 +560,8 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
         augmented_filename = get_unique_filename(directory1, augmented_filename)
         augmented_file_path = os.path.join(directory1, augmented_filename)
 
+        all_augmented_filepath.append(augmented_file_path)
+
         np.savetxt(augmented_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
         np.savetxt(nested_file_path, augmented_data_original_scale, fmt='%d', delimiter=' ')
 
@@ -561,11 +572,12 @@ def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers,
         print(f"Augmented data saved to {nested_file_path}")
         print(f"Shape of augmented data for {original_filename}: {augmented_data_original_scale.shape}")
 
-    return all_augmented_data  # Return augmented data if needed
+    return all_augmented_data
 
 # Nested augmentation function
 def nested_augmentation(num_augmentations, num_files_to_use, data_frames, scalers, input_filenames, original_data_frames, model_path, avg_data_points, processed_data):
     print(f"Inside nested_augmentation: processed_data type={type(processed_data)}, value={processed_data}")
+    global all_augmented_filepath
     vae_pretrained = load_pretrained_vae(model_path)
     if vae_pretrained is None:
         print("Error: Pretrained VAE model could not be loaded. Augmentation process halted.")
@@ -611,7 +623,7 @@ def nested_augmentation(num_augmentations, num_files_to_use, data_frames, scaler
         print("Cleared augmented_data_nested directory after the final iteration.")
     
     print("Nested augmentation process completed.")
-    return augmented_datasets, scalers, original_data_frames, input_filenames
+    return augmented_datasets, all_augmented_filepath
     # visualize_augmented_data_from_directory('augmented_data')
 
 # 10. Repeat backwards function
@@ -659,18 +671,19 @@ def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list
         original_array = original_df[['x', 'y', 'timestamp', 'pen_status']].values
         augmented_array = augmented[:, :4]  # Assuming first 4 columns match original data structure
         
-        # Trim to the shorter length to ensure shapes match
-        min_length = min(len(original_array), len(augmented_array))
-        original_array_trimmed = original_array[:min_length]
-        augmented_array_trimmed = augmented_array[:min_length]
+        # Ensure compatibility
+        original_array, augmented_array = ensure_data_compatibility(original_array, augmented_array)
         
-        # Calculate NRMSE with the trimmed arrays
-        nrmse = calculate_nrmse(original_array_trimmed, augmented_array_trimmed)
-        nrmse_values.append(nrmse)
-        print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
+        # Calculate NRMSE with the compatible arrays
+        try:
+            nrmse = calculate_nrmse(original_array, augmented_array)
+            nrmse_values.append(nrmse)
+            print(f"NRMSE for dataset {i + 1}: {nrmse:.4f}")
+        except ValueError as e:
+            print(f"Error calculating NRMSE for dataset {i + 1}: {e}")
 
     # Calculate average NRMSE
-    average_nrmse = np.mean(nrmse_values)
+    average_nrmse = np.mean(nrmse_values) if nrmse_values else float('nan')
     print(f"Average NRMSE: {average_nrmse:.4f}")
     
     return nrmse_values, average_nrmse
@@ -678,6 +691,8 @@ def calculate_nrmse_for_augmented_data(original_data_frames, augmented_data_list
 # 12. Create LSTM classifier
 def create_lstm_classifier(input_shape):
     """Create and compile an LSTM model."""
+    global all_augmented_filepath
+    all_augmented_filepath = []
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.LSTM(50, return_sequences=True, input_shape=input_shape))
     model.add(tf.keras.layers.Dropout(0.2))  # Adding dropout to introduce randomness
@@ -702,6 +717,7 @@ def prepare_data_for_lstm(real_data, synthetic_data):
 # 13. Post-Hoc Discriminative Score Function
 def post_hoc_discriminative_score(real_data, synthetic_data, n_splits=10):
     """Calculate the post-hoc discriminative score using K-Fold cross-validation."""
+    # Ensure compatibility using the existing function
     X, y = prepare_data_for_lstm(real_data, synthetic_data)
     
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
@@ -757,6 +773,9 @@ def create_model(input_shape):
 
 def evaluate_model(model, X_test, y_test, scaler):
     """Evaluate the model using MAPE."""
+    # Ensure X_test and y_test are compatible
+    X_test, y_test = ensure_data_compatibility(X_test, y_test)
+    
     # Predict and inverse transform
     y_pred = model.predict(X_test)
     y_pred_rescaled = scaler.inverse_transform(y_pred)
@@ -863,9 +882,26 @@ def visualize_latent_space(model, data, perplexity=5, learning_rate=200, n_iter=
 
     return fig_latent
 
+def ensure_data_compatibility(original_data, synthetic_data):
+    """
+    Ensure original and synthetic data arrays have the same shape and dimensions.
+    Trims or pads if necessary and returns compatible arrays.
+    """
+    # Ensure the number of features matches
+    n_features = min(original_data.shape[1], synthetic_data.shape[1])
+    original_data = original_data[:, :n_features]
+    synthetic_data = synthetic_data[:, :n_features]
+
+    # Trim to the shortest length
+    min_length = min(len(original_data), len(synthetic_data))
+    original_data = original_data[:min_length]
+    synthetic_data = synthetic_data[:min_length]
+
+    return original_data, synthetic_data
+
 # Model parameters
 latent_dim = 512
-beta = 0.000001
+beta = 0.00000001
 learning_rate = 0.001
 
 # Create instances of the models

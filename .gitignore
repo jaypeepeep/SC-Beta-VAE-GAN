@@ -5,6 +5,21 @@ python_env/
 __pycache__/
 __pycache__/
 
-#ignore the .pyc
+# Ignore the .pyc
 *.pyc
 *.pyo
+
+# Ignore folders
+augmented_data/
+files/augmented_data/
+files/augmented_data_nested/
+files/imputed/
+files/original_absolute/
+files/uploads/
+imputed/
+uploads/
+original_absolute/
+model/pentab_vae_models/
+model/augmented_data/
+model/original_absolute/
+
