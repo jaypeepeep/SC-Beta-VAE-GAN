@@ -1,0 +1,5 @@
+Processing: collection1u00001s00001_hw00001.svc Completed in 2.6s (MAPE: 7.16%)
+Processing: collection1u00001s00001_hw00002.svc Completed in 4.1s (MAPE: 8.86%)
+----------------------------------------
+Overall Results:
+Average MAPE: 8.01%, Standard Deviation: 0.85%
