@@ -324,3 +324,493 @@
 2024-11-22 23:08:30,815 - INFO - 
 === Processing File 32/417: collection1u00010s00001_hw00007.svc ===
 2024-11-22 23:08:30,815 - INFO - Next file will be: collection1u00011s00001_hw00001.svc
+2024-11-22 23:19:19,292 - INFO - Starting sequential processing of 386 files
+2024-11-22 23:19:19,292 - INFO - 
+=== Processing File 1/386: collection1u00010s00001_hw00007.svc ===
+2024-11-22 23:19:19,292 - INFO - Next file will be: collection1u00011s00001_hw00001.svc
+2024-11-22 23:19:20,792 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:26: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 23:19:24,350 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:137: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 23:19:48,436 - INFO - Completed processing File 1/386: collection1u00010s00001_hw00007.svc. Time taken: 29.14 seconds
+2024-11-22 23:19:48,436 - INFO - 
+=== Processing File 2/386: collection1u00011s00001_hw00001.svc ===
+2024-11-22 23:19:48,436 - INFO - Next file will be: collection1u00011s00001_hw00002.svc
+2024-11-22 23:20:16,231 - INFO - Completed processing File 2/386: collection1u00011s00001_hw00001.svc. Time taken: 27.79 seconds
+2024-11-22 23:20:16,231 - INFO - 
+=== Processing File 3/386: collection1u00011s00001_hw00002.svc ===
+2024-11-22 23:20:16,231 - INFO - Next file will be: collection1u00011s00001_hw00003.svc
+2024-11-22 23:20:54,416 - INFO - Completed processing File 3/386: collection1u00011s00001_hw00002.svc. Time taken: 38.18 seconds
+2024-11-22 23:20:54,416 - INFO - 
+=== Processing File 4/386: collection1u00011s00001_hw00003.svc ===
+2024-11-22 23:20:54,417 - INFO - Next file will be: collection1u00011s00001_hw00004.svc
+2024-11-22 23:21:33,532 - INFO - Completed processing File 4/386: collection1u00011s00001_hw00003.svc. Time taken: 39.12 seconds
+2024-11-22 23:21:33,532 - INFO - 
+=== Processing File 5/386: collection1u00011s00001_hw00004.svc ===
+2024-11-22 23:21:33,532 - INFO - Next file will be: collection1u00011s00001_hw00005.svc
+2024-11-22 23:21:58,754 - INFO - Completed processing File 5/386: collection1u00011s00001_hw00004.svc. Time taken: 25.22 seconds
+2024-11-22 23:21:58,754 - INFO - 
+=== Processing File 6/386: collection1u00011s00001_hw00005.svc ===
+2024-11-22 23:21:58,754 - INFO - Next file will be: collection1u00011s00001_hw00006.svc
+2024-11-22 23:22:11,341 - ERROR - Error processing File 6/386: collection1u00011s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 23:22:11,341 - INFO - 
+=== Processing File 7/386: collection1u00011s00001_hw00006.svc ===
+2024-11-22 23:22:11,341 - INFO - Next file will be: collection1u00011s00001_hw00007.svc
+2024-11-22 23:22:42,991 - INFO - Completed processing File 7/386: collection1u00011s00001_hw00006.svc. Time taken: 31.65 seconds
+2024-11-22 23:22:42,991 - INFO - 
+=== Processing File 8/386: collection1u00011s00001_hw00007.svc ===
+2024-11-22 23:22:42,991 - INFO - Next file will be: collection1u00012s00001_hw00001.svc
+2024-11-22 23:23:25,739 - INFO - Completed processing File 8/386: collection1u00011s00001_hw00007.svc. Time taken: 42.75 seconds
+2024-11-22 23:23:25,739 - INFO - 
+=== Processing File 9/386: collection1u00012s00001_hw00001.svc ===
+2024-11-22 23:23:25,739 - INFO - Next file will be: collection1u00012s00001_hw00002.svc
+2024-11-22 23:23:45,058 - ERROR - Error processing File 9/386: collection1u00012s00001_hw00001.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 23:23:45,058 - INFO - 
+=== Processing File 10/386: collection1u00012s00001_hw00002.svc ===
+2024-11-22 23:23:45,058 - INFO - Next file will be: collection1u00012s00001_hw00003.svc
+2024-11-22 23:24:25,273 - INFO - Completed processing File 10/386: collection1u00012s00001_hw00002.svc. Time taken: 40.21 seconds
+2024-11-22 23:24:25,273 - INFO - 
+=== Processing File 11/386: collection1u00012s00001_hw00003.svc ===
+2024-11-22 23:24:25,273 - INFO - Next file will be: collection1u00012s00001_hw00004.svc
+2024-11-22 23:25:42,108 - INFO - Completed processing File 11/386: collection1u00012s00001_hw00003.svc. Time taken: 76.83 seconds
+2024-11-22 23:25:42,108 - INFO - 
+=== Processing File 12/386: collection1u00012s00001_hw00004.svc ===
+2024-11-22 23:25:42,108 - INFO - Next file will be: collection1u00012s00001_hw00005.svc
+2024-11-22 23:26:08,102 - ERROR - Error processing File 12/386: collection1u00012s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 23:26:08,102 - INFO - 
+=== Processing File 13/386: collection1u00012s00001_hw00005.svc ===
+2024-11-22 23:26:08,102 - INFO - Next file will be: collection1u00012s00001_hw00006.svc
+2024-11-22 23:26:35,850 - ERROR - Error processing File 13/386: collection1u00012s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 23:26:35,850 - INFO - 
+=== Processing File 14/386: collection1u00012s00001_hw00006.svc ===
+2024-11-22 23:26:35,850 - INFO - Next file will be: collection1u00012s00001_hw00007.svc
+2024-11-22 23:27:37,168 - INFO - Completed processing File 14/386: collection1u00012s00001_hw00006.svc. Time taken: 61.32 seconds
+2024-11-22 23:27:37,168 - INFO - 
+=== Processing File 15/386: collection1u00012s00001_hw00007.svc ===
+2024-11-22 23:27:37,168 - INFO - Next file will be: collection1u00013s00001_hw00001.svc
+2024-11-22 23:29:33,683 - INFO - Completed processing File 15/386: collection1u00012s00001_hw00007.svc. Time taken: 116.51 seconds
+2024-11-22 23:29:33,683 - INFO - 
+=== Processing File 16/386: collection1u00013s00001_hw00001.svc ===
+2024-11-22 23:29:33,683 - INFO - Next file will be: collection1u00013s00001_hw00002.svc
+2024-11-22 23:30:48,758 - INFO - Completed processing File 16/386: collection1u00013s00001_hw00001.svc. Time taken: 75.08 seconds
+2024-11-22 23:30:48,758 - INFO - 
+=== Processing File 17/386: collection1u00013s00001_hw00002.svc ===
+2024-11-22 23:30:48,758 - INFO - Next file will be: collection1u00013s00001_hw00003.svc
+2024-11-22 23:33:11,440 - INFO - Completed processing File 17/386: collection1u00013s00001_hw00002.svc. Time taken: 142.68 seconds
+2024-11-22 23:33:11,440 - INFO - 
+=== Processing File 18/386: collection1u00013s00001_hw00003.svc ===
+2024-11-22 23:33:11,440 - INFO - Next file will be: collection1u00013s00001_hw00004.svc
+2024-11-22 23:35:40,078 - INFO - Completed processing File 18/386: collection1u00013s00001_hw00003.svc. Time taken: 148.64 seconds
+2024-11-22 23:35:40,078 - INFO - 
+=== Processing File 19/386: collection1u00013s00001_hw00004.svc ===
+2024-11-22 23:35:40,078 - INFO - Next file will be: collection1u00013s00001_hw00005.svc
+2024-11-22 23:36:25,542 - ERROR - Error processing File 19/386: collection1u00013s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 23:36:25,542 - INFO - 
+=== Processing File 20/386: collection1u00013s00001_hw00005.svc ===
+2024-11-22 23:36:25,542 - INFO - Next file will be: collection1u00013s00001_hw00006.svc
+2024-11-22 23:37:12,486 - ERROR - Error processing File 20/386: collection1u00013s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 23:37:12,486 - INFO - 
+=== Processing File 21/386: collection1u00013s00001_hw00006.svc ===
+2024-11-22 23:37:12,486 - INFO - Next file will be: collection1u00013s00001_hw00007.svc
+2024-11-22 23:40:53,895 - INFO - Completed processing File 21/386: collection1u00013s00001_hw00006.svc. Time taken: 221.41 seconds
+2024-11-22 23:40:53,895 - INFO - 
+=== Processing File 22/386: collection1u00013s00001_hw00007.svc ===
+2024-11-22 23:40:53,895 - INFO - Next file will be: collection1u00014s00001_hw00001.svc
+2024-11-22 23:43:58,579 - INFO - Completed processing File 22/386: collection1u00013s00001_hw00007.svc. Time taken: 184.68 seconds
+2024-11-22 23:43:58,579 - INFO - 
+=== Processing File 23/386: collection1u00014s00001_hw00001.svc ===
+2024-11-22 23:43:58,579 - INFO - Next file will be: collection1u00014s00001_hw00002.svc
+2024-11-22 23:45:51,308 - INFO - Completed processing File 23/386: collection1u00014s00001_hw00001.svc. Time taken: 112.73 seconds
+2024-11-22 23:45:51,308 - INFO - 
+=== Processing File 24/386: collection1u00014s00001_hw00002.svc ===
+2024-11-22 23:45:51,308 - INFO - Next file will be: collection1u00014s00001_hw00003.svc
+2024-11-22 23:49:16,204 - INFO - Completed processing File 24/386: collection1u00014s00001_hw00002.svc. Time taken: 204.90 seconds
+2024-11-22 23:49:16,204 - INFO - 
+=== Processing File 25/386: collection1u00014s00001_hw00003.svc ===
+2024-11-22 23:49:16,204 - INFO - Next file will be: collection1u00014s00001_hw00004.svc
+2024-11-22 23:52:09,297 - INFO - Completed processing File 25/386: collection1u00014s00001_hw00003.svc. Time taken: 173.09 seconds
+2024-11-22 23:52:09,297 - INFO - 
+=== Processing File 26/386: collection1u00014s00001_hw00004.svc ===
+2024-11-22 23:52:09,297 - INFO - Next file will be: collection1u00014s00001_hw00005.svc
+2024-11-22 23:54:19,946 - INFO - Completed processing File 26/386: collection1u00014s00001_hw00004.svc. Time taken: 130.65 seconds
+2024-11-22 23:54:19,946 - INFO - 
+=== Processing File 27/386: collection1u00014s00001_hw00005.svc ===
+2024-11-22 23:54:19,946 - INFO - Next file will be: collection1u00014s00001_hw00006.svc
+2024-11-22 23:56:38,596 - INFO - Completed processing File 27/386: collection1u00014s00001_hw00005.svc. Time taken: 138.65 seconds
+2024-11-22 23:56:38,596 - INFO - 
+=== Processing File 28/386: collection1u00014s00001_hw00006.svc ===
+2024-11-22 23:56:38,596 - INFO - Next file will be: collection1u00014s00001_hw00007.svc
+2024-11-23 00:01:46,493 - INFO - Completed processing File 28/386: collection1u00014s00001_hw00006.svc. Time taken: 307.90 seconds
+2024-11-23 00:01:46,512 - INFO - 
+=== Processing File 29/386: collection1u00014s00001_hw00007.svc ===
+2024-11-23 00:01:46,512 - INFO - Next file will be: collection1u00015s00001_hw00001.svc
+2024-11-23 00:26:02,457 - INFO - Starting sequential processing of 358 files
+2024-11-23 00:26:04,354 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 00:26:04,386 - INFO - 
+=== Processing File 1/358: collection1u00014s00001_hw00007.svc ===
+2024-11-23 00:26:08,884 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 00:26:27,809 - INFO - Completed processing File 1/358: collection1u00014s00001_hw00007.svc. Time taken: 23.42 seconds
+2024-11-23 00:26:27,809 - INFO - 
+=== Processing File 2/358: collection1u00015s00001_hw00001.svc ===
+2024-11-23 00:26:52,085 - INFO - Completed processing File 2/358: collection1u00015s00001_hw00001.svc. Time taken: 24.28 seconds
+2024-11-23 00:26:52,085 - INFO - 
+=== Processing File 3/358: collection1u00015s00001_hw00002.svc ===
+2024-11-23 00:27:30,954 - INFO - Completed processing File 3/358: collection1u00015s00001_hw00002.svc. Time taken: 38.87 seconds
+2024-11-23 00:27:30,954 - INFO - 
+=== Processing File 4/358: collection1u00015s00001_hw00003.svc ===
+2024-11-23 00:28:06,117 - INFO - Completed processing File 4/358: collection1u00015s00001_hw00003.svc. Time taken: 35.16 seconds
+2024-11-23 00:28:06,117 - INFO - 
+=== Processing File 5/358: collection1u00015s00001_hw00004.svc ===
+2024-11-23 00:28:21,646 - ERROR - Error processing File 5/358: collection1u00015s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:28:21,646 - INFO - 
+=== Processing File 6/358: collection1u00015s00001_hw00005.svc ===
+2024-11-23 00:28:48,819 - INFO - Completed processing File 6/358: collection1u00015s00001_hw00005.svc. Time taken: 27.17 seconds
+2024-11-23 00:28:48,819 - INFO - 
+=== Processing File 7/358: collection1u00015s00001_hw00006.svc ===
+2024-11-23 00:29:25,609 - INFO - Completed processing File 7/358: collection1u00015s00001_hw00006.svc. Time taken: 36.79 seconds
+2024-11-23 00:29:25,609 - INFO - 
+=== Processing File 8/358: collection1u00015s00001_hw00007.svc ===
+2024-11-23 00:30:12,048 - INFO - Completed processing File 8/358: collection1u00015s00001_hw00007.svc. Time taken: 46.44 seconds
+2024-11-23 00:30:12,048 - INFO - 
+=== Processing File 9/358: collection1u00016s00001_hw00001.svc ===
+2024-11-23 00:31:02,850 - INFO - Completed processing File 9/358: collection1u00016s00001_hw00001.svc. Time taken: 50.80 seconds
+2024-11-23 00:31:02,850 - INFO - 
+=== Processing File 10/358: collection1u00016s00001_hw00002.svc ===
+2024-11-23 00:32:49,377 - INFO - Starting sequential processing of 349 files
+2024-11-23 00:32:51,055 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 00:32:51,061 - INFO - 
+=== Processing File 1/349: collection1u00016s00001_hw00002.svc ===
+2024-11-23 00:32:54,987 - ERROR - Error processing File 1/349: collection1u00016s00001_hw00002.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:32:54,987 - INFO - 
+=== Processing File 2/349: collection1u00016s00001_hw00003.svc ===
+2024-11-23 00:33:00,143 - ERROR - Error processing File 2/349: collection1u00016s00001_hw00003.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:00,143 - INFO - 
+=== Processing File 3/349: collection1u00016s00001_hw00004.svc ===
+2024-11-23 00:33:05,067 - ERROR - Error processing File 3/349: collection1u00016s00001_hw00004.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:05,068 - INFO - 
+=== Processing File 4/349: collection1u00016s00001_hw00005.svc ===
+2024-11-23 00:33:10,291 - ERROR - Error processing File 4/349: collection1u00016s00001_hw00005.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:10,291 - INFO - 
+=== Processing File 5/349: collection1u00016s00001_hw00006.svc ===
+2024-11-23 00:33:14,824 - ERROR - Error processing File 5/349: collection1u00016s00001_hw00006.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:14,824 - INFO - 
+=== Processing File 6/349: collection1u00016s00001_hw00007.svc ===
+2024-11-23 00:33:19,243 - ERROR - Error processing File 6/349: collection1u00016s00001_hw00007.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:19,243 - INFO - 
+=== Processing File 7/349: collection1u00017s00001_hw00001.svc ===
+2024-11-23 00:33:24,733 - ERROR - Error processing File 7/349: collection1u00017s00001_hw00001.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:24,733 - INFO - 
+=== Processing File 8/349: collection1u00017s00001_hw00002.svc ===
+2024-11-23 00:33:29,300 - ERROR - Error processing File 8/349: collection1u00017s00001_hw00002.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:29,300 - INFO - 
+=== Processing File 9/349: collection1u00017s00001_hw00003.svc ===
+2024-11-23 00:33:34,434 - ERROR - Error processing File 9/349: collection1u00017s00001_hw00003.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:34,434 - INFO - 
+=== Processing File 10/349: collection1u00017s00001_hw00004.svc ===
+2024-11-23 00:33:38,914 - ERROR - Error processing File 10/349: collection1u00017s00001_hw00004.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:38,914 - INFO - 
+=== Processing File 11/349: collection1u00017s00001_hw00005.svc ===
+2024-11-23 00:33:43,613 - ERROR - Error processing File 11/349: collection1u00017s00001_hw00005.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:43,613 - INFO - 
+=== Processing File 12/349: collection1u00017s00001_hw00006.svc ===
+2024-11-23 00:33:47,844 - ERROR - Error processing File 12/349: collection1u00017s00001_hw00006.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:47,844 - INFO - 
+=== Processing File 13/349: collection1u00017s00001_hw00007.svc ===
+2024-11-23 00:33:51,774 - ERROR - Error processing File 13/349: collection1u00017s00001_hw00007.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:51,774 - INFO - 
+=== Processing File 14/349: collection1u00018s00001_hw00001.svc ===
+2024-11-23 00:33:55,716 - ERROR - Error processing File 14/349: collection1u00018s00001_hw00001.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:55,716 - INFO - 
+=== Processing File 15/349: collection1u00018s00001_hw00002.svc ===
+2024-11-23 00:33:59,992 - ERROR - Error processing File 15/349: collection1u00018s00001_hw00002.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:33:59,992 - INFO - 
+=== Processing File 16/349: collection1u00018s00001_hw00003.svc ===
+2024-11-23 00:34:04,712 - ERROR - Error processing File 16/349: collection1u00018s00001_hw00003.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:04,712 - INFO - 
+=== Processing File 17/349: collection1u00018s00001_hw00004.svc ===
+2024-11-23 00:34:10,041 - ERROR - Error processing File 17/349: collection1u00018s00001_hw00004.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:10,041 - INFO - 
+=== Processing File 18/349: collection1u00018s00001_hw00005.svc ===
+2024-11-23 00:34:13,793 - ERROR - Error processing File 18/349: collection1u00018s00001_hw00005.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:13,793 - INFO - 
+=== Processing File 19/349: collection1u00018s00001_hw00006.svc ===
+2024-11-23 00:34:17,544 - ERROR - Error processing File 19/349: collection1u00018s00001_hw00006.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:17,544 - INFO - 
+=== Processing File 20/349: collection1u00018s00001_hw00007.svc ===
+2024-11-23 00:34:21,342 - ERROR - Error processing File 20/349: collection1u00018s00001_hw00007.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:21,342 - INFO - 
+=== Processing File 21/349: collection1u00019s00001_hw00001.svc ===
+2024-11-23 00:34:25,741 - ERROR - Error processing File 21/349: collection1u00019s00001_hw00001.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:25,741 - INFO - 
+=== Processing File 22/349: collection1u00019s00001_hw00002.svc ===
+2024-11-23 00:34:32,095 - ERROR - Error processing File 22/349: collection1u00019s00001_hw00002.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:32,095 - INFO - 
+=== Processing File 23/349: collection1u00019s00001_hw00003.svc ===
+2024-11-23 00:34:37,355 - ERROR - Error processing File 23/349: collection1u00019s00001_hw00003.svc: 'Adam' object has no attribute 'minimize'
+2024-11-23 00:34:37,356 - INFO - 
+=== Processing File 24/349: collection1u00019s00001_hw00004.svc ===
+2024-11-23 00:36:33,602 - INFO - Starting sequential processing of 349 files
+2024-11-23 00:36:35,129 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 00:36:35,145 - INFO - 
+=== Processing File 1/349: collection1u00016s00001_hw00002.svc ===
+2024-11-23 00:36:38,654 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 00:37:22,481 - INFO - Completed processing File 1/349: collection1u00016s00001_hw00002.svc. Time taken: 47.34 seconds
+2024-11-23 00:37:22,481 - INFO - 
+=== Processing File 2/349: collection1u00016s00001_hw00003.svc ===
+2024-11-23 00:38:10,356 - INFO - Completed processing File 2/349: collection1u00016s00001_hw00003.svc. Time taken: 47.87 seconds
+2024-11-23 00:38:10,356 - INFO - 
+=== Processing File 3/349: collection1u00016s00001_hw00004.svc ===
+2024-11-23 00:38:27,956 - INFO - Completed processing File 3/349: collection1u00016s00001_hw00004.svc. Time taken: 17.60 seconds
+2024-11-23 00:38:27,956 - INFO - 
+=== Processing File 4/349: collection1u00016s00001_hw00005.svc ===
+2024-11-23 00:40:21,364 - INFO - Starting sequential processing of 346 files
+2024-11-23 00:40:22,832 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 00:40:22,832 - INFO - 
+=== Processing File 1/346: collection1u00016s00001_hw00005.svc ===
+2024-11-23 00:40:26,570 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 00:40:29,960 - ERROR - Error processing File 1/346: collection1u00016s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:40:29,960 - INFO - 
+=== Processing File 2/346: collection1u00016s00001_hw00006.svc ===
+2024-11-23 00:41:01,258 - INFO - Completed processing File 2/346: collection1u00016s00001_hw00006.svc. Time taken: 31.30 seconds
+2024-11-23 00:41:01,258 - INFO - 
+=== Processing File 3/346: collection1u00016s00001_hw00007.svc ===
+2024-11-23 00:41:26,757 - INFO - Completed processing File 3/346: collection1u00016s00001_hw00007.svc. Time taken: 25.50 seconds
+2024-11-23 00:41:26,757 - INFO - 
+=== Processing File 4/346: collection1u00017s00001_hw00001.svc ===
+2024-11-23 00:42:05,893 - INFO - Completed processing File 4/346: collection1u00017s00001_hw00001.svc. Time taken: 39.14 seconds
+2024-11-23 00:42:05,893 - INFO - 
+=== Processing File 5/346: collection1u00017s00001_hw00002.svc ===
+2024-11-23 00:42:55,687 - INFO - Completed processing File 5/346: collection1u00017s00001_hw00002.svc. Time taken: 49.79 seconds
+2024-11-23 00:42:55,687 - INFO - 
+=== Processing File 6/346: collection1u00017s00001_hw00003.svc ===
+2024-11-23 00:43:25,303 - INFO - Completed processing File 6/346: collection1u00017s00001_hw00003.svc. Time taken: 29.62 seconds
+2024-11-23 00:43:25,303 - INFO - 
+=== Processing File 7/346: collection1u00017s00001_hw00004.svc ===
+2024-11-23 00:43:41,047 - ERROR - Error processing File 7/346: collection1u00017s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:43:41,047 - INFO - 
+=== Processing File 8/346: collection1u00017s00001_hw00005.svc ===
+2024-11-23 00:43:58,898 - ERROR - Error processing File 8/346: collection1u00017s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:43:58,898 - INFO - 
+=== Processing File 9/346: collection1u00017s00001_hw00006.svc ===
+2024-11-23 00:44:51,341 - INFO - Completed processing File 9/346: collection1u00017s00001_hw00006.svc. Time taken: 52.44 seconds
+2024-11-23 00:44:51,341 - INFO - 
+=== Processing File 10/346: collection1u00017s00001_hw00007.svc ===
+2024-11-23 00:45:35,818 - INFO - Completed processing File 10/346: collection1u00017s00001_hw00007.svc. Time taken: 44.48 seconds
+2024-11-23 00:45:35,818 - INFO - 
+=== Processing File 11/346: collection1u00018s00001_hw00001.svc ===
+2024-11-23 00:46:12,302 - INFO - Completed processing File 11/346: collection1u00018s00001_hw00001.svc. Time taken: 36.48 seconds
+2024-11-23 00:46:12,302 - INFO - 
+=== Processing File 12/346: collection1u00018s00001_hw00002.svc ===
+2024-11-23 00:46:51,830 - INFO - Completed processing File 12/346: collection1u00018s00001_hw00002.svc. Time taken: 39.53 seconds
+2024-11-23 00:46:51,846 - INFO - 
+=== Processing File 13/346: collection1u00018s00001_hw00003.svc ===
+2024-11-23 00:47:31,952 - INFO - Completed processing File 13/346: collection1u00018s00001_hw00003.svc. Time taken: 40.11 seconds
+2024-11-23 00:47:31,952 - INFO - 
+=== Processing File 14/346: collection1u00018s00001_hw00004.svc ===
+2024-11-23 00:47:56,315 - ERROR - Error processing File 14/346: collection1u00018s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:47:56,315 - INFO - 
+=== Processing File 15/346: collection1u00018s00001_hw00005.svc ===
+2024-11-23 00:48:24,095 - ERROR - Error processing File 15/346: collection1u00018s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:48:24,095 - INFO - 
+=== Processing File 16/346: collection1u00018s00001_hw00006.svc ===
+2024-11-23 00:51:01,770 - INFO - Starting sequential processing of 333 files
+2024-11-23 00:51:03,579 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 00:51:03,594 - INFO - 
+=== Processing File 1/333: collection1u00018s00001_hw00004.svc ===
+2024-11-23 00:51:07,719 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 00:51:18,778 - INFO - Completed processing File 1/333: collection1u00018s00001_hw00004.svc. Time taken: 15.18 seconds
+2024-11-23 00:51:18,778 - INFO - 
+=== Processing File 2/333: collection1u00018s00001_hw00005.svc ===
+2024-11-23 00:51:27,241 - ERROR - Error processing File 2/333: collection1u00018s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:51:27,241 - INFO - 
+=== Processing File 3/333: collection1u00018s00001_hw00006.svc ===
+2024-11-23 00:52:02,883 - INFO - Completed processing File 3/333: collection1u00018s00001_hw00006.svc. Time taken: 35.64 seconds
+2024-11-23 00:52:02,883 - INFO - 
+=== Processing File 4/333: collection1u00018s00001_hw00007.svc ===
+2024-11-23 00:52:34,171 - INFO - Completed processing File 4/333: collection1u00018s00001_hw00007.svc. Time taken: 31.29 seconds
+2024-11-23 00:52:34,171 - INFO - 
+=== Processing File 5/333: collection1u00019s00001_hw00001.svc ===
+2024-11-23 00:53:05,898 - INFO - Completed processing File 5/333: collection1u00019s00001_hw00001.svc. Time taken: 31.73 seconds
+2024-11-23 00:53:05,898 - INFO - 
+=== Processing File 6/333: collection1u00019s00001_hw00002.svc ===
+2024-11-23 00:53:53,547 - INFO - Completed processing File 6/333: collection1u00019s00001_hw00002.svc. Time taken: 47.65 seconds
+2024-11-23 00:53:53,547 - INFO - 
+=== Processing File 7/333: collection1u00019s00001_hw00003.svc ===
+2024-11-23 00:54:44,354 - INFO - Completed processing File 7/333: collection1u00019s00001_hw00003.svc. Time taken: 50.81 seconds
+2024-11-23 00:54:44,354 - INFO - 
+=== Processing File 8/333: collection1u00019s00001_hw00004.svc ===
+2024-11-23 00:57:03,300 - INFO - Starting sequential processing of 326 files
+2024-11-23 00:57:04,702 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 00:57:04,718 - INFO - 
+=== Processing File 1/326: collection1u00019s00001_hw00004.svc ===
+2024-11-23 00:57:08,370 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 00:57:11,236 - ERROR - Error processing File 1/326: collection1u00019s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:57:11,236 - INFO - 
+=== Processing File 2/326: collection1u00019s00001_hw00005.svc ===
+2024-11-23 00:57:18,686 - ERROR - Error processing File 2/326: collection1u00019s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:57:18,686 - INFO - 
+=== Processing File 3/326: collection1u00019s00001_hw00006.svc ===
+2024-11-23 00:57:55,615 - INFO - Completed processing File 3/326: collection1u00019s00001_hw00006.svc. Time taken: 36.93 seconds
+2024-11-23 00:57:55,615 - INFO - 
+=== Processing File 4/326: collection1u00019s00001_hw00007.svc ===
+2024-11-23 00:58:18,444 - INFO - Completed processing File 4/326: collection1u00019s00001_hw00007.svc. Time taken: 22.83 seconds
+2024-11-23 00:58:18,444 - INFO - 
+=== Processing File 5/326: collection1u00020s00001_hw00001.svc ===
+2024-11-23 00:58:38,259 - INFO - Completed processing File 5/326: collection1u00020s00001_hw00001.svc. Time taken: 19.81 seconds
+2024-11-23 00:58:38,259 - INFO - 
+=== Processing File 6/326: collection1u00020s00001_hw00002.svc ===
+2024-11-23 00:59:08,318 - INFO - Completed processing File 6/326: collection1u00020s00001_hw00002.svc. Time taken: 30.06 seconds
+2024-11-23 00:59:08,318 - INFO - 
+=== Processing File 7/326: collection1u00020s00001_hw00003.svc ===
+2024-11-23 00:59:40,042 - INFO - Completed processing File 7/326: collection1u00020s00001_hw00003.svc. Time taken: 31.72 seconds
+2024-11-23 00:59:40,042 - INFO - 
+=== Processing File 8/326: collection1u00020s00001_hw00004.svc ===
+2024-11-23 00:59:57,824 - ERROR - Error processing File 8/326: collection1u00020s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 00:59:57,825 - INFO - 
+=== Processing File 9/326: collection1u00020s00001_hw00005.svc ===
+2024-11-23 01:00:24,401 - INFO - Completed processing File 9/326: collection1u00020s00001_hw00005.svc. Time taken: 26.58 seconds
+2024-11-23 01:00:24,401 - INFO - 
+=== Processing File 10/326: collection1u00020s00001_hw00006.svc ===
+2024-11-23 01:01:00,946 - INFO - Completed processing File 10/326: collection1u00020s00001_hw00006.svc. Time taken: 36.55 seconds
+2024-11-23 01:01:00,946 - INFO - 
+=== Processing File 11/326: collection1u00020s00001_hw00007.svc ===
+2024-11-23 01:01:42,930 - INFO - Completed processing File 11/326: collection1u00020s00001_hw00007.svc. Time taken: 41.98 seconds
+2024-11-23 01:01:42,930 - INFO - 
+=== Processing File 12/326: collection1u00021s00001_hw00001.svc ===
+2024-11-23 01:02:20,367 - INFO - Completed processing File 12/326: collection1u00021s00001_hw00001.svc. Time taken: 37.44 seconds
+2024-11-23 01:02:20,383 - INFO - 
+=== Processing File 13/326: collection1u00021s00001_hw00002.svc ===
+2024-11-23 01:03:07,195 - INFO - Completed processing File 13/326: collection1u00021s00001_hw00002.svc. Time taken: 46.81 seconds
+2024-11-23 01:03:07,195 - INFO - 
+=== Processing File 14/326: collection1u00021s00001_hw00003.svc ===
+2024-11-23 01:03:58,064 - INFO - Starting sequential processing of 313 files
+2024-11-23 01:03:59,487 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 01:03:59,496 - INFO - 
+=== Processing File 1/313: collection1u00021s00001_hw00003.svc ===
+2024-11-23 01:04:02,844 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 01:04:26,554 - INFO - Completed processing File 1/313: collection1u00021s00001_hw00003.svc. Time taken: 27.06 seconds
+2024-11-23 01:04:26,554 - INFO - 
+=== Processing File 2/313: collection1u00021s00001_hw00004.svc ===
+2024-11-23 01:04:43,320 - INFO - Completed processing File 2/313: collection1u00021s00001_hw00004.svc. Time taken: 16.77 seconds
+2024-11-23 01:04:43,320 - INFO - 
+=== Processing File 3/313: collection1u00021s00001_hw00005.svc ===
+2024-11-23 01:04:52,205 - ERROR - Error processing File 3/313: collection1u00021s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 01:04:52,205 - INFO - 
+=== Processing File 4/313: collection1u00021s00001_hw00006.svc ===
+2024-11-23 01:05:44,361 - INFO - Completed processing File 4/313: collection1u00021s00001_hw00006.svc. Time taken: 52.16 seconds
+2024-11-23 01:05:44,361 - INFO - 
+=== Processing File 5/313: collection1u00021s00001_hw00007.svc ===
+2024-11-23 01:06:16,330 - INFO - Completed processing File 5/313: collection1u00021s00001_hw00007.svc. Time taken: 31.97 seconds
+2024-11-23 01:06:16,330 - INFO - 
+=== Processing File 6/313: collection1u00022s00001_hw00001.svc ===
+2024-11-23 01:06:40,102 - INFO - Completed processing File 6/313: collection1u00022s00001_hw00001.svc. Time taken: 23.77 seconds
+2024-11-23 01:06:40,102 - INFO - 
+=== Processing File 7/313: collection1u00022s00001_hw00002.svc ===
+2024-11-23 01:07:14,244 - INFO - Completed processing File 7/313: collection1u00022s00001_hw00002.svc. Time taken: 34.14 seconds
+2024-11-23 01:07:14,244 - INFO - 
+=== Processing File 8/313: collection1u00022s00001_hw00003.svc ===
+2024-11-23 01:08:23,240 - INFO - Starting sequential processing of 306 files
+2024-11-23 01:08:25,827 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 01:08:25,827 - INFO - 
+=== Processing File 1/306: collection1u00022s00001_hw00003.svc ===
+2024-11-23 01:08:31,145 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 01:08:51,957 - INFO - Completed processing File 1/306: collection1u00022s00001_hw00003.svc. Time taken: 26.13 seconds
+2024-11-23 01:08:51,957 - INFO - 
+=== Processing File 2/306: collection1u00022s00001_hw00004.svc ===
+2024-11-23 01:08:59,059 - ERROR - Error processing File 2/306: collection1u00022s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 01:08:59,059 - INFO - 
+=== Processing File 3/306: collection1u00022s00001_hw00005.svc ===
+2024-11-23 01:09:07,256 - ERROR - Error processing File 3/306: collection1u00022s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 01:09:07,256 - INFO - 
+=== Processing File 4/306: collection1u00022s00001_hw00006.svc ===
+2024-11-23 01:09:27,387 - INFO - Completed processing File 4/306: collection1u00022s00001_hw00006.svc. Time taken: 20.13 seconds
+2024-11-23 01:09:27,387 - INFO - 
+=== Processing File 5/306: collection1u00022s00001_hw00007.svc ===
+2024-11-23 01:09:52,445 - INFO - Completed processing File 5/306: collection1u00022s00001_hw00007.svc. Time taken: 25.06 seconds
+2024-11-23 01:09:52,445 - INFO - 
+=== Processing File 6/306: collection1u00023s00001_hw00001.svc ===
+2024-11-23 01:09:52,492 - ERROR - Error processing File 6/306: collection1u00023s00001_hw00001.svc: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (1797,) + inhomogeneous part.
+2024-11-23 01:09:52,492 - INFO - 
+=== Processing File 7/306: collection1u00023s00001_hw00002.svc ===
+2024-11-23 01:10:17,834 - INFO - Completed processing File 7/306: collection1u00023s00001_hw00002.svc. Time taken: 25.34 seconds
+2024-11-23 01:10:17,834 - INFO - 
+=== Processing File 8/306: collection1u00023s00001_hw00003.svc ===
+2024-11-23 01:10:51,638 - INFO - Completed processing File 8/306: collection1u00023s00001_hw00003.svc. Time taken: 33.80 seconds
+2024-11-23 01:10:51,638 - INFO - 
+=== Processing File 9/306: collection1u00023s00001_hw00004.svc ===
+2024-11-23 01:11:08,895 - ERROR - Error processing File 9/306: collection1u00023s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 01:11:08,895 - INFO - 
+=== Processing File 10/306: collection1u00023s00001_hw00005.svc ===
+2024-11-23 01:11:27,462 - ERROR - Error processing File 10/306: collection1u00023s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 01:11:27,463 - INFO - 
+=== Processing File 11/306: collection1u00023s00001_hw00006.svc ===
+2024-11-23 01:12:08,134 - INFO - Completed processing File 11/306: collection1u00023s00001_hw00006.svc. Time taken: 40.67 seconds
+2024-11-23 01:12:08,134 - INFO - 
+=== Processing File 12/306: collection1u00023s00001_hw00007.svc ===
+2024-11-23 01:12:44,614 - INFO - Completed processing File 12/306: collection1u00023s00001_hw00007.svc. Time taken: 36.48 seconds
+2024-11-23 01:12:44,614 - INFO - 
+=== Processing File 13/306: collection1u00024s00001_hw00001.svc ===
+2024-11-23 01:13:22,432 - INFO - Completed processing File 13/306: collection1u00024s00001_hw00001.svc. Time taken: 37.82 seconds
+2024-11-23 01:13:22,432 - INFO - 
+=== Processing File 14/306: collection1u00024s00001_hw00002.svc ===
+2024-11-23 01:14:10,568 - INFO - Starting sequential processing of 293 files
+2024-11-23 01:14:11,997 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 01:14:12,005 - INFO - 
+=== Processing File 1/293: collection1u00024s00001_hw00002.svc ===
+2024-11-23 01:14:15,445 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 01:14:35,811 - INFO - Completed processing File 1/293: collection1u00024s00001_hw00002.svc. Time taken: 23.81 seconds
+2024-11-23 01:14:35,811 - INFO - 
+=== Processing File 2/293: collection1u00024s00001_hw00003.svc ===
+2024-11-23 01:15:00,068 - INFO - Completed processing File 2/293: collection1u00024s00001_hw00003.svc. Time taken: 24.26 seconds
+2024-11-23 01:15:00,069 - INFO - 
+=== Processing File 3/293: collection1u00024s00001_hw00004.svc ===
+2024-11-23 01:15:16,333 - INFO - Completed processing File 3/293: collection1u00024s00001_hw00004.svc. Time taken: 16.26 seconds
+2024-11-23 01:15:16,334 - INFO - 
+=== Processing File 4/293: collection1u00024s00001_hw00005.svc ===
+2024-11-23 01:15:34,420 - INFO - Completed processing File 4/293: collection1u00024s00001_hw00005.svc. Time taken: 18.09 seconds
+2024-11-23 01:15:34,420 - INFO - 
+=== Processing File 5/293: collection1u00024s00001_hw00006.svc ===
+2024-11-23 01:16:06,740 - INFO - Completed processing File 5/293: collection1u00024s00001_hw00006.svc. Time taken: 32.30 seconds
+2024-11-23 01:16:06,740 - INFO - 
+=== Processing File 6/293: collection1u00024s00001_hw00007.svc ===
+2024-11-23 01:16:39,816 - INFO - Completed processing File 6/293: collection1u00024s00001_hw00007.svc. Time taken: 33.08 seconds
+2024-11-23 01:16:39,816 - INFO - 
+=== Processing File 7/293: collection1u00025s00001_hw00001.svc ===
+2024-11-23 01:17:11,674 - INFO - Completed processing File 7/293: collection1u00025s00001_hw00001.svc. Time taken: 31.86 seconds
+2024-11-23 01:17:11,674 - INFO - 
+=== Processing File 8/293: collection1u00025s00001_hw00002.svc ===
+2024-11-23 01:17:50,905 - INFO - Completed processing File 8/293: collection1u00025s00001_hw00002.svc. Time taken: 39.23 seconds
+2024-11-23 01:17:50,905 - INFO - 
+=== Processing File 9/293: collection1u00025s00001_hw00003.svc ===
+2024-11-23 01:18:31,807 - INFO - Completed processing File 9/293: collection1u00025s00001_hw00003.svc. Time taken: 40.90 seconds
+2024-11-23 01:18:31,807 - INFO - 
+=== Processing File 10/293: collection1u00025s00001_hw00004.svc ===
+2024-11-23 01:19:00,251 - INFO - Completed processing File 10/293: collection1u00025s00001_hw00004.svc. Time taken: 28.44 seconds
+2024-11-23 01:19:00,251 - INFO - 
+=== Processing File 11/293: collection1u00025s00001_hw00005.svc ===
+2024-11-23 01:19:31,400 - INFO - Completed processing File 11/293: collection1u00025s00001_hw00005.svc. Time taken: 31.15 seconds
+2024-11-23 01:19:31,400 - INFO - 
+=== Processing File 12/293: collection1u00025s00001_hw00006.svc ===
+2024-11-23 01:20:14,853 - INFO - Completed processing File 12/293: collection1u00025s00001_hw00006.svc. Time taken: 43.45 seconds
+2024-11-23 01:20:14,853 - INFO - 
+=== Processing File 13/293: collection1u00025s00001_hw00007.svc ===
+2024-11-23 01:21:01,866 - INFO - Completed processing File 13/293: collection1u00025s00001_hw00007.svc. Time taken: 47.01 seconds
+2024-11-23 01:21:01,872 - INFO - 
+=== Processing File 14/293: collection1u00026s00001_hw00001.svc ===
