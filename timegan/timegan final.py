@@ -3,47 +3,53 @@ import numpy as np
 import tensorflow as tf
 import logging
 import time
-import multiprocessing as mp
-from functools import partial
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# Set up logging
+directory_name = "timegan"
+
+# Ensure the directory exists
+if not os.path.exists(directory_name):
+    os.makedirs(directory_name)
+
+# Set up logging inside the 'timegan' directory
+log_file_path = os.path.join(directory_name, 'process_svc_folder.txt')
 logging.basicConfig(
-    filename='process_svc_folder.log',
+    filename=log_file_path,
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
+
 # Define TimeGAN function
 def timegan(ori_data, parameters):
-    """TimeGAN for generating synthetic time-series data."""
-    # Disable eager execution for compatibility with tf.compat.v1
+    """TimeGAN with optimized parameters for faster training."""
     tf.compat.v1.disable_eager_execution()
-
+    
     # Basic Parameters
     no, seq_len, dim = ori_data.shape
-
-    # Reverse scaling
-    def reverse_minmax_scaling(data, min_val, max_val):
-        return data * (max_val + 1e-7) + min_val
     
-    # Define Min-Max Normalizer
+    # Normalize data
     def MinMaxScaler(data):
         min_val = np.min(np.min(data, axis=0), axis=0)
         data = data - min_val
         max_val = np.max(np.max(data, axis=0), axis=0)
         norm_data = data / (max_val + 1e-7)
         return norm_data, min_val, max_val
-
-    # Normalize data
+    
+    def reverse_minmax_scaling(data, min_val, max_val):
+        return data * (max_val + 1e-7) + min_val
+    
     ori_data, min_val, max_val = MinMaxScaler(ori_data)
-
-    # Network Parameters
+    
+    # Optimized Network Parameters
     hidden_dim = parameters['hidden_dim']
     num_layers = parameters['num_layers']
     iterations = parameters['iterations']
     batch_size = parameters['batch_size']
     module_name = parameters['module']
-    gamma = 1
+    
+    # Reduce network complexity while maintaining quality
+    gamma = 0.5  # Reduced from 1.0
     z_dim = dim
     # Input placeholders
     X = tf.compat.v1.placeholder(tf.float32, [None, None, dim], name="myinput_x")
@@ -135,79 +141,75 @@ def timegan(ori_data, parameters):
 
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
-
+        
+        # Use mini-batches for faster training
+        num_batches = no // batch_size
+        
         for it in range(iterations):
-            Z_mb = np.random.uniform(0, 1, [no, seq_len, dim])
-            T_mb = [seq_len] * no
-
-            # Train embedder
-            _, e_loss_val = sess.run([train_embedder, e_loss], feed_dict={X: ori_data, Z: Z_mb, T: T_mb})
-
-
-            print(f"Iteration {it}: Embedder loss = {e_loss_val}")
-
+            start_time = time.time()  # Record start time
+            # Process in mini-batches
+            for b in range(num_batches):
+                start_idx = b * batch_size
+                end_idx = start_idx + batch_size
+                
+                X_mb = ori_data[start_idx:end_idx]
+                Z_mb = np.random.uniform(0, 1, [batch_size, seq_len, dim])
+                T_mb = [seq_len] * batch_size
+                
+                # Train embedder
+                _, e_loss_val = sess.run(
+                    [train_embedder, e_loss],
+                    feed_dict={X: X_mb, Z: Z_mb, T: T_mb}
+                )
+            
+            # Record the time for this iteration
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            
+            # Print progress less frequently
+            if it % 20 == 0:
+                print(f"Iteration {it}/{iterations}: Embedder loss = {e_loss_val}, Time taken = {elapsed_time:.2f} seconds")
+        
         # Generate synthetic data
-        synthetic_data = sess.run(X_tilde, feed_dict={X: ori_data, T: T_mb})
-
+        synthetic_data = sess.run(X_tilde, feed_dict={X: ori_data, T: [seq_len] * no})
+    
     # Reverse normalization and round to integer format
     synthetic_data = reverse_minmax_scaling(synthetic_data, min_val, max_val)
     synthetic_data = np.round(synthetic_data).astype(int)
-
+    
     return synthetic_data
 
-
 # Function to load and process SVC files
-def load_svc(file_path):
+def load_svc(file_path, fixed_seq_len=64):
+    """
+    Load SVC file with fixed sequence length.
+    
+    Args:
+        file_path: Path to the SVC file
+        fixed_seq_len: Fixed sequence length to use for all sequences
+    """
     with open(file_path, 'r') as f:
         lines = f.readlines()
-    seq_len = int(lines[0].strip())
     
-    if seq_len <= 0:
-        raise ValueError(f"Invalid sequence length {seq_len} in file {file_path}")
-    
+    # Skip the first line (original sequence length) and convert data
     data = np.array([list(map(float, line.split())) for line in lines[1:]])
     
-    # Ensure the data length matches the expected sequence length
-    if data.shape[0] % seq_len != 0:
-        raise ValueError(f"Data length {data.shape[0]} is not a multiple of sequence length {seq_len}")
+    # Calculate how many complete sequences we can make
+    total_rows = len(data)
+    num_complete_sequences = total_rows // fixed_seq_len
+    
+    if num_complete_sequences == 0:
+        raise ValueError(f"File {file_path} has fewer rows ({total_rows}) than fixed_seq_len ({fixed_seq_len})")
+    
+    # Only keep complete sequences
+    used_rows = num_complete_sequences * fixed_seq_len
+    data = data[:used_rows]
     
     dim = data.shape[1]
-    return data.reshape(-1, seq_len, dim)  # Reshape to (batch, seq_len, dim)
+    return data.reshape(-1, fixed_seq_len, dim)  # Reshape to (batch, fixed_seq_len, dim)
 
-
-def process_single_file(file_name, input_folder, output_folder, parameters):
-    """Process a single SVC file with error handling."""
-    try:
-        start_time = time.time()
-        file_path = os.path.join(input_folder, file_name)
-        
-        logging.info(f"Starting processing of file: {file_name}")
-        
-        # Load and process the data
-        ori_data = load_svc(file_path)
-        
-        # Generate synthetic data
-        synthetic_data = timegan(ori_data, parameters)
-        
-        # Save synthetic data
-        output_path = os.path.join(output_folder, f"synthetic_{file_name}")
-        with open(output_path, 'w') as f:
-            f.write(f"{synthetic_data.shape[1]}\n")
-            for row in synthetic_data.reshape(-1, synthetic_data.shape[-1]):
-                f.write(" ".join(map(str, row)) + "\n")
-        
-        end_time = time.time()
-        processing_time = end_time - start_time
-        logging.info(f"Completed processing file {file_name}. Time taken: {processing_time:.2f} seconds")
-        
-        return True, file_name, processing_time
-    
-    except Exception as e:
-        logging.error(f"Error processing file {file_name}: {str(e)}")
-        return False, file_name, str(e)
-
-def process_svc_folder_parallel(input_folder, output_folder, parameters, num_processes=None):
-    """Process multiple SVC files in parallel."""
+def process_svc_folder(input_folder, output_folder, parameters):
+    """Process SVC files sequentially."""
     start_time = time.time()
     
     # Create output folder if it doesn't exist
@@ -221,77 +223,79 @@ def process_svc_folder_parallel(input_folder, output_folder, parameters, num_pro
         logging.warning("No SVC files found in the input folder")
         return
     
-    # Determine number of processes to use
-    if num_processes is None:
-        num_processes = min(mp.cpu_count(), len(svc_files))
+    logging.info(f"Starting sequential processing of {len(svc_files)} files")
     
-    logging.info(f"Starting parallel processing with {num_processes} processes")
+    successful_files = []
+    failed_files = []
+    total_processing_time = 0
     
-    # Create partial function with fixed arguments
-    process_func = partial(
-        process_single_file,
-        input_folder=input_folder,
-        output_folder=output_folder,
-        parameters=parameters
-    )
-    
-    # Initialize the pool and process files
-    try:
-        with mp.Pool(processes=num_processes) as pool:
-            results = pool.map(process_func, svc_files)
-        
-        # Process results
-        successful_files = []
-        failed_files = []
-        total_processing_time = 0
-        
-        for success, file_name, result in results:
-            if success:
-                successful_files.append(file_name)
-                total_processing_time += result
+    # Process each file sequentially
+    for i, file_name in enumerate(svc_files):
+        try:
+            # Indicate which file is being processed
+            logging.info(f"\n=== Processing File {i + 1}/{len(svc_files)}: {file_name} ===")
+            
+            file_start_time = time.time()
+            file_path = os.path.join(input_folder, file_name)
+            
+            # Log next file if there is one
+            if i < len(svc_files) - 1:
+                logging.info(f"Next file will be: {svc_files[i + 1]}")
             else:
-                failed_files.append((file_name, result))
+                logging.info("This is the last file.")
+            
+            # Load and process the data
+            ori_data = load_svc(file_path, fixed_seq_len=32)
+            
+            # Generate synthetic data
+            synthetic_data = timegan(ori_data, parameters)
+            
+            # Save synthetic data
+            output_path = os.path.join(output_folder, f"synthetic_{file_name}")
+            with open(output_path, 'w') as f:
+                # Directly write the data without sequence length
+                for row in synthetic_data.reshape(-1, synthetic_data.shape[-1]):
+                    f.write(" ".join(map(str, row)) + "\n")
+            
+            file_end_time = time.time()
+            processing_time = file_end_time - file_start_time
+            total_processing_time += processing_time
+            
+            successful_files.append(file_name)
+            logging.info(f"Completed processing File {i + 1}/{len(svc_files)}: {file_name}. Time taken: {processing_time:.2f} seconds")
         
-        # Log summary
-        end_time = time.time()
-        total_time = end_time - start_time
-        
-        logging.info(f"\nProcessing Summary:")
-        logging.info(f"Total files processed: {len(svc_files)}")
-        logging.info(f"Successfully processed: {len(successful_files)}")
-        logging.info(f"Failed to process: {len(failed_files)}")
-        logging.info(f"Total wall time: {total_time:.2f} seconds")
-        logging.info(f"Total processing time: {total_processing_time:.2f} seconds")
-        
-        if failed_files:
-            logging.error("\nFailed files:")
-            for file_name, error in failed_files:
-                logging.error(f"{file_name}: {error}")
+        except Exception as e:
+            logging.error(f"Error processing File {i + 1}/{len(svc_files)}: {file_name}: {str(e)}")
+            failed_files.append((file_name, str(e)))
+
     
-    except Exception as e:
-        logging.error(f"Error in parallel processing: {str(e)}")
-        raise
+    # Log summary
+    end_time = time.time()
+    total_time = end_time - start_time
+    
+    logging.info(f"\nProcessing Summary:")
+    logging.info(f"Total files processed: {len(svc_files)}")
+    logging.info(f"Successfully processed: {len(successful_files)}")
+    logging.info(f"Failed to process: {len(failed_files)}")
+    logging.info(f"Total time taken: {total_time:.2f} seconds")
+    logging.info(f"Total processing time: {total_processing_time:.2f} seconds")
+    
+    if failed_files:
+        logging.error("\nFailed files:")
+        for file_name, error in failed_files:
+            logging.error(f"{file_name}: {error}")
 
 # Parameters
 timegan_params = {
-    'hidden_dim': 24,
-    'num_layers': 3,
+    'hidden_dim': 128,
+    'num_layers': 2,
     'iterations': 100,
-    'batch_size': 1024,
+    'batch_size': 32,
     'module': 'gru'
 }
 
 if __name__ == '__main__':
-    # Run the script with parallel processing
-    input_folder = "./timegan/try"
+    input_folder = "./timegan/train"
     output_folder = "./timegan/output"
     
-    # Use 75% of available CPU cores
-    num_processes = max(1,2)
-    
-    process_svc_folder_parallel(
-        input_folder,
-        output_folder,
-        timegan_params,
-        num_processes=num_processes
-    )
+    process_svc_folder(input_folder, output_folder, timegan_params)

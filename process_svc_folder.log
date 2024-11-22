@@ -961,3 +961,739 @@ TypeError: in user code:
 
     TypeError: Input 'y' of 'Sub' Op has type float32 that does not match type float64 of argument 'x'.
 
+2024-11-21 23:35:49,043 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_train_function.<locals>.one_step_on_iterator at 0x0000016BF7A3C180> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-11-21 23:36:03,780 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_train_function.<locals>.one_step_on_iterator at 0x0000016BF7A3C180> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-11-21 23:37:03,764 - ERROR - An error occurred: Could not locate class 'method'. Make sure custom classes are decorated with `@keras.saving.register_keras_serializable()`. Full object config: {'module': 'builtins', 'class_name': 'method', 'config': '_combined_loss', 'registered_name': 'method'}
+Traceback (most recent call last):
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 311, in main
+    loaded_timegan.load_model(model_save_dir)
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 221, in load_model
+    self.model = tf.keras.models.load_model(model_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_api.py", line 187, in load_model
+    return saving_lib.load_model(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_lib.py", line 365, in load_model
+    return _load_model_from_fileobj(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_lib.py", line 442, in _load_model_from_fileobj
+    model = _model_from_config(
+            ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_lib.py", line 431, in _model_from_config
+    model = deserialize_keras_object(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 734, in deserialize_keras_object
+    instance.compile_from_config(compile_config)
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\trainers\trainer.py", line 910, in compile_from_config
+    config = serialization_lib.deserialize_keras_object(config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 595, in deserialize_keras_object
+    key: deserialize_keras_object(
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 694, in deserialize_keras_object
+    cls = _retrieve_class_or_fn(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 812, in _retrieve_class_or_fn
+    raise TypeError(
+TypeError: Could not locate class 'method'. Make sure custom classes are decorated with `@keras.saving.register_keras_serializable()`. Full object config: {'module': 'builtins', 'class_name': 'method', 'config': '_combined_loss', 'registered_name': 'method'}
+2024-11-21 23:48:56,132 - ERROR - An error occurred: The following argument(s) are not supported: ['custom_objects']
+Traceback (most recent call last):
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 269, in main
+    timegan.save_model(model_save_dir)
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 178, in save_model
+    self.model.save(model_path, custom_objects={'combined_loss': combined_loss})
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\utils\traceback_utils.py", line 122, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_api.py", line 76, in save_model
+    raise ValueError(
+ValueError: The following argument(s) are not supported: ['custom_objects']
+2024-11-22 11:28:40,225 - ERROR - An error occurred: The following argument(s) are not supported: ['custom_objects']
+Traceback (most recent call last):
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 269, in main
+    timegan.save_model(model_save_dir)
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 178, in save_model
+    self.model.save(model_path, custom_objects={'combined_loss': combined_loss})
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\utils\traceback_utils.py", line 122, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_api.py", line 76, in save_model
+    raise ValueError(
+ValueError: The following argument(s) are not supported: ['custom_objects']
+2024-11-22 11:33:54,461 - ERROR - An error occurred: this __dict__ descriptor does not support '_DictWrapper' objects
+Traceback (most recent call last):
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 232, in main
+    timegan.save_model(model_save_dir)
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 156, in save_model
+    tf.saved_model.save(self.model, os.path.join(save_dir, 'timegan_model'))
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\saved_model\save.py", line 1432, in save
+    save_and_return_nodes(obj, export_dir, signatures, options)
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\saved_model\save.py", line 1467, in save_and_return_nodes
+    _build_meta_graph(obj, signatures, options, meta_graph_def))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\saved_model\save.py", line 1682, in _build_meta_graph
+    return _build_meta_graph_impl(obj, signatures, options, meta_graph_def)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\saved_model\save.py", line 1604, in _build_meta_graph_impl
+    saveable_view = _SaveableView(augmented_graph_view, options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\saved_model\save.py", line 285, in __init__
+    checkpoint_util.objects_ids_and_slot_variables_and_paths(
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\checkpoint\util.py", line 160, in objects_ids_and_slot_variables_and_paths
+    trackable_objects, node_paths = graph_view.breadth_first_traversal()
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\checkpoint\graph_view.py", line 124, in breadth_first_traversal
+    return self._breadth_first_traversal()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\saved_model\save.py", line 156, in _breadth_first_traversal
+    super(_AugmentedGraphView, self)._breadth_first_traversal())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\checkpoint\graph_view.py", line 128, in _breadth_first_traversal
+    return super(ObjectGraphView, self)._descendants_with_paths()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\checkpoint\trackable_view.py", line 111, in _descendants_with_paths
+    for name, dependency in self.children(current_trackable).items():
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\checkpoint\graph_view.py", line 97, in children
+    for name, ref in self.list_children(obj, **kwargs):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\saved_model\save.py", line 190, in list_children
+    for name, child in super(_AugmentedGraphView, self).list_children(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\checkpoint\graph_view.py", line 75, in list_children
+    for name, ref in super(ObjectGraphView,
+                     ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\checkpoint\trackable_view.py", line 85, in children
+    ref = converter.convert_to_trackable(ref, parent=obj)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\trackable\converter.py", line 31, in convert_to_trackable
+    if (tensor_util.is_tf_type(obj) and
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\tensorflow\python\framework\tensor_util.py", line 1156, in is_tf_type
+    return isinstance(x, tf_type_classes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\typing.py", line 1921, in __instancecheck__
+    val = getattr_static(instance, attr)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\inspect.py", line 1860, in getattr_static
+    instance_result = _check_instance(obj, attr)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\inspect.py", line 1796, in _check_instance
+    instance_dict = object.__getattribute__(obj, "__dict__")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: this __dict__ descriptor does not support '_DictWrapper' objects
+2024-11-22 11:36:19,993 - ERROR - An error occurred: The filename must end in `.weights.h5`. Received: filepath=./timegan/saved_model\model_weights.h5
+Traceback (most recent call last):
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 255, in main
+    timegan.save_model(model_save_dir)
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 161, in save_model
+    self.model.save_weights(os.path.join(save_dir, 'model_weights.h5'))
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\utils\traceback_utils.py", line 122, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_api.py", line 222, in save_weights
+    raise ValueError(
+ValueError: The filename must end in `.weights.h5`. Received: filepath=./timegan/saved_model\model_weights.h5
+2024-11-22 11:39:46,981 - ERROR - An error occurred: The filename must end in `.weights.h5`. Received: filepath=./timegan/saved_model\embedder_weights.h5
+Traceback (most recent call last):
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 255, in main
+    timegan.save_model(model_save_dir)
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 168, in save_model
+    self.embedder.save_weights(os.path.join(save_dir, 'embedder_weights.h5'))
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\utils\traceback_utils.py", line 122, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\saving_api.py", line 222, in save_weights
+    raise ValueError(
+ValueError: The filename must end in `.weights.h5`. Received: filepath=./timegan/saved_model\embedder_weights.h5
+2024-11-22 11:41:11,635 - ERROR - An error occurred: Could not locate function 'combined_loss'. Make sure custom classes are decorated with `@keras.saving.register_keras_serializable()`. Full object config: {'module': 'builtins', 'class_name': 'function', 'config': 'combined_loss', 'registered_name': 'function'}
+Traceback (most recent call last):
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 263, in main
+    loaded_timegan.load_model(model_save_dir)
+  File "c:\Github\Thesis-Project\timegan\main copy.py", line 184, in load_model
+    self.model = tf.keras.models.model_from_json(model_json)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\models\model.py", line 583, in model_from_json
+    return serialization_lib.deserialize_keras_object(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 734, in deserialize_keras_object
+    instance.compile_from_config(compile_config)
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\trainers\trainer.py", line 910, in compile_from_config
+    config = serialization_lib.deserialize_keras_object(config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 595, in deserialize_keras_object
+    key: deserialize_keras_object(
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 678, in deserialize_keras_object
+    return _retrieve_class_or_fn(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\annek\AppData\Roaming\Python\Python312\site-packages\keras\src\saving\serialization_lib.py", line 812, in _retrieve_class_or_fn
+    raise TypeError(
+TypeError: Could not locate function 'combined_loss'. Make sure custom classes are decorated with `@keras.saving.register_keras_serializable()`. Full object config: {'module': 'builtins', 'class_name': 'function', 'config': 'combined_loss', 'registered_name': 'function'}
+2024-11-22 12:03:53,598 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_train_function.<locals>.one_step_on_iterator at 0x000001BEE685E480> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-11-22 12:04:02,475 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_train_function.<locals>.one_step_on_iterator at 0x000001BEE685E480> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-11-22 13:26:16,689 - INFO - Starting parallel processing with 2 processes
+2024-11-22 13:26:28,130 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 13:26:30,218 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 13:26:34,322 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 13:26:44,221 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 16.09 seconds
+2024-11-22 13:26:44,303 - INFO - 
+Processing Summary:
+2024-11-22 13:26:44,303 - INFO - Total files processed: 1
+2024-11-22 13:26:44,305 - INFO - Successfully processed: 1
+2024-11-22 13:26:44,305 - INFO - Failed to process: 0
+2024-11-22 13:26:44,305 - INFO - Total wall time: 27.61 seconds
+2024-11-22 13:26:44,305 - INFO - Total processing time: 16.09 seconds
+2024-11-22 13:29:08,583 - INFO - Starting parallel processing with 2 processes
+2024-11-22 13:29:19,976 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 13:29:21,556 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 13:29:25,623 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 13:29:58,945 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 38.97 seconds
+2024-11-22 13:29:59,032 - INFO - 
+Processing Summary:
+2024-11-22 13:29:59,044 - INFO - Total files processed: 1
+2024-11-22 13:29:59,044 - INFO - Successfully processed: 1
+2024-11-22 13:29:59,044 - INFO - Failed to process: 0
+2024-11-22 13:29:59,044 - INFO - Total wall time: 50.45 seconds
+2024-11-22 13:29:59,044 - INFO - Total processing time: 38.97 seconds
+2024-11-22 14:43:49.262 - INFO - Starting parallel processing with 2 processes
+2024-11-22 14:44:03.071 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 14:44:03.071 - INFO - Parameters: {'hidden_dim': 16, 'num_layers': 2, 'iterations': 1000, 'batch_size': 32, 'module': 'gru'}
+2024-11-22 14:44:03.086 - INFO - Data loading completed in 0.02 seconds
+2024-11-22 14:44:04.883 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:29: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 14:44:04.883 - INFO - Starting TimeGAN training with data shape: (54, 50, 7)
+2024-11-22 14:44:09.001 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:144: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 14:44:12.645 - INFO - Training with 1 batches per iteration
+2024-11-22 14:44:16.018 - INFO - Iteration 0/1000 - Loss: 0.3758 - Batch Time: 3.37s - Avg Batch Time: 3.37s - Total Time: 3.37s
+2024-11-22 14:44:16.537 - INFO - Iteration 10/1000 - Loss: 0.2008 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:17.048 - INFO - Iteration 20/1000 - Loss: 0.1094 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:17.551 - INFO - Iteration 30/1000 - Loss: 0.0831 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:18.080 - INFO - Iteration 40/1000 - Loss: 0.0728 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:18.642 - INFO - Iteration 50/1000 - Loss: 0.0641 - Batch Time: 0.04s - Avg Batch Time: 0.05s - Total Time: 0.56s
+2024-11-22 14:44:19.159 - INFO - Iteration 60/1000 - Loss: 0.0562 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:19.667 - INFO - Iteration 70/1000 - Loss: 0.0497 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:20.202 - INFO - Iteration 80/1000 - Loss: 0.0440 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:20.719 - INFO - Iteration 90/1000 - Loss: 0.0387 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:21.236 - INFO - Iteration 100/1000 - Loss: 0.0334 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:21.757 - INFO - Iteration 110/1000 - Loss: 0.0292 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:22.266 - INFO - Iteration 120/1000 - Loss: 0.0261 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:22.796 - INFO - Iteration 130/1000 - Loss: 0.0238 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:23.375 - INFO - Iteration 140/1000 - Loss: 0.0219 - Batch Time: 0.05s - Avg Batch Time: 0.06s - Total Time: 0.58s
+2024-11-22 14:44:23.915 - INFO - Iteration 150/1000 - Loss: 0.0201 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.54s
+2024-11-22 14:44:24.434 - INFO - Iteration 160/1000 - Loss: 0.0185 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:24.953 - INFO - Iteration 170/1000 - Loss: 0.0170 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:25.476 - INFO - Iteration 180/1000 - Loss: 0.0155 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:26.009 - INFO - Iteration 190/1000 - Loss: 0.0142 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:26.593 - INFO - Iteration 200/1000 - Loss: 0.0129 - Batch Time: 0.06s - Avg Batch Time: 0.06s - Total Time: 0.58s
+2024-11-22 14:44:27.122 - INFO - Iteration 210/1000 - Loss: 0.0118 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:27.639 - INFO - Iteration 220/1000 - Loss: 0.0108 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:28.163 - INFO - Iteration 230/1000 - Loss: 0.0099 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:28.696 - INFO - Iteration 240/1000 - Loss: 0.0092 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:29.214 - INFO - Iteration 250/1000 - Loss: 0.0086 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:29.748 - INFO - Iteration 260/1000 - Loss: 0.0081 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:30.263 - INFO - Iteration 270/1000 - Loss: 0.0077 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:30.778 - INFO - Iteration 280/1000 - Loss: 0.0073 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:31.294 - INFO - Iteration 290/1000 - Loss: 0.0069 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:31.816 - INFO - Iteration 300/1000 - Loss: 0.0066 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:32.326 - INFO - Iteration 310/1000 - Loss: 0.0062 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:32.897 - INFO - Iteration 320/1000 - Loss: 0.0059 - Batch Time: 0.06s - Avg Batch Time: 0.06s - Total Time: 0.57s
+2024-11-22 14:44:33.415 - INFO - Iteration 330/1000 - Loss: 0.0056 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:33.964 - INFO - Iteration 340/1000 - Loss: 0.0054 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.55s
+2024-11-22 14:44:34.481 - INFO - Iteration 350/1000 - Loss: 0.0051 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:35.005 - INFO - Iteration 360/1000 - Loss: 0.0049 - Batch Time: 0.04s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:35.528 - INFO - Iteration 370/1000 - Loss: 0.0047 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:36.057 - INFO - Iteration 380/1000 - Loss: 0.0045 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:36.589 - INFO - Iteration 390/1000 - Loss: 0.0042 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:37.135 - INFO - Iteration 400/1000 - Loss: 0.0041 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.55s
+2024-11-22 14:44:37.681 - INFO - Iteration 410/1000 - Loss: 0.0039 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.55s
+2024-11-22 14:44:38.263 - INFO - Iteration 420/1000 - Loss: 0.0037 - Batch Time: 0.06s - Avg Batch Time: 0.06s - Total Time: 0.58s
+2024-11-22 14:44:38.845 - INFO - Iteration 430/1000 - Loss: 0.0035 - Batch Time: 0.06s - Avg Batch Time: 0.06s - Total Time: 0.58s
+2024-11-22 14:44:39.411 - INFO - Iteration 440/1000 - Loss: 0.0034 - Batch Time: 0.06s - Avg Batch Time: 0.06s - Total Time: 0.57s
+2024-11-22 14:44:40.009 - INFO - Iteration 450/1000 - Loss: 0.0033 - Batch Time: 0.06s - Avg Batch Time: 0.06s - Total Time: 0.60s
+2024-11-22 14:44:40.535 - INFO - Iteration 460/1000 - Loss: 0.0031 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:41.045 - INFO - Iteration 470/1000 - Loss: 0.0030 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:41.546 - INFO - Iteration 480/1000 - Loss: 0.0029 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:42.071 - INFO - Iteration 490/1000 - Loss: 0.0028 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:42.638 - INFO - Iteration 500/1000 - Loss: 0.0027 - Batch Time: 0.06s - Avg Batch Time: 0.06s - Total Time: 0.57s
+2024-11-22 14:44:43.156 - INFO - Iteration 510/1000 - Loss: 0.0026 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:43.656 - INFO - Iteration 520/1000 - Loss: 0.0025 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:44.157 - INFO - Iteration 530/1000 - Loss: 0.0024 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:44.652 - INFO - Iteration 540/1000 - Loss: 0.0023 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:45.169 - INFO - Iteration 550/1000 - Loss: 0.0023 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:45.670 - INFO - Iteration 560/1000 - Loss: 0.0022 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:46.180 - INFO - Iteration 570/1000 - Loss: 0.0021 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:46.682 - INFO - Iteration 580/1000 - Loss: 0.0020 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:47.184 - INFO - Iteration 590/1000 - Loss: 0.0020 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:47.701 - INFO - Iteration 600/1000 - Loss: 0.0019 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:48.227 - INFO - Iteration 610/1000 - Loss: 0.0018 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:48.730 - INFO - Iteration 620/1000 - Loss: 0.0018 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:49.239 - INFO - Iteration 630/1000 - Loss: 0.0017 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:49.767 - INFO - Iteration 640/1000 - Loss: 0.0017 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:50.283 - INFO - Iteration 650/1000 - Loss: 0.0016 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:50.801 - INFO - Iteration 660/1000 - Loss: 0.0016 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:51.314 - INFO - Iteration 670/1000 - Loss: 0.0015 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:51.820 - INFO - Iteration 680/1000 - Loss: 0.0015 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:52.354 - INFO - Iteration 690/1000 - Loss: 0.0014 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:52.864 - INFO - Iteration 700/1000 - Loss: 0.0014 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:44:53.341 - INFO - Iteration 710/1000 - Loss: 0.0013 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.48s
+2024-11-22 14:44:53.834 - INFO - Iteration 720/1000 - Loss: 0.0013 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:44:54.337 - INFO - Iteration 730/1000 - Loss: 0.0012 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:44:54.830 - INFO - Iteration 740/1000 - Loss: 0.0012 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:44:55.315 - INFO - Iteration 750/1000 - Loss: 0.0012 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:44:55.801 - INFO - Iteration 760/1000 - Loss: 0.0011 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:44:56.286 - INFO - Iteration 770/1000 - Loss: 0.0011 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:44:56.772 - INFO - Iteration 780/1000 - Loss: 0.0011 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:44:57.265 - INFO - Iteration 790/1000 - Loss: 0.0011 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:44:57.782 - INFO - Iteration 800/1000 - Loss: 0.0010 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:58.316 - INFO - Iteration 810/1000 - Loss: 0.0010 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:58.841 - INFO - Iteration 820/1000 - Loss: 0.0010 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:44:59.367 - INFO - Iteration 830/1000 - Loss: 0.0009 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:44:59.851 - INFO - Iteration 840/1000 - Loss: 0.0009 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.48s
+2024-11-22 14:45:00.370 - INFO - Iteration 850/1000 - Loss: 0.0009 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:45:00.863 - INFO - Iteration 860/1000 - Loss: 0.0009 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:45:01.373 - INFO - Iteration 870/1000 - Loss: 0.0009 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:45:01.875 - INFO - Iteration 880/1000 - Loss: 0.0008 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:45:02.394 - INFO - Iteration 890/1000 - Loss: 0.0008 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:45:02.928 - INFO - Iteration 900/1000 - Loss: 0.0008 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.53s
+2024-11-22 14:45:03.443 - INFO - Iteration 910/1000 - Loss: 0.0008 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.52s
+2024-11-22 14:45:03.953 - INFO - Iteration 920/1000 - Loss: 0.0008 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:45:04.454 - INFO - Iteration 930/1000 - Loss: 0.0007 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:45:04.955 - INFO - Iteration 940/1000 - Loss: 0.0007 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:45:05.432 - INFO - Iteration 950/1000 - Loss: 0.0007 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.48s
+2024-11-22 14:45:05.909 - INFO - Iteration 960/1000 - Loss: 0.0007 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.48s
+2024-11-22 14:45:06.410 - INFO - Iteration 970/1000 - Loss: 0.0007 - Batch Time: 0.05s - Avg Batch Time: 0.05s - Total Time: 0.50s
+2024-11-22 14:45:06.919 - INFO - Iteration 980/1000 - Loss: 0.0007 - Batch Time: 0.06s - Avg Batch Time: 0.05s - Total Time: 0.51s
+2024-11-22 14:45:07.411 - INFO - Iteration 990/1000 - Loss: 0.0006 - Batch Time: 0.04s - Avg Batch Time: 0.05s - Total Time: 0.49s
+2024-11-22 14:45:08.445 - INFO - TimeGAN training completed in 63.56 seconds
+2024-11-22 14:45:08.445 - INFO - TimeGAN processing completed in 65.34 seconds
+2024-11-22 14:45:08.470 - INFO - File processing summary for collection1u00001s00001_hw00002.svc:
+2024-11-22 14:45:08.470 - INFO -   - Data loading time: 0.02s
+2024-11-22 14:45:08.470 - INFO -   - GAN processing time: 65.34s
+2024-11-22 14:45:08.470 - INFO -   - Data saving time: 0.02s
+2024-11-22 14:45:08.470 - INFO -   - Total processing time: 65.40s
+2024-11-22 14:45:08.567 - INFO - 
+Processing Summary:
+2024-11-22 14:45:08.567 - INFO - Total files processed: 1
+2024-11-22 14:45:08.567 - INFO - Successfully processed: 1
+2024-11-22 14:45:08.567 - INFO - Failed to process: 0
+2024-11-22 14:45:08.567 - INFO - Total wall time: 79.30 seconds
+2024-11-22 14:45:08.567 - INFO - Total processing time: 65.40 seconds
+2024-11-22 15:36:41.801 - INFO - Starting parallel processing with 2 processes
+2024-11-22 15:36:54.061 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 15:36:54.061 - INFO - Parameters: {'hidden_dim': 16, 'num_layers': 2, 'iterations': 500, 'batch_size': 512, 'module': 'gru'}
+2024-11-22 15:36:54.081 - INFO - Data loading completed in 0.02 seconds
+2024-11-22 15:36:55.643 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:30: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 15:36:55.643 - INFO - Starting TimeGAN training with data shape: (54, 50, 7)
+2024-11-22 15:37:00.195 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:145: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 15:37:04.375 - INFO - Training with 0 batches per iteration
+2024-11-22 15:37:04.422 - ERROR - Error processing file collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 15:37:04.513 - INFO - 
+Processing Summary:
+2024-11-22 15:37:04.513 - INFO - Total files processed: 1
+2024-11-22 15:37:04.513 - INFO - Successfully processed: 0
+2024-11-22 15:37:04.513 - INFO - Failed to process: 1
+2024-11-22 15:37:04.513 - INFO - Total wall time: 22.71 seconds
+2024-11-22 15:37:04.513 - INFO - Total processing time: 0.00 seconds
+2024-11-22 15:37:04.513 - ERROR - 
+Failed files:
+2024-11-22 15:37:04.513 - ERROR - collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 15:39:14.781 - INFO - Starting parallel processing with 2 processes
+2024-11-22 15:39:29.743 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 15:39:29.743 - INFO - Parameters: {'hidden_dim': 16, 'num_layers': 2, 'iterations': 500, 'batch_size': 512, 'module': 'gru'}
+2024-11-22 15:39:29.758 - INFO - Data loading completed in 0.02 seconds
+2024-11-22 15:39:31.448 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:30: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 15:39:31.463 - INFO - Starting TimeGAN training with data shape: (54, 50, 7)
+2024-11-22 15:39:35.293 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:145: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 15:39:38.949 - INFO - Training with 0 batches per iteration
+2024-11-22 15:39:38.996 - ERROR - Error processing file collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 15:39:39.074 - INFO - 
+Processing Summary:
+2024-11-22 15:39:39.074 - INFO - Total files processed: 1
+2024-11-22 15:39:39.074 - INFO - Successfully processed: 0
+2024-11-22 15:39:39.074 - INFO - Failed to process: 1
+2024-11-22 15:39:39.074 - INFO - Total wall time: 24.29 seconds
+2024-11-22 15:39:39.074 - INFO - Total processing time: 0.00 seconds
+2024-11-22 15:39:39.074 - ERROR - 
+Failed files:
+2024-11-22 15:39:39.074 - ERROR - collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 15:51:27,747 - INFO - Starting parallel processing with 2 processes
+2024-11-22 15:51:41,976 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 15:51:44,040 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 15:51:49,565 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 15:52:55,730 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 73.75 seconds
+2024-11-22 15:52:55,824 - INFO - 
+Processing Summary:
+2024-11-22 15:52:55,824 - INFO - Total files processed: 1
+2024-11-22 15:52:55,824 - INFO - Successfully processed: 1
+2024-11-22 15:52:55,824 - INFO - Failed to process: 0
+2024-11-22 15:52:55,824 - INFO - Total wall time: 88.08 seconds
+2024-11-22 15:52:55,824 - INFO - Total processing time: 73.75 seconds
+2024-11-22 15:55:41,511 - INFO - Starting parallel processing with 2 processes
+2024-11-22 15:55:51,929 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 15:55:53,428 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 15:55:57,143 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 15:56:55,305 - INFO - Starting parallel processing with 2 processes
+2024-11-22 15:57:06,673 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 15:57:08,641 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 15:57:13,660 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 15:58:13,268 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 66.60 seconds
+2024-11-22 15:58:13,362 - INFO - 
+Processing Summary:
+2024-11-22 15:58:13,362 - INFO - Total files processed: 1
+2024-11-22 15:58:13,362 - INFO - Successfully processed: 1
+2024-11-22 15:58:13,362 - INFO - Failed to process: 0
+2024-11-22 15:58:13,362 - INFO - Total wall time: 78.06 seconds
+2024-11-22 15:58:13,362 - INFO - Total processing time: 66.60 seconds
+2024-11-22 16:02:55,293 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:03:09,754 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:03:12,802 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:03:18,991 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:04:22,548 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 72.79 seconds
+2024-11-22 16:04:22,642 - INFO - 
+Processing Summary:
+2024-11-22 16:04:22,642 - INFO - Total files processed: 1
+2024-11-22 16:04:22,642 - INFO - Successfully processed: 1
+2024-11-22 16:04:22,642 - INFO - Failed to process: 0
+2024-11-22 16:04:22,642 - INFO - Total wall time: 87.35 seconds
+2024-11-22 16:04:22,642 - INFO - Total processing time: 72.79 seconds
+2024-11-22 16:08:11,658 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:08:22,561 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:08:24,281 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:08:28,518 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:09:24,396 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 61.84 seconds
+2024-11-22 16:09:24,474 - INFO - 
+Processing Summary:
+2024-11-22 16:09:24,474 - INFO - Total files processed: 1
+2024-11-22 16:09:24,474 - INFO - Successfully processed: 1
+2024-11-22 16:09:24,474 - INFO - Failed to process: 0
+2024-11-22 16:09:24,474 - INFO - Total wall time: 72.82 seconds
+2024-11-22 16:09:24,474 - INFO - Total processing time: 61.84 seconds
+2024-11-22 16:11:09,287 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:11:20,652 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:11:22,220 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:11:25,721 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:11:28,740 - ERROR - Error processing file collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:11:28,802 - INFO - 
+Processing Summary:
+2024-11-22 16:11:28,802 - INFO - Total files processed: 1
+2024-11-22 16:11:28,802 - INFO - Successfully processed: 0
+2024-11-22 16:11:28,802 - INFO - Failed to process: 1
+2024-11-22 16:11:28,802 - INFO - Total wall time: 19.51 seconds
+2024-11-22 16:11:28,802 - INFO - Total processing time: 0.00 seconds
+2024-11-22 16:11:28,818 - ERROR - 
+Failed files:
+2024-11-22 16:11:28,818 - ERROR - collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:14:30,903 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:14:41,508 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:14:43,054 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:14:46,730 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:17:04,193 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:17:15,807 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:17:17,619 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:17:21,838 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:17:25,123 - ERROR - Error processing file collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:17:25,216 - INFO - 
+Processing Summary:
+2024-11-22 16:17:25,216 - INFO - Total files processed: 1
+2024-11-22 16:17:25,216 - INFO - Successfully processed: 0
+2024-11-22 16:17:25,216 - INFO - Failed to process: 1
+2024-11-22 16:17:25,216 - INFO - Total wall time: 21.02 seconds
+2024-11-22 16:17:25,216 - INFO - Total processing time: 0.00 seconds
+2024-11-22 16:17:25,216 - ERROR - 
+Failed files:
+2024-11-22 16:17:25,216 - ERROR - collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:17:53,568 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:18:04,681 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:18:06,322 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:18:10,168 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:18:13,247 - ERROR - Error processing file collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:18:13,325 - INFO - 
+Processing Summary:
+2024-11-22 16:18:13,325 - INFO - Total files processed: 1
+2024-11-22 16:18:13,325 - INFO - Successfully processed: 0
+2024-11-22 16:18:13,325 - INFO - Failed to process: 1
+2024-11-22 16:18:13,325 - INFO - Total wall time: 19.76 seconds
+2024-11-22 16:18:13,325 - INFO - Total processing time: 0.00 seconds
+2024-11-22 16:18:13,325 - ERROR - 
+Failed files:
+2024-11-22 16:18:13,325 - ERROR - collection1u00001s00001_hw00002.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:20:56,018 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:21:06,641 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:21:08,141 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:21:11,939 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:22:07,205 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 60.56 seconds
+2024-11-22 16:22:07,292 - INFO - 
+Processing Summary:
+2024-11-22 16:22:07,293 - INFO - Total files processed: 1
+2024-11-22 16:22:07,293 - INFO - Successfully processed: 1
+2024-11-22 16:22:07,293 - INFO - Failed to process: 0
+2024-11-22 16:22:07,293 - INFO - Total wall time: 71.27 seconds
+2024-11-22 16:22:07,293 - INFO - Total processing time: 60.56 seconds
+2024-11-22 16:24:08,303 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:24:18,608 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:24:19,999 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:24:24,704 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:25:42,830 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 84.22 seconds
+2024-11-22 16:25:42,924 - INFO - 
+Processing Summary:
+2024-11-22 16:25:42,924 - INFO - Total files processed: 1
+2024-11-22 16:25:42,924 - INFO - Successfully processed: 1
+2024-11-22 16:25:42,924 - INFO - Failed to process: 0
+2024-11-22 16:25:42,924 - INFO - Total wall time: 94.62 seconds
+2024-11-22 16:25:42,924 - INFO - Total processing time: 84.22 seconds
+2024-11-22 16:27:15,349 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:27:25,786 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:27:27,286 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:27:30,952 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:28:46,280 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 80.49 seconds
+2024-11-22 16:28:46,358 - INFO - 
+Processing Summary:
+2024-11-22 16:28:46,358 - INFO - Total files processed: 1
+2024-11-22 16:28:46,358 - INFO - Successfully processed: 1
+2024-11-22 16:28:46,358 - INFO - Failed to process: 0
+2024-11-22 16:28:46,358 - INFO - Total wall time: 91.01 seconds
+2024-11-22 16:28:46,358 - INFO - Total processing time: 80.49 seconds
+2024-11-22 16:30:15,178 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:30:24,745 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:30:26,180 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:30:29,736 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:30:42,190 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 17.44 seconds
+2024-11-22 16:30:42,261 - INFO - 
+Processing Summary:
+2024-11-22 16:30:42,261 - INFO - Total files processed: 1
+2024-11-22 16:30:42,261 - INFO - Successfully processed: 1
+2024-11-22 16:30:42,261 - INFO - Failed to process: 0
+2024-11-22 16:30:42,261 - INFO - Total wall time: 27.08 seconds
+2024-11-22 16:30:42,261 - INFO - Total processing time: 17.44 seconds
+2024-11-22 16:31:23,896 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:31:33,473 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:31:34,887 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:31:38,386 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:33:43,983 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 130.51 seconds
+2024-11-22 16:33:44,122 - INFO - 
+Processing Summary:
+2024-11-22 16:33:44,122 - INFO - Total files processed: 1
+2024-11-22 16:33:44,122 - INFO - Successfully processed: 1
+2024-11-22 16:33:44,122 - INFO - Failed to process: 0
+2024-11-22 16:33:44,122 - INFO - Total wall time: 140.23 seconds
+2024-11-22 16:33:44,122 - INFO - Total processing time: 130.51 seconds
+2024-11-22 16:36:55,808 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:37:05,707 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:37:07,202 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:37:10,808 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:37:21,607 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 15.90 seconds
+2024-11-22 16:37:21,685 - INFO - 
+Processing Summary:
+2024-11-22 16:37:21,685 - INFO - Total files processed: 1
+2024-11-22 16:37:21,685 - INFO - Successfully processed: 1
+2024-11-22 16:37:21,685 - INFO - Failed to process: 0
+2024-11-22 16:37:21,685 - INFO - Total wall time: 25.88 seconds
+2024-11-22 16:37:21,685 - INFO - Total processing time: 15.90 seconds
+2024-11-22 16:37:32,629 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:37:44,035 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:37:45,823 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:37:49,923 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:38:01,422 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 17.39 seconds
+2024-11-22 16:38:01,500 - INFO - 
+Processing Summary:
+2024-11-22 16:38:01,500 - INFO - Total files processed: 1
+2024-11-22 16:38:01,500 - INFO - Successfully processed: 1
+2024-11-22 16:38:01,500 - INFO - Failed to process: 0
+2024-11-22 16:38:01,500 - INFO - Total wall time: 28.87 seconds
+2024-11-22 16:38:01,500 - INFO - Total processing time: 17.39 seconds
+2024-11-22 16:38:12,348 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:38:23,040 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:38:24,699 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:38:28,970 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:38:43,461 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 20.42 seconds
+2024-11-22 16:38:43,558 - INFO - 
+Processing Summary:
+2024-11-22 16:38:43,558 - INFO - Total files processed: 1
+2024-11-22 16:38:43,558 - INFO - Successfully processed: 1
+2024-11-22 16:38:43,558 - INFO - Failed to process: 0
+2024-11-22 16:38:43,558 - INFO - Total wall time: 31.21 seconds
+2024-11-22 16:38:43,561 - INFO - Total processing time: 20.42 seconds
+2024-11-22 16:41:29,726 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:41:42,122 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-22 16:41:42,153 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:41:43,748 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:41:43,795 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:41:48,495 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:41:48,531 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:41:52,492 - ERROR - Error processing file collection1u00001s00001_hw00001.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:41:52,492 - INFO - Starting processing of file: collection1u00001s00001_hw00003.svc
+2024-11-22 16:42:12,433 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 30.28 seconds
+2024-11-22 16:42:12,433 - INFO - Starting processing of file: collection1u00001s00001_hw00004.svc
+2024-11-22 16:42:31,732 - INFO - Completed processing file collection1u00001s00001_hw00003.svc. Time taken: 39.24 seconds
+2024-11-22 16:42:31,732 - INFO - Starting processing of file: collection1u00001s00001_hw00005.svc
+2024-11-22 16:42:52,359 - INFO - Completed processing file collection1u00001s00001_hw00004.svc. Time taken: 39.93 seconds
+2024-11-22 16:42:52,359 - INFO - Starting processing of file: collection1u00001s00001_hw00006.svc
+2024-11-22 16:42:54,386 - ERROR - Error processing file collection1u00001s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:42:54,386 - INFO - Starting processing of file: collection1u00001s00001_hw00007.svc
+2024-11-22 16:43:27,820 - INFO - Completed processing file collection1u00001s00001_hw00006.svc. Time taken: 35.46 seconds
+2024-11-22 16:43:35,531 - INFO - Completed processing file collection1u00001s00001_hw00007.svc. Time taken: 41.14 seconds
+2024-11-22 16:43:35,675 - INFO - 
+Processing Summary:
+2024-11-22 16:43:35,675 - INFO - Total files processed: 7
+2024-11-22 16:43:35,675 - INFO - Successfully processed: 5
+2024-11-22 16:43:35,675 - INFO - Failed to process: 2
+2024-11-22 16:43:35,675 - INFO - Total wall time: 125.95 seconds
+2024-11-22 16:43:35,675 - INFO - Total processing time: 186.05 seconds
+2024-11-22 16:43:35,675 - ERROR - 
+Failed files:
+2024-11-22 16:43:35,675 - ERROR - collection1u00001s00001_hw00001.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:43:35,675 - ERROR - collection1u00001s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:52:36,111 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:52:48,774 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-22 16:52:48,790 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:52:50,408 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:52:50,440 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:52:55,012 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:52:55,138 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:52:59,205 - ERROR - Error processing file collection1u00001s00001_hw00001.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:52:59,205 - INFO - Starting processing of file: collection1u00001s00001_hw00003.svc
+2024-11-22 16:53:16,428 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 27.64 seconds
+2024-11-22 16:53:16,428 - INFO - Starting processing of file: collection1u00001s00001_hw00004.svc
+2024-11-22 16:53:34,864 - INFO - Completed processing file collection1u00001s00001_hw00003.svc. Time taken: 35.66 seconds
+2024-11-22 16:53:34,864 - INFO - Starting processing of file: collection1u00001s00001_hw00005.svc
+2024-11-22 16:53:50,363 - INFO - Completed processing file collection1u00001s00001_hw00004.svc. Time taken: 33.93 seconds
+2024-11-22 16:53:50,363 - INFO - Starting processing of file: collection1u00001s00001_hw00006.svc
+2024-11-22 16:53:55,376 - ERROR - Error processing file collection1u00001s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:53:55,376 - INFO - Starting processing of file: collection1u00001s00001_hw00007.svc
+2024-11-22 16:54:20,189 - INFO - Completed processing file collection1u00001s00001_hw00006.svc. Time taken: 29.83 seconds
+2024-11-22 16:54:33,763 - INFO - Completed processing file collection1u00001s00001_hw00007.svc. Time taken: 38.39 seconds
+2024-11-22 16:54:33,894 - INFO - 
+Processing Summary:
+2024-11-22 16:54:33,894 - INFO - Total files processed: 7
+2024-11-22 16:54:33,894 - INFO - Successfully processed: 5
+2024-11-22 16:54:33,894 - INFO - Failed to process: 2
+2024-11-22 16:54:33,894 - INFO - Total wall time: 117.78 seconds
+2024-11-22 16:54:33,895 - INFO - Total processing time: 165.45 seconds
+2024-11-22 16:54:33,895 - ERROR - 
+Failed files:
+2024-11-22 16:54:33,895 - ERROR - collection1u00001s00001_hw00001.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:54:33,895 - ERROR - collection1u00001s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:57:35,500 - INFO - Starting parallel processing with 2 processes
+2024-11-22 16:57:47,239 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-22 16:57:47,302 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 16:57:48,940 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:57:48,996 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 16:57:53,415 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:57:53,451 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 16:57:57,270 - ERROR - Error processing file collection1u00001s00001_hw00001.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:57:57,270 - INFO - Starting processing of file: collection1u00001s00001_hw00003.svc
+2024-11-22 16:58:12,464 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 25.16 seconds
+2024-11-22 16:58:12,464 - INFO - Starting processing of file: collection1u00001s00001_hw00004.svc
+2024-11-22 16:58:30,315 - INFO - Completed processing file collection1u00001s00001_hw00003.svc. Time taken: 33.05 seconds
+2024-11-22 16:58:30,315 - INFO - Starting processing of file: collection1u00001s00001_hw00005.svc
+2024-11-22 16:58:47,898 - INFO - Completed processing file collection1u00001s00001_hw00004.svc. Time taken: 35.43 seconds
+2024-11-22 16:58:47,898 - INFO - Starting processing of file: collection1u00001s00001_hw00006.svc
+2024-11-22 16:58:52,745 - ERROR - Error processing file collection1u00001s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:58:52,745 - INFO - Starting processing of file: collection1u00001s00001_hw00007.svc
+2024-11-22 16:59:18,080 - INFO - Completed processing file collection1u00001s00001_hw00006.svc. Time taken: 30.18 seconds
+2024-11-22 16:59:29,197 - INFO - Completed processing file collection1u00001s00001_hw00007.svc. Time taken: 36.45 seconds
+2024-11-22 16:59:29,314 - INFO - 
+Processing Summary:
+2024-11-22 16:59:29,314 - INFO - Total files processed: 7
+2024-11-22 16:59:29,314 - INFO - Successfully processed: 5
+2024-11-22 16:59:29,314 - INFO - Failed to process: 2
+2024-11-22 16:59:29,314 - INFO - Total wall time: 113.81 seconds
+2024-11-22 16:59:29,314 - INFO - Total processing time: 160.28 seconds
+2024-11-22 16:59:29,314 - ERROR - 
+Failed files:
+2024-11-22 16:59:29,314 - ERROR - collection1u00001s00001_hw00001.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 16:59:29,314 - ERROR - collection1u00001s00001_hw00005.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-22 17:02:41,253 - INFO - Starting parallel processing with 2 processes
+2024-11-22 17:02:53,045 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-22 17:02:53,070 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 17:02:54,700 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 17:02:54,700 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 17:02:59,353 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 17:02:59,353 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 17:03:56,443 - INFO - Completed processing file collection1u00001s00001_hw00001.svc. Time taken: 63.40 seconds
+2024-11-22 17:03:56,443 - INFO - Starting processing of file: collection1u00001s00001_hw00003.svc
+2024-11-22 17:04:35,040 - INFO - Completed processing file collection1u00001s00001_hw00002.svc. Time taken: 101.97 seconds
+2024-11-22 17:04:35,040 - INFO - Starting processing of file: collection1u00001s00001_hw00004.svc
+2024-11-22 17:05:54,930 - INFO - Completed processing file collection1u00001s00001_hw00003.svc. Time taken: 118.49 seconds
+2024-11-22 17:05:54,930 - INFO - Starting processing of file: collection1u00001s00001_hw00005.svc
+2024-11-22 17:05:59,804 - INFO - Completed processing file collection1u00001s00001_hw00004.svc. Time taken: 84.76 seconds
+2024-11-22 17:05:59,804 - INFO - Starting processing of file: collection1u00001s00001_hw00006.svc
+2024-11-22 17:07:05,625 - INFO - Completed processing file collection1u00001s00001_hw00005.svc. Time taken: 70.68 seconds
+2024-11-22 17:07:05,656 - INFO - Starting processing of file: collection1u00001s00001_hw00007.svc
+2024-11-22 17:07:56,771 - INFO - Completed processing file collection1u00001s00001_hw00006.svc. Time taken: 116.97 seconds
+2024-11-22 17:09:22,271 - INFO - Completed processing file collection1u00001s00001_hw00007.svc. Time taken: 136.62 seconds
+2024-11-22 17:09:22,559 - INFO - 
+Processing Summary:
+2024-11-22 17:09:22,571 - INFO - Total files processed: 7
+2024-11-22 17:09:22,571 - INFO - Successfully processed: 7
+2024-11-22 17:09:22,571 - INFO - Failed to process: 0
+2024-11-22 17:09:22,571 - INFO - Total wall time: 401.30 seconds
+2024-11-22 17:09:22,571 - INFO - Total processing time: 692.88 seconds
+2024-11-22 19:15:24,102 - INFO - Starting parallel processing with 6 processes out of 8 available CPUs
+2024-11-22 19:31:26,951 - INFO - Starting parallel processing with 2 processes
+2024-11-22 19:31:38,820 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-22 19:31:38,992 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 19:31:40,493 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 19:31:40,675 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 19:31:44,936 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 19:31:45,084 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
