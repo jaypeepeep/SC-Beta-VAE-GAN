@@ -1685,3 +1685,15 @@ Processing Summary:
 2024-11-22 17:09:22,571 - INFO - Failed to process: 0
 2024-11-22 17:09:22,571 - INFO - Total wall time: 401.30 seconds
 2024-11-22 17:09:22,571 - INFO - Total processing time: 692.88 seconds
+2024-11-22 19:15:24,102 - INFO - Starting parallel processing with 6 processes out of 8 available CPUs
+2024-11-22 19:31:26,951 - INFO - Starting parallel processing with 2 processes
+2024-11-22 19:31:38,820 - INFO - Starting processing of file: collection1u00001s00001_hw00001.svc
+2024-11-22 19:31:38,992 - INFO - Starting processing of file: collection1u00001s00001_hw00002.svc
+2024-11-22 19:31:40,493 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 19:31:40,675 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:19: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-22 19:31:44,936 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-22 19:31:45,084 - WARNING - From c:\Github\Thesis-Project\timegan\timegan copy.py:130: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+

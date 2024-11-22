@@ -3,15 +3,21 @@ import numpy as np
 import tensorflow as tf
 import logging
 import time
-import multiprocessing as mp
-from functools import partial
 
-# Set up logging
+directory_name = "timegan"
+
+# Ensure the directory exists
+if not os.path.exists(directory_name):
+    os.makedirs(directory_name)
+
+# Set up logging inside the 'timegan' directory
+log_file_path = os.path.join(directory_name, 'process_svc_folder.txt')
 logging.basicConfig(
-    filename='process_svc_folder.log',
+    filename=log_file_path,
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
 
 # Define TimeGAN function
 def timegan(ori_data, parameters):
@@ -172,11 +178,10 @@ def timegan(ori_data, parameters):
     
     return synthetic_data
 
-
 # Function to load and process SVC files
-def load_svc(file_path, fixed_seq_len=1):
+def load_svc(file_path, fixed_seq_len=64):
     """
-    Load SVC file with fixed sequence length and efficient batching.
+    Load SVC file with fixed sequence length.
     
     Args:
         file_path: Path to the SVC file
@@ -202,41 +207,8 @@ def load_svc(file_path, fixed_seq_len=1):
     dim = data.shape[1]
     return data.reshape(-1, fixed_seq_len, dim)  # Reshape to (batch, fixed_seq_len, dim)
 
-
-def process_single_file(file_name, input_folder, output_folder, parameters, fixed_seq_len=1):
-    """Process a single SVC file with fixed sequence length."""
-    try:
-        start_time = time.time()
-        file_path = os.path.join(input_folder, file_name)
-        
-        logging.info(f"Starting processing of file: {file_name}")
-        
-        # Load and process the data with fixed sequence length
-        ori_data = load_svc(file_path, fixed_seq_len=fixed_seq_len)
-        
-        # Generate synthetic data
-        synthetic_data = timegan(ori_data, parameters)
-        
-        # Save synthetic data
-        output_path = os.path.join(output_folder, f"synthetic_{file_name}")
-        with open(output_path, 'w') as f:
-            # Write fixed sequence length instead of original
-            f.write(f"{fixed_seq_len}\n")
-            for row in synthetic_data.reshape(-1, synthetic_data.shape[-1]):
-                f.write(" ".join(map(str, row)) + "\n")
-        
-        end_time = time.time()
-        processing_time = end_time - start_time
-        logging.info(f"Completed processing file {file_name}. Time taken: {processing_time:.2f} seconds")
-        
-        return True, file_name, processing_time
-    
-    except Exception as e:
-        logging.error(f"Error processing file {file_name}: {str(e)}")
-        return False, file_name, str(e)
-
-def process_svc_folder_parallel(input_folder, output_folder, parameters, num_processes=None):
-    """Process multiple SVC files in parallel."""
+def process_svc_folder(input_folder, output_folder, parameters):
+    """Process SVC files sequentially."""
     start_time = time.time()
     
     # Create output folder if it doesn't exist
@@ -250,77 +222,72 @@ def process_svc_folder_parallel(input_folder, output_folder, parameters, num_pro
         logging.warning("No SVC files found in the input folder")
         return
     
-    # Determine number of processes to use
-    if num_processes is None:
-        num_processes = min(mp.cpu_count(), len(svc_files))
+    logging.info(f"Starting sequential processing of {len(svc_files)} files")
     
-    logging.info(f"Starting parallel processing with {num_processes} processes")
+    successful_files = []
+    failed_files = []
+    total_processing_time = 0
     
-    # Create partial function with fixed arguments
-    process_func = partial(
-        process_single_file,
-        input_folder=input_folder,
-        output_folder=output_folder,
-        parameters=parameters
-    )
+    # Process each file sequentially
+    for file_name in svc_files:
+        try:
+            file_start_time = time.time()
+            file_path = os.path.join(input_folder, file_name)
+            
+            logging.info(f"Starting processing of file: {file_name}")
+            
+            # Load and process the data
+            ori_data = load_svc(file_path, fixed_seq_len=32)
+            
+            # Generate synthetic data
+            synthetic_data = timegan(ori_data, parameters)
+            
+            # Save synthetic data
+            # Save synthetic data
+            output_path = os.path.join(output_folder, f"synthetic_{file_name}")
+            with open(output_path, 'w') as f:
+                # Directly write the data without sequence length
+                for row in synthetic_data.reshape(-1, synthetic_data.shape[-1]):
+                    f.write(" ".join(map(str, row)) + "\n")
+            
+            file_end_time = time.time()
+            processing_time = file_end_time - file_start_time
+            total_processing_time += processing_time
+            
+            successful_files.append(file_name)
+            logging.info(f"Completed processing file {file_name}. Time taken: {processing_time:.2f} seconds")
+            
+        except Exception as e:
+            logging.error(f"Error processing file {file_name}: {str(e)}")
+            failed_files.append((file_name, str(e)))
     
-    # Initialize the pool and process files
-    try:
-        with mp.Pool(processes=num_processes) as pool:
-            results = pool.map(process_func, svc_files)
-        
-        # Process results
-        successful_files = []
-        failed_files = []
-        total_processing_time = 0
-        
-        for success, file_name, result in results:
-            if success:
-                successful_files.append(file_name)
-                total_processing_time += result
-            else:
-                failed_files.append((file_name, result))
-        
-        # Log summary
-        end_time = time.time()
-        total_time = end_time - start_time
-        
-        logging.info(f"\nProcessing Summary:")
-        logging.info(f"Total files processed: {len(svc_files)}")
-        logging.info(f"Successfully processed: {len(successful_files)}")
-        logging.info(f"Failed to process: {len(failed_files)}")
-        logging.info(f"Total wall time: {total_time:.2f} seconds")
-        logging.info(f"Total processing time: {total_processing_time:.2f} seconds")
-        
-        if failed_files:
-            logging.error("\nFailed files:")
-            for file_name, error in failed_files:
-                logging.error(f"{file_name}: {error}")
+    # Log summary
+    end_time = time.time()
+    total_time = end_time - start_time
     
-    except Exception as e:
-        logging.error(f"Error in parallel processing: {str(e)}")
-        raise
+    logging.info(f"\nProcessing Summary:")
+    logging.info(f"Total files processed: {len(svc_files)}")
+    logging.info(f"Successfully processed: {len(successful_files)}")
+    logging.info(f"Failed to process: {len(failed_files)}")
+    logging.info(f"Total time taken: {total_time:.2f} seconds")
+    logging.info(f"Total processing time: {total_processing_time:.2f} seconds")
+    
+    if failed_files:
+        logging.error("\nFailed files:")
+        for file_name, error in failed_files:
+            logging.error(f"{file_name}: {error}")
 
 # Parameters
 timegan_params = {
-    'hidden_dim': 16,        # Reduced from 24
-    'num_layers': 2,         # Reduced from 3
-    'iterations': 200,        # Reduced from 100
-    'batch_size': 32,        # Reduced for better memory usage
+    'hidden_dim': 128,
+    'num_layers': 2,
+    'iterations': 100,
+    'batch_size': 32,
     'module': 'gru'
 }
 
 if __name__ == '__main__':
-    # Run the script with parallel processing
     input_folder = "./timegan/train"
     output_folder = "./timegan/output"
     
-    # Use 75% of available CPU cores
-    num_processes = max(1,2)
-    
-    process_svc_folder_parallel(
-        input_folder,
-        output_folder,
-        timegan_params,
-        num_processes=num_processes,
-    )
+    process_svc_folder(input_folder, output_folder, timegan_params)
