@@ -1,72 +1,72 @@
 
 Fold 1/10:
-  Epoch 1: Accuracy = 0.5206
-  Epoch 2: Accuracy = 0.5157
-  Epoch 3: Accuracy = 0.5230
-  Epoch 4: Accuracy = 0.5210
-  Epoch 5: Accuracy = 0.5208
+  Epoch 1: Accuracy = 0.5313
+  Epoch 2: Accuracy = 0.5336
+  Epoch 3: Accuracy = 0.5315
+  Epoch 4: Accuracy = 0.5366
+  Epoch 5: Accuracy = 0.5388
 
 Fold 2/10:
-  Epoch 1: Accuracy = 0.5223
-  Epoch 2: Accuracy = 0.5229
-  Epoch 3: Accuracy = 0.5231
-  Epoch 4: Accuracy = 0.5196
-  Epoch 5: Accuracy = 0.5219
+  Epoch 1: Accuracy = 0.5323
+  Epoch 2: Accuracy = 0.5346
+  Epoch 3: Accuracy = 0.5331
+  Epoch 4: Accuracy = 0.5355
+  Epoch 5: Accuracy = 0.5332
 
 Fold 3/10:
-  Epoch 1: Accuracy = 0.5224
-  Epoch 2: Accuracy = 0.5224
-  Epoch 3: Accuracy = 0.5222
-  Epoch 4: Accuracy = 0.5208
-  Epoch 5: Accuracy = 0.5188
+  Epoch 1: Accuracy = 0.5318
+  Epoch 2: Accuracy = 0.5351
+  Epoch 3: Accuracy = 0.5343
+  Epoch 4: Accuracy = 0.5323
+  Epoch 5: Accuracy = 0.5325
 
 Fold 4/10:
-  Epoch 1: Accuracy = 0.5220
-  Epoch 2: Accuracy = 0.5211
-  Epoch 3: Accuracy = 0.5181
-  Epoch 4: Accuracy = 0.5148
-  Epoch 5: Accuracy = 0.5094
+  Epoch 1: Accuracy = 0.5308
+  Epoch 2: Accuracy = 0.5354
+  Epoch 3: Accuracy = 0.5328
+  Epoch 4: Accuracy = 0.5334
+  Epoch 5: Accuracy = 0.5333
 
 Fold 5/10:
-  Epoch 1: Accuracy = 0.5222
-  Epoch 2: Accuracy = 0.5216
-  Epoch 3: Accuracy = 0.5208
-  Epoch 4: Accuracy = 0.5234
-  Epoch 5: Accuracy = 0.5229
+  Epoch 1: Accuracy = 0.5320
+  Epoch 2: Accuracy = 0.5322
+  Epoch 3: Accuracy = 0.5320
+  Epoch 4: Accuracy = 0.5325
+  Epoch 5: Accuracy = 0.5387
 
 Fold 6/10:
-  Epoch 1: Accuracy = 0.5214
-  Epoch 2: Accuracy = 0.5177
-  Epoch 3: Accuracy = 0.5184
-  Epoch 4: Accuracy = 0.5167
-  Epoch 5: Accuracy = 0.5220
+  Epoch 1: Accuracy = 0.5290
+  Epoch 2: Accuracy = 0.5277
+  Epoch 3: Accuracy = 0.5275
+  Epoch 4: Accuracy = 0.5279
+  Epoch 5: Accuracy = 0.5277
 
 Fold 7/10:
-  Epoch 1: Accuracy = 0.5219
-  Epoch 2: Accuracy = 0.5206
-  Epoch 3: Accuracy = 0.5205
-  Epoch 4: Accuracy = 0.5220
-  Epoch 5: Accuracy = 0.5236
+  Epoch 1: Accuracy = 0.5329
+  Epoch 2: Accuracy = 0.5335
+  Epoch 3: Accuracy = 0.5322
+  Epoch 4: Accuracy = 0.5305
+  Epoch 5: Accuracy = 0.5312
 
 Fold 8/10:
-  Epoch 1: Accuracy = 0.5228
-  Epoch 2: Accuracy = 0.5208
-  Epoch 3: Accuracy = 0.5229
-  Epoch 4: Accuracy = 0.5220
-  Epoch 5: Accuracy = 0.5193
+  Epoch 1: Accuracy = 0.5316
+  Epoch 2: Accuracy = 0.5331
+  Epoch 3: Accuracy = 0.5354
+  Epoch 4: Accuracy = 0.5364
+  Epoch 5: Accuracy = 0.5364
 
 Fold 9/10:
-  Epoch 1: Accuracy = 0.5221
-  Epoch 2: Accuracy = 0.5232
-  Epoch 3: Accuracy = 0.5228
-  Epoch 4: Accuracy = 0.5241
-  Epoch 5: Accuracy = 0.5188
+  Epoch 1: Accuracy = 0.5307
+  Epoch 2: Accuracy = 0.5280
+  Epoch 3: Accuracy = 0.5303
+  Epoch 4: Accuracy = 0.5315
+  Epoch 5: Accuracy = 0.5333
 
 Fold 10/10:
-  Epoch 1: Accuracy = 0.5219
-  Epoch 2: Accuracy = 0.5219
-  Epoch 3: Accuracy = 0.5212
-  Epoch 4: Accuracy = 0.5231
-  Epoch 5: Accuracy = 0.5232
+  Epoch 1: Accuracy = 0.5327
+  Epoch 2: Accuracy = 0.5328
+  Epoch 3: Accuracy = 0.5285
+  Epoch 4: Accuracy = 0.5280
+  Epoch 5: Accuracy = 0.5285
 
-Mean accuracy: 0.5215, Standard Deviation: 0.0061
+Mean accuracy: 0.5335, Standard Deviation: 0.0059
