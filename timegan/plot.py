@@ -89,9 +89,9 @@ def plot_all_files_in_folder(folder_path):
 
 # To compare two specific files:
 # file_path1 = './timeGan/to_augment/collection1u00001s00001_hw00002.svc'  # Change to your actual file path 1
-# file_path2 = './timeGan/augmented/synthetic_collection1u00001s00001_hw00002.svc'  # Change to your actual file path 2
+# file_path2 = './timeGan/output/synthetic_collection1u00001s00001_hw00002.svc'  # Change to your actual file path 2
 # compare_handwriting_files(file_path1, file_path2)
 
 # To plot all files in a folder:
-folder_path = './TimeGan/augmented/'  # Change to your folder path
+folder_path = './TimeGan/output/'  # Change to your folder path
 plot_all_files_in_folder(folder_path)

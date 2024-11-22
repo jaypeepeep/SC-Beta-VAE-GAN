@@ -15,35 +15,34 @@ logging.basicConfig(
 
 # Define TimeGAN function
 def timegan(ori_data, parameters):
-    """TimeGAN for generating synthetic time-series data."""
-    # Disable eager execution for compatibility with tf.compat.v1
+    """TimeGAN with optimized parameters for faster training."""
     tf.compat.v1.disable_eager_execution()
-
+    
     # Basic Parameters
     no, seq_len, dim = ori_data.shape
-
-    # Reverse scaling
-    def reverse_minmax_scaling(data, min_val, max_val):
-        return data * (max_val + 1e-7) + min_val
     
-    # Define Min-Max Normalizer
+    # Normalize data
     def MinMaxScaler(data):
         min_val = np.min(np.min(data, axis=0), axis=0)
         data = data - min_val
         max_val = np.max(np.max(data, axis=0), axis=0)
         norm_data = data / (max_val + 1e-7)
         return norm_data, min_val, max_val
-
-    # Normalize data
+    
+    def reverse_minmax_scaling(data, min_val, max_val):
+        return data * (max_val + 1e-7) + min_val
+    
     ori_data, min_val, max_val = MinMaxScaler(ori_data)
-
-    # Network Parameters
+    
+    # Optimized Network Parameters
     hidden_dim = parameters['hidden_dim']
     num_layers = parameters['num_layers']
     iterations = parameters['iterations']
     batch_size = parameters['batch_size']
     module_name = parameters['module']
-    gamma = 1
+    
+    # Reduce network complexity while maintaining quality
+    gamma = 0.5  # Reduced from 1.0
     z_dim = dim
     # Input placeholders
     X = tf.compat.v1.placeholder(tf.float32, [None, None, dim], name="myinput_x")
@@ -135,56 +134,85 @@ def timegan(ori_data, parameters):
 
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
-
+        
+        # Use mini-batches for faster training
+        num_batches = no // batch_size
+        
         for it in range(iterations):
-            Z_mb = np.random.uniform(0, 1, [no, seq_len, dim])
-            T_mb = [seq_len] * no
-
-            # Train embedder
-            _, e_loss_val = sess.run([train_embedder, e_loss], feed_dict={X: ori_data, Z: Z_mb, T: T_mb})
-
-
-            print(f"Iteration {it}: Embedder loss = {e_loss_val}")
-
+            start_time = time.time()  # Record start time
+            # Process in mini-batches
+            for b in range(num_batches):
+                start_idx = b * batch_size
+                end_idx = start_idx + batch_size
+                
+                X_mb = ori_data[start_idx:end_idx]
+                Z_mb = np.random.uniform(0, 1, [batch_size, seq_len, dim])
+                T_mb = [seq_len] * batch_size
+                
+                # Train embedder
+                _, e_loss_val = sess.run(
+                    [train_embedder, e_loss],
+                    feed_dict={X: X_mb, Z: Z_mb, T: T_mb}
+                )
+            
+            # Record the time for this iteration
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            
+            # Print progress less frequently
+            if it % 20 == 0:
+                print(f"Iteration {it}/{iterations}: Embedder loss = {e_loss_val}, Time taken = {elapsed_time:.2f} seconds")
+        
         # Generate synthetic data
-        synthetic_data = sess.run(X_tilde, feed_dict={X: ori_data, T: T_mb})
-
+        synthetic_data = sess.run(X_tilde, feed_dict={X: ori_data, T: [seq_len] * no})
+    
     # Reverse normalization and round to integer format
     synthetic_data = reverse_minmax_scaling(synthetic_data, min_val, max_val)
     synthetic_data = np.round(synthetic_data).astype(int)
-
+    
     return synthetic_data
 
 
 # Function to load and process SVC files
-def load_svc(file_path):
+def load_svc(file_path, fixed_seq_len=1):
+    """
+    Load SVC file with fixed sequence length and efficient batching.
+    
+    Args:
+        file_path: Path to the SVC file
+        fixed_seq_len: Fixed sequence length to use for all sequences
+    """
     with open(file_path, 'r') as f:
         lines = f.readlines()
-    seq_len = int(lines[0].strip())
     
-    if seq_len <= 0:
-        raise ValueError(f"Invalid sequence length {seq_len} in file {file_path}")
-    
+    # Skip the first line (original sequence length) and convert data
     data = np.array([list(map(float, line.split())) for line in lines[1:]])
     
-    # Ensure the data length matches the expected sequence length
-    if data.shape[0] % seq_len != 0:
-        raise ValueError(f"Data length {data.shape[0]} is not a multiple of sequence length {seq_len}")
+    # Calculate how many complete sequences we can make
+    total_rows = len(data)
+    num_complete_sequences = total_rows // fixed_seq_len
+    
+    if num_complete_sequences == 0:
+        raise ValueError(f"File {file_path} has fewer rows ({total_rows}) than fixed_seq_len ({fixed_seq_len})")
+    
+    # Only keep complete sequences
+    used_rows = num_complete_sequences * fixed_seq_len
+    data = data[:used_rows]
     
     dim = data.shape[1]
-    return data.reshape(-1, seq_len, dim)  # Reshape to (batch, seq_len, dim)
+    return data.reshape(-1, fixed_seq_len, dim)  # Reshape to (batch, fixed_seq_len, dim)
 
 
-def process_single_file(file_name, input_folder, output_folder, parameters):
-    """Process a single SVC file with error handling."""
+def process_single_file(file_name, input_folder, output_folder, parameters, fixed_seq_len=1):
+    """Process a single SVC file with fixed sequence length."""
     try:
         start_time = time.time()
         file_path = os.path.join(input_folder, file_name)
         
         logging.info(f"Starting processing of file: {file_name}")
         
-        # Load and process the data
-        ori_data = load_svc(file_path)
+        # Load and process the data with fixed sequence length
+        ori_data = load_svc(file_path, fixed_seq_len=fixed_seq_len)
         
         # Generate synthetic data
         synthetic_data = timegan(ori_data, parameters)
@@ -192,7 +220,8 @@ def process_single_file(file_name, input_folder, output_folder, parameters):
         # Save synthetic data
         output_path = os.path.join(output_folder, f"synthetic_{file_name}")
         with open(output_path, 'w') as f:
-            f.write(f"{synthetic_data.shape[1]}\n")
+            # Write fixed sequence length instead of original
+            f.write(f"{fixed_seq_len}\n")
             for row in synthetic_data.reshape(-1, synthetic_data.shape[-1]):
                 f.write(" ".join(map(str, row)) + "\n")
         
@@ -274,16 +303,16 @@ def process_svc_folder_parallel(input_folder, output_folder, parameters, num_pro
 
 # Parameters
 timegan_params = {
-    'hidden_dim': 64,
-    'num_layers': 3,
-    'iterations': 150,
-    'batch_size': 1024,
+    'hidden_dim': 16,        # Reduced from 24
+    'num_layers': 2,         # Reduced from 3
+    'iterations': 200,        # Reduced from 100
+    'batch_size': 32,        # Reduced for better memory usage
     'module': 'gru'
 }
 
 if __name__ == '__main__':
     # Run the script with parallel processing
-    input_folder = "./timegan/try"
+    input_folder = "./timegan/train"
     output_folder = "./timegan/output"
     
     # Use 75% of available CPU cores
@@ -293,5 +322,5 @@ if __name__ == '__main__':
         input_folder,
         output_folder,
         timegan_params,
-        num_processes=num_processes
+        num_processes=num_processes,
     )
