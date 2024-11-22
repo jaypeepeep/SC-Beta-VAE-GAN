@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import logging
 import time
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 directory_name = "timegan"
 
@@ -229,12 +230,19 @@ def process_svc_folder(input_folder, output_folder, parameters):
     total_processing_time = 0
     
     # Process each file sequentially
-    for file_name in svc_files:
+    for i, file_name in enumerate(svc_files):
         try:
+            # Indicate which file is being processed
+            logging.info(f"\n=== Processing File {i + 1}/{len(svc_files)}: {file_name} ===")
+            
             file_start_time = time.time()
             file_path = os.path.join(input_folder, file_name)
             
-            logging.info(f"Starting processing of file: {file_name}")
+            # Log next file if there is one
+            if i < len(svc_files) - 1:
+                logging.info(f"Next file will be: {svc_files[i + 1]}")
+            else:
+                logging.info("This is the last file.")
             
             # Load and process the data
             ori_data = load_svc(file_path, fixed_seq_len=32)
@@ -242,7 +250,6 @@ def process_svc_folder(input_folder, output_folder, parameters):
             # Generate synthetic data
             synthetic_data = timegan(ori_data, parameters)
             
-            # Save synthetic data
             # Save synthetic data
             output_path = os.path.join(output_folder, f"synthetic_{file_name}")
             with open(output_path, 'w') as f:
@@ -255,11 +262,12 @@ def process_svc_folder(input_folder, output_folder, parameters):
             total_processing_time += processing_time
             
             successful_files.append(file_name)
-            logging.info(f"Completed processing file {file_name}. Time taken: {processing_time:.2f} seconds")
-            
+            logging.info(f"Completed processing File {i + 1}/{len(svc_files)}: {file_name}. Time taken: {processing_time:.2f} seconds")
+        
         except Exception as e:
-            logging.error(f"Error processing file {file_name}: {str(e)}")
+            logging.error(f"Error processing File {i + 1}/{len(svc_files)}: {file_name}: {str(e)}")
             failed_files.append((file_name, str(e)))
+
     
     # Log summary
     end_time = time.time()
