@@ -274,9 +274,9 @@ def process_svc_folder_parallel(input_folder, output_folder, parameters, num_pro
 
 # Parameters
 timegan_params = {
-    'hidden_dim': 24,
+    'hidden_dim': 64,
     'num_layers': 3,
-    'iterations': 100,
+    'iterations': 150,
     'batch_size': 1024,
     'module': 'gru'
 }

@@ -139,6 +139,7 @@ def timegan(ori_data, parameters):
         num_batches = no // batch_size
         
         for it in range(iterations):
+            start_time = time.time()  # Record start time
             # Process in mini-batches
             for b in range(num_batches):
                 start_idx = b * batch_size
@@ -154,9 +155,13 @@ def timegan(ori_data, parameters):
                     feed_dict={X: X_mb, Z: Z_mb, T: T_mb}
                 )
             
+            # Record the time for this iteration
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            
             # Print progress less frequently
-            if it % 10 == 0:
-                print(f"Iteration {it}/{iterations}: Embedder loss = {e_loss_val}")
+            if it % 20 == 0:
+                print(f"Iteration {it}/{iterations}: Embedder loss = {e_loss_val}, Time taken = {elapsed_time:.2f} seconds")
         
         # Generate synthetic data
         synthetic_data = sess.run(X_tilde, feed_dict={X: ori_data, T: [seq_len] * no})
@@ -169,7 +174,7 @@ def timegan(ori_data, parameters):
 
 
 # Function to load and process SVC files
-def load_svc(file_path, fixed_seq_len=8):
+def load_svc(file_path, fixed_seq_len=1):
     """
     Load SVC file with fixed sequence length and efficient batching.
     
@@ -198,7 +203,7 @@ def load_svc(file_path, fixed_seq_len=8):
     return data.reshape(-1, fixed_seq_len, dim)  # Reshape to (batch, fixed_seq_len, dim)
 
 
-def process_single_file(file_name, input_folder, output_folder, parameters, fixed_seq_len=50):
+def process_single_file(file_name, input_folder, output_folder, parameters, fixed_seq_len=1):
     """Process a single SVC file with fixed sequence length."""
     try:
         start_time = time.time()
@@ -300,7 +305,7 @@ def process_svc_folder_parallel(input_folder, output_folder, parameters, num_pro
 timegan_params = {
     'hidden_dim': 16,        # Reduced from 24
     'num_layers': 2,         # Reduced from 3
-    'iterations': 1000,        # Reduced from 100
+    'iterations': 200,        # Reduced from 100
     'batch_size': 32,        # Reduced for better memory usage
     'module': 'gru'
 }
