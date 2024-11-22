@@ -320,3 +320,7 @@
 2024-11-22 23:03:04,593 - INFO - 
 === Processing File 31/417: collection1u00010s00001_hw00006.svc ===
 2024-11-22 23:03:04,593 - INFO - Next file will be: collection1u00010s00001_hw00007.svc
+2024-11-22 23:08:30,815 - INFO - Completed processing File 31/417: collection1u00010s00001_hw00006.svc. Time taken: 326.21 seconds
+2024-11-22 23:08:30,815 - INFO - 
+=== Processing File 32/417: collection1u00010s00001_hw00007.svc ===
+2024-11-22 23:08:30,815 - INFO - Next file will be: collection1u00011s00001_hw00001.svc
