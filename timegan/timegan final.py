@@ -21,14 +21,19 @@ logging.basicConfig(
 
 
 # Define TimeGAN function
-def timegan(ori_data, parameters):
-    """TimeGAN with optimized parameters for faster training."""
-    tf.compat.v1.disable_eager_execution()
+def timegan(ori_data, parameters, sess=None):
+    """
+    TimeGAN with optimized parameters and session management
+    """
+    # Determine if we need to create a new session or use an existing one
+    if sess is None:
+        tf.compat.v1.disable_eager_execution()
+        sess = tf.compat.v1.Session()
     
     # Basic Parameters
     no, seq_len, dim = ori_data.shape
     
-    # Normalize data
+    # Normalization function (keep existing)
     def MinMaxScaler(data):
         min_val = np.min(np.min(data, axis=0), axis=0)
         data = data - min_val
@@ -41,7 +46,7 @@ def timegan(ori_data, parameters):
     
     ori_data, min_val, max_val = MinMaxScaler(ori_data)
     
-    # Optimized Network Parameters
+    # Extract parameters
     hidden_dim = parameters['hidden_dim']
     num_layers = parameters['num_layers']
     iterations = parameters['iterations']
@@ -52,6 +57,7 @@ def timegan(ori_data, parameters):
     gamma = 0.5  # Reduced from 1.0
     z_dim = dim
     # Input placeholders
+    # Input placeholders (keep existing)
     X = tf.compat.v1.placeholder(tf.float32, [None, None, dim], name="myinput_x")
     Z = tf.compat.v1.placeholder(tf.float32, [None, None, dim], name="myinput_z")
     T = tf.compat.v1.placeholder(tf.int32, [None], name="myinput_t")
@@ -133,47 +139,47 @@ def timegan(ori_data, parameters):
 
     e_loss = tf.reduce_mean(tf.keras.losses.MeanSquaredError()(X, X_tilde))
 
-    # Optimizers using tf.keras.optimizers.Adam
+    # Optimizers
     optimizer = tf.compat.v1.train.AdamOptimizer()
-
-    # Training Loop
     train_embedder = optimizer.minimize(e_loss)
 
-    with tf.compat.v1.Session() as sess:
+    # Initialize variables only if not already initialized
+    try:
         sess.run(tf.compat.v1.global_variables_initializer())
+    except:
+        pass
+    
+    # Training Loop
+    num_batches = no // batch_size
+    
+    for it in range(iterations):
+        start_time = time.time()
         
-        # Use mini-batches for faster training
-        num_batches = no // batch_size
-        
-        for it in range(iterations):
-            start_time = time.time()  # Record start time
-            # Process in mini-batches
-            for b in range(num_batches):
-                start_idx = b * batch_size
-                end_idx = start_idx + batch_size
-                
-                X_mb = ori_data[start_idx:end_idx]
-                Z_mb = np.random.uniform(0, 1, [batch_size, seq_len, dim])
-                T_mb = [seq_len] * batch_size
-                
-                # Train embedder
-                _, e_loss_val = sess.run(
-                    [train_embedder, e_loss],
-                    feed_dict={X: X_mb, Z: Z_mb, T: T_mb}
-                )
+        # Process in mini-batches
+        for b in range(num_batches):
+            start_idx = b * batch_size
+            end_idx = start_idx + batch_size
             
-            # Record the time for this iteration
+            X_mb = ori_data[start_idx:end_idx]
+            Z_mb = np.random.uniform(0, 1, [batch_size, seq_len, dim])
+            T_mb = [seq_len] * batch_size
+            
+            # Train embedder
+            _, e_loss_val = sess.run(
+                [train_embedder, e_loss],
+                feed_dict={X: X_mb, Z: Z_mb, T: T_mb}
+            )
+        
+        # Print progress less frequently
+        if it % 50 == 0:
             end_time = time.time()
             elapsed_time = end_time - start_time
-            
-            # Print progress less frequently
-            if it % 50 == 0:
-                print(f"Iteration {it}/{iterations}: Embedder loss = {e_loss_val}, Time taken = {elapsed_time:.2f} seconds")
-        
-        # Generate synthetic data
-        synthetic_data = sess.run(X_tilde, feed_dict={X: ori_data, T: [seq_len] * no})
+            print(f"Iteration {it}/{iterations}: Embedder loss = {e_loss_val}, Time taken = {elapsed_time:.2f} seconds")
     
-    # Reverse normalization and round to integer format
+    # Generate synthetic data
+    synthetic_data = sess.run(X_tilde, feed_dict={X: ori_data, T: [seq_len] * no})
+    
+    # Reverse normalization
     synthetic_data = reverse_minmax_scaling(synthetic_data, min_val, max_val)
     synthetic_data = np.round(synthetic_data).astype(int)
     
@@ -209,12 +215,13 @@ def load_svc(file_path, fixed_seq_len=64):
     return data.reshape(-1, fixed_seq_len, dim)  # Reshape to (batch, fixed_seq_len, dim)
 
 def process_svc_folder(input_folder, output_folder, parameters):
-    """Process SVC files sequentially."""
+    """
+    Process SVC files with optimized session management
+    """
     start_time = time.time()
     
-    # Create output folder if it doesn't exist
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    # Create output folder
+    os.makedirs(output_folder, exist_ok=True)
     
     # Get list of SVC files
     svc_files = [f for f in os.listdir(input_folder) if f.endswith('.svc')]
@@ -225,51 +232,45 @@ def process_svc_folder(input_folder, output_folder, parameters):
     
     logging.info(f"Starting sequential processing of {len(svc_files)} files")
     
-    successful_files = []
-    failed_files = []
-    total_processing_time = 0
-    
-    # Process each file sequentially
-    for i, file_name in enumerate(svc_files):
-        try:
-            # Indicate which file is being processed
-            logging.info(f"\n=== Processing File {i + 1}/{len(svc_files)}: {file_name} ===")
-            
-            file_start_time = time.time()
-            file_path = os.path.join(input_folder, file_name)
-            
-            # Log next file if there is one
-            if i < len(svc_files) - 1:
-                logging.info(f"Next file will be: {svc_files[i + 1]}")
-            else:
-                logging.info("This is the last file.")
-            
-            # Load and process the data
-            ori_data = load_svc(file_path, fixed_seq_len=32)
-            
-            # Generate synthetic data
-            synthetic_data = timegan(ori_data, parameters)
-            
-            # Save synthetic data
-            output_path = os.path.join(output_folder, f"synthetic_{file_name}")
-            with open(output_path, 'w') as f:
-                # Directly write the data without sequence length
-                for row in synthetic_data.reshape(-1, synthetic_data.shape[-1]):
-                    f.write(" ".join(map(str, row)) + "\n")
-            
-            file_end_time = time.time()
-            processing_time = file_end_time - file_start_time
-            total_processing_time += processing_time
-            
-            successful_files.append(file_name)
-            logging.info(f"Completed processing File {i + 1}/{len(svc_files)}: {file_name}. Time taken: {processing_time:.2f} seconds")
+    # Create a single TensorFlow session to reuse across files
+    tf.compat.v1.disable_eager_execution()
+    with tf.compat.v1.Session() as sess:
+        successful_files = []
+        failed_files = []
+        total_processing_time = 0
         
-        except Exception as e:
-            logging.error(f"Error processing File {i + 1}/{len(svc_files)}: {file_name}: {str(e)}")
-            failed_files.append((file_name, str(e)))
-
+        # Process each file sequentially
+        for i, file_name in enumerate(svc_files):
+            try:
+                logging.info(f"\n=== Processing File {i + 1}/{len(svc_files)}: {file_name} ===")
+                
+                file_start_time = time.time()
+                file_path = os.path.join(input_folder, file_name)
+                
+                # Load and process the data
+                ori_data = load_svc(file_path, fixed_seq_len=4)
+                
+                # Generate synthetic data using the same session
+                synthetic_data = timegan(ori_data, parameters, sess)
+                
+                # Save synthetic data
+                output_path = os.path.join(output_folder, f"synthetic_{file_name}")
+                with open(output_path, 'w') as f:
+                    for row in synthetic_data.reshape(-1, synthetic_data.shape[-1]):
+                        f.write(" ".join(map(str, row)) + "\n")
+                
+                file_end_time = time.time()
+                processing_time = file_end_time - file_start_time
+                total_processing_time += processing_time
+                
+                successful_files.append(file_name)
+                logging.info(f"Completed processing File {i + 1}/{len(svc_files)}: {file_name}. Time taken: {processing_time:.2f} seconds")
+            
+            except Exception as e:
+                logging.error(f"Error processing File {i + 1}/{len(svc_files)}: {file_name}: {str(e)}")
+                failed_files.append((file_name, str(e)))
     
-    # Log summary
+    # Log summary (keep existing logging)
     end_time = time.time()
     total_time = end_time - start_time
     
@@ -287,7 +288,7 @@ def process_svc_folder(input_folder, output_folder, parameters):
 
 # Parameters
 timegan_params = {
-    'hidden_dim': 128,
+    'hidden_dim': 28,
     'num_layers': 2,
     'iterations': 100,
     'batch_size': 32,
@@ -295,7 +296,7 @@ timegan_params = {
 }
 
 if __name__ == '__main__':
-    input_folder = "./timegan/train"
+    input_folder = "./timegan/try"
     output_folder = "./timegan/output"
     
     process_svc_folder(input_folder, output_folder, timegan_params)
