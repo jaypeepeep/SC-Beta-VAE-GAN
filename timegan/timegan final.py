@@ -167,7 +167,7 @@ def timegan(ori_data, parameters):
             elapsed_time = end_time - start_time
             
             # Print progress less frequently
-            if it % 20 == 0:
+            if it % 50 == 0:
                 print(f"Iteration {it}/{iterations}: Embedder loss = {e_loss_val}, Time taken = {elapsed_time:.2f} seconds")
         
         # Generate synthetic data
