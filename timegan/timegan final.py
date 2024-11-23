@@ -248,7 +248,7 @@ def process_svc_folder(input_folder, output_folder, parameters):
                 file_path = os.path.join(input_folder, file_name)
                 
                 # Load and process the data
-                ori_data = load_svc(file_path, fixed_seq_len=16)
+                ori_data = load_svc(file_path, fixed_seq_len=4)
                 
                 # Generate synthetic data using the same session
                 synthetic_data = timegan(ori_data, parameters, sess)
@@ -296,7 +296,7 @@ timegan_params = {
 }
 
 if __name__ == '__main__':
-    input_folder = "./timegan/train"
+    input_folder = "./timegan/try"
     output_folder = "./timegan/output"
     
     process_svc_folder(input_folder, output_folder, timegan_params)
