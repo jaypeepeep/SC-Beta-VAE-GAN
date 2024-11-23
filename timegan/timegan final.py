@@ -248,7 +248,7 @@ def process_svc_folder(input_folder, output_folder, parameters):
                 file_path = os.path.join(input_folder, file_name)
                 
                 # Load and process the data
-                ori_data = load_svc(file_path, fixed_seq_len=4)
+                ori_data = load_svc(file_path, fixed_seq_len=32)
                 
                 # Generate synthetic data using the same session
                 synthetic_data = timegan(ori_data, parameters, sess)
@@ -288,7 +288,7 @@ def process_svc_folder(input_folder, output_folder, parameters):
 
 # Parameters
 timegan_params = {
-    'hidden_dim': 28,
+    'hidden_dim': 32,
     'num_layers': 2,
     'iterations': 100,
     'batch_size': 32,

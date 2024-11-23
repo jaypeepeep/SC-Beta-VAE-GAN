@@ -2338,3 +2338,66 @@ Processing Summary:
 2024-11-23 12:34:59,977 - INFO - Failed to process: 0
 2024-11-23 12:34:59,977 - INFO - Total time taken: 231.68 seconds
 2024-11-23 12:34:59,977 - INFO - Total processing time: 215.46 seconds
+2024-11-23 13:23:54,868 - INFO - Starting sequential processing of 9 files
+2024-11-23 13:23:56,656 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 13:23:56,696 - INFO - 
+=== Processing File 1/9: collection1u00023s00001_hw00001.svc ===
+2024-11-23 13:23:56,713 - ERROR - Error processing File 1/9: collection1u00023s00001_hw00001.svc: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (1797,) + inhomogeneous part.
+2024-11-23 13:23:56,713 - INFO - 
+=== Processing File 2/9: collection1u00023s00001_hw00005.svc ===
+2024-11-23 13:24:01,310 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:143: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+2024-11-23 13:24:14,425 - INFO - Completed processing File 2/9: collection1u00023s00001_hw00005.svc. Time taken: 17.71 seconds
+2024-11-23 13:24:14,425 - INFO - 
+=== Processing File 3/9: collection1u00035s00001_hw00004.svc ===
+2024-11-23 13:24:29,796 - INFO - Completed processing File 3/9: collection1u00035s00001_hw00004.svc. Time taken: 15.37 seconds
+2024-11-23 13:24:29,797 - INFO - 
+=== Processing File 4/9: collection1u00035s00001_hw00005.svc ===
+2024-11-23 13:24:47,378 - INFO - Completed processing File 4/9: collection1u00035s00001_hw00005.svc. Time taken: 17.58 seconds
+2024-11-23 13:24:47,378 - INFO - 
+=== Processing File 5/9: collection1u00045s00001_hw00004.svc ===
+2024-11-23 13:25:05,751 - INFO - Completed processing File 5/9: collection1u00045s00001_hw00004.svc. Time taken: 18.37 seconds
+2024-11-23 13:25:05,752 - INFO - 
+=== Processing File 6/9: collection1u00045s00001_hw00005.svc ===
+2024-11-23 13:25:26,672 - INFO - Completed processing File 6/9: collection1u00045s00001_hw00005.svc. Time taken: 20.92 seconds
+2024-11-23 13:25:26,673 - INFO - 
+=== Processing File 7/9: u00033s00001_hw00004.svc ===
+2024-11-23 13:25:41,562 - ERROR - Error processing File 7/9: u00033s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 13:25:41,563 - INFO - 
+=== Processing File 8/9: u00071s00001_hw00005.svc ===
+2024-11-23 13:26:08,211 - INFO - Completed processing File 8/9: u00071s00001_hw00005.svc. Time taken: 26.65 seconds
+2024-11-23 13:26:08,211 - INFO - 
+=== Processing File 9/9: u00077s00001_hw00005.svc ===
+2024-11-23 13:26:40,516 - INFO - Completed processing File 9/9: u00077s00001_hw00005.svc. Time taken: 32.30 seconds
+2024-11-23 13:26:41,879 - INFO - 
+Processing Summary:
+2024-11-23 13:26:41,880 - INFO - Total files processed: 9
+2024-11-23 13:26:41,880 - INFO - Successfully processed: 7
+2024-11-23 13:26:41,880 - INFO - Failed to process: 2
+2024-11-23 13:26:41,880 - INFO - Total time taken: 167.01 seconds
+2024-11-23 13:26:41,881 - INFO - Total processing time: 148.91 seconds
+2024-11-23 13:26:41,881 - ERROR - 
+Failed files:
+2024-11-23 13:26:41,881 - ERROR - collection1u00023s00001_hw00001.svc: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (1797,) + inhomogeneous part.
+2024-11-23 13:26:41,881 - ERROR - u00033s00001_hw00004.svc: cannot access local variable 'e_loss_val' where it is not associated with a value
+2024-11-23 13:30:36,122 - INFO - Starting sequential processing of 2 files
+2024-11-23 13:30:37,765 - WARNING - From c:\Github\Thesis-Project\timegan\timegan final.py:236: The name tf.disable_eager_execution is deprecated. Please use tf.compat.v1.disable_eager_execution instead.
+
+2024-11-23 13:30:37,776 - INFO - 
+=== Processing File 1/2: collection1u00023s00001_hw00001.svc ===
+2024-11-23 13:30:37,791 - ERROR - Error processing File 1/2: collection1u00023s00001_hw00001.svc: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (1797,) + inhomogeneous part.
+2024-11-23 13:30:37,792 - INFO - 
+=== Processing File 2/2: u00033s00001_hw00004.svc ===
+2024-11-23 13:30:37,793 - ERROR - Error processing File 2/2: u00033s00001_hw00004.svc: File ./timegan/try\u00033s00001_hw00004.svc has fewer rows (11) than fixed_seq_len (32)
+2024-11-23 13:30:37,793 - INFO - 
+Processing Summary:
+2024-11-23 13:30:37,793 - INFO - Total files processed: 2
+2024-11-23 13:30:37,794 - INFO - Successfully processed: 0
+2024-11-23 13:30:37,794 - INFO - Failed to process: 2
+2024-11-23 13:30:37,794 - INFO - Total time taken: 1.67 seconds
+2024-11-23 13:30:37,794 - INFO - Total processing time: 0.00 seconds
+2024-11-23 13:30:37,794 - ERROR - 
+Failed files:
+2024-11-23 13:30:37,794 - ERROR - collection1u00023s00001_hw00001.svc: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (1797,) + inhomogeneous part.
+2024-11-23 13:30:37,795 - ERROR - u00033s00001_hw00004.svc: File ./timegan/try\u00033s00001_hw00004.svc has fewer rows (11) than fixed_seq_len (32)
