@@ -4,8 +4,7 @@ from PyQt5.QtCore import pyqtSlot, QFile, QTextStream
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtGui import QIcon
 from layout import Ui_MainWindow
-from components.widget.full_menu_widget import FullMenuWidget
-from components.widget.icon_only_widget import IconOnlyWidget
+
 
 
 class MainWindow(QMainWindow):
