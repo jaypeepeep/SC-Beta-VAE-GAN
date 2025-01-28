@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import shutil
-import tempfile
 import zipfile
 import numpy as np
 import pandas as pd
@@ -33,7 +32,6 @@ from model.scbetavaegan_pentab import (
     convert_and_store_dataframes,
     nested_augmentation,
     save_model,
-    download_augmented_data_with_modified_timestamp,
     VAE,
     LSTMDiscriminator,
     train_models,
@@ -68,7 +66,7 @@ class ModelTrainingThread(QThread):
         self.uploads_dir = uploads_dir
         self.selected_file = selected_file
         self.num_augmented_files = (
-            num_augmented_files  # This is passed to nested_augmentation
+            num_augmented_files
         )
         self.epochs = epochs
         self.logger = logger
@@ -178,22 +176,12 @@ class ModelTrainingThread(QThread):
             self.finished.emit()
             return
 
-        # Step 7: Save augmented data as .svc files
-        # download_augmented_data_with_modified_timestamp(
-        #    augmented_datasets,
-         #   scalers,
-          #  original_data_frames,
-           # input_filenames,
-            #self.synthetic_data_dir,
-        #)
-        #self.log(f"Synthetic data saved in {self.synthetic_data_dir}")
-
-        # Step 8: Zip the synthetic data files
-        base_name = os.path.splitext(self.selected_file)[0]  # Get the base name of the selected file
-        matching_files = self.get_matching_synthetic_files(base_name)  # Find matching synthetic files
+        # Step 7: Zip the synthetic data files
+        base_name = os.path.splitext(self.selected_file)[0]
+        matching_files = self.get_matching_synthetic_files(base_name)
 
         if matching_files:
-            zip_file_path = self.create_zip(matching_files)  # Create a zip from the matching files
+            zip_file_path = self.create_zip(matching_files)
             self.log(f"Zipped synthetic data saved at {zip_file_path}")
             self.zip_ready.emit(zip_file_path)
         else:
@@ -250,13 +238,11 @@ class ModelTrainingThread(QThread):
                 print(f"Processing original dataset {i + 1} and its corresponding augmented data.")
                 original_array = original_df[['x', 'y', 'timestamp', 'pen_status']].values
 
-                # Ensure augmented is a NumPy array and check its shape
                 if isinstance(augmented, pd.DataFrame):
                     augmented = augmented.values
                 elif not isinstance(augmented, np.ndarray):
                     raise ValueError(f"Unexpected data type for augmented data: {type(augmented)}")
 
-                # Ensure augmented has at least 4 columns
                 if augmented.shape[1] < 4:
                     raise ValueError(f"Augmented data has fewer than 4 columns: {augmented.shape}")
 
@@ -333,10 +319,10 @@ class ModelTrainingThread(QThread):
             """Create and compile an LSTM model."""
             model = tf.keras.Sequential()
             model.add(tf.keras.layers.LSTM(50, return_sequences=True, input_shape=input_shape))
-            model.add(tf.keras.layers.Dropout(0.2))  # Adding dropout to introduce randomness
+            model.add(tf.keras.layers.Dropout(0.2))
             model.add(tf.keras.layers.LSTM(50))
             model.add(tf.keras.layers.Dropout(0.2))
-            model.add(tf.keras.layers.Dense(2))  # Predict x and y
+            model.add(tf.keras.layers.Dense(2))
             model.compile(optimizer='adam', loss='mse')
             return model
         
@@ -397,7 +383,6 @@ class ModelTrainingThread(QThread):
             self.log(f"Error calculating NRMSE: {e}", level="ERROR")
             metrics["Average NRMSE"] = "Error"
         self.metrics_ready.emit(metrics)
-        # Notify completion
         self.finished.emit()
 
     def get_matching_synthetic_files(self, base_name):
@@ -411,7 +396,7 @@ class ModelTrainingThread(QThread):
         zip_file_path = os.path.join(self.synthetic_data_dir + ".zip")
         with zipfile.ZipFile(zip_file_path, "w") as zipf:
             for file in files:
-                zipf.write(file, os.path.basename(file))  # Zip each file using its base name
+                zipf.write(file, os.path.basename(file))
         return zip_file_path
 
     def log(self, message, level="INFO"):
@@ -429,7 +414,7 @@ class Handwriting(QtWidgets.QWidget):
         super(Handwriting, self).__init__(parent)
         self.drawing_done = False
         self.flask_process = None
-        self.file_list = []  # List to store uploaded .svc files
+        self.file_list = []
         self.uploads_dir = os.path.abspath("uploads")
         self.threads = []
         self.setupUi()
@@ -463,10 +448,8 @@ class Handwriting(QtWidgets.QWidget):
 
         # Check if there is existing handwriting data (i.e., file_list is not empty)
         if self.file_list:
-            # If handwriting data exists, skip the drawing page and show the embedded browser
             self.show_embedded_browser()
         else:
-            # If no handwriting data, show the drawing page with the button
             self.show_drawing_page()
 
     def clear_layout(self):
@@ -500,19 +483,16 @@ class Handwriting(QtWidgets.QWidget):
         top_layout.setAlignment(QtCore.Qt.AlignCenter)
         top_layout.setContentsMargins(0, 20, 0, 20)
 
-        # Add text
         top_text = QtWidgets.QLabel("Draw and Handwrite", self)
         top_text.setAlignment(QtCore.Qt.AlignCenter)
         top_text.setStyleSheet("font-size: 30px; font-weight: bold; color: #033; ")
         top_layout.addWidget(top_text)
         self.layout.addLayout(top_layout)
 
-        # Create and add the handwriting button
         drawButton = handwritingButton(self)
         drawButton.setContentsMargins(50, 20, 50, 50)
         self.layout.addWidget(drawButton)
 
-        # Connect the button's click events
         drawButton.clicked.connect(self.show_confirmation_dialog)
 
     def show_confirmation_dialog(self):
@@ -539,9 +519,7 @@ class Handwriting(QtWidgets.QWidget):
 
         # Run the Flask app as a subprocess
         self.flask_process = subprocess.Popen(["python", flask_app_path])
-
-        # Display the embedded browser after a short delay to ensure Flask is running
-        QtCore.QTimer.singleShot(5000, self.show_embedded_browser)
+        QtCore.QTimer.singleShot(3000, self.show_embedded_browser)
 
     def show_embedded_browser(self):
         """Show the Flask app inside the Handwriting page using QWebEngineView."""
@@ -552,15 +530,13 @@ class Handwriting(QtWidgets.QWidget):
         self.webview.setUrl(QtCore.QUrl("http://127.0.0.1:5000"))
         self.layout.addWidget(self.webview)
 
-        # Ensure the webview resizes responsively
         self.webview.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
         )
 
-        # Poll Flask to check if drawing is done and file is uploaded
         QtCore.QTimer.singleShot(
             5000, self.check_drawing_done
-        )  # Adjust the delay if necessary
+        ) 
 
     def check_drawing_done(self):
         """Periodically check if the drawing is done by querying Flask."""
@@ -569,22 +545,19 @@ class Handwriting(QtWidgets.QWidget):
             if response.status_code == 200:
                 data = response.json()
                 filename = data.get("filename")
-                if filename.endswith(".svc"):  # Ensure file is an .svc file
+                if filename.endswith(".svc"): 
                     timestamp = time.strftime("%Y%m%d_%H%M%S")
                     self.folder_name = f"HandwritingData_{timestamp}"
                     self.handwriting_data_dir = os.path.join(
                         self.uploads_dir, self.folder_name
                     )
                     os.makedirs(self.handwriting_data_dir, exist_ok=True)
-                    # Define the source and destination paths
                     source_file = os.path.join(self.uploads_dir, filename)
                     dest_file = os.path.join(self.handwriting_data_dir, filename)
-
-                    # Copy the file to the handwriting directory
                     shutil.copy(source_file, dest_file)
                     self.show_done_page(filename)
                     self.svc_preview.set_uploaded_files(self.file_list)
-                    if filename not in self.file_list:  # Avoid duplicate
+                    if filename not in self.file_list:
                         self.file_list.append(filename)
                         print("File list:", self.file_list)
                         if hasattr(self, "file_preview_widget"):
@@ -596,9 +569,10 @@ class Handwriting(QtWidgets.QWidget):
         except requests.ConnectionError:
             QtCore.QTimer.singleShot(5000, self.check_drawing_done)
 
-    def show_done_page(self, filename):
+    def show_done_page(self, filename, is_file_removal=False):
         """Show the page after the drawing is completed."""
-        self.file_list.append(filename)  # Append the new filename to the list
+        if not is_file_removal and filename not in self.file_list:
+            self.file_list.append(filename)
         self.clear_layout()
 
         # Create a scroll area to wrap the collapsible content
@@ -628,12 +602,9 @@ class Handwriting(QtWidgets.QWidget):
             file_container.remove_file_signal.connect(self.remove_file)
             sub_layout.addWidget(file_container)
 
-        # Set the scrollable widget
         sub_area.setWidget(sub_container)
 
         # Add the scroll area to the collapsible widget
-        ##
-        # Add the scroll area to the main layout
         scroll_area.setWidget(scroll_widget)
         self.layout.addWidget(scroll_area)
 
@@ -642,11 +613,13 @@ class Handwriting(QtWidgets.QWidget):
         scroll_layout.addWidget(self.collapsible_widget)
         self.collapsible_widget.toggle_container(True)
 
-        # Add a file container widget to the collapsible widget for each drawing added
+        added_files = set()
         for file in self.file_list:
-            file_container = FileContainerWidget(file, self)
-            file_container.remove_file_signal.connect(self.remove_file)
-            self.collapsible_widget.add_widget(file_container)
+            if file not in added_files:
+                file_container = FileContainerWidget(file, self)
+                file_container.remove_file_signal.connect(self.remove_file)
+                self.collapsible_widget.add_widget(file_container)
+                added_files.add(file)
 
         # Add the dropdown (QComboBox) for selecting a file to plot
         self.file_dropdown = QtWidgets.QComboBox(self)
@@ -825,24 +798,21 @@ class Handwriting(QtWidgets.QWidget):
     def remove_file(self, file_path, file_name):
         """Handle the removal of a file from the file list."""
         if file_path in self.file_list:
-            self.file_list.remove(file_path)  # Update the list by removing the file
+            self.file_list.remove(file_path)
             self.process_log_widget.append_log(f"Removed file: {file_name}")
-
-            # Refresh dropdown or other components referencing file_list
-            self.refresh_file_dropdown()
 
             # If no files left, reset to the initial drawing page
             if not self.file_list:
                 self.reset_state()
                 return
             
-            # If only one file remains, reset and show done page for that single file
+            # If there's only one file left, properly reset and show done page
             if len(self.file_list) == 1:
                 self.clear_layout()
-                self.show_done_page(self.file_list[0])
+                self.show_done_page(self.file_list[0], is_file_removal=True)
                 return
 
-            # Explicitly remove the widget from the collapsible widget layout
+            # For two or more remaining files, just update the UI
             layout = self.collapsible_widget.collapsible_layout
             for i in reversed(range(layout.count())):
                 widget = layout.itemAt(i).widget()
@@ -852,13 +822,25 @@ class Handwriting(QtWidgets.QWidget):
                     widget.deleteLater()
                     break
 
+            # Update the file dropdown
+            current_index = self.file_dropdown.currentIndex()
+            self.file_dropdown.clear()
+            self.file_dropdown.addItems(self.file_list)
+            if current_index >= len(self.file_list):
+                current_index = len(self.file_list) - 1
+            self.file_dropdown.setCurrentIndex(current_index)
+
+            # Update the file preview widget
+            if hasattr(self, "file_preview_widget"):
+                self.file_preview_widget.set_uploaded_files(self.file_list)
+
     def update_file_display(self):
         """Update the display of files in the UI after removal."""
-        self.clear_layout()  # Clear current layout
+        self.clear_layout()
         if self.file_list:
-            self.show_done_page(self.file_list[-1])  # Show the last file
+            self.show_done_page(self.file_list[-1])
         else:
-            self.reset_state()  # Reset if no files remain
+            self.reset_state() 
 
     def on_generate_data(self):
         """Start processing the selected .svc files."""
@@ -899,12 +881,12 @@ class Handwriting(QtWidgets.QWidget):
                 epochs,
                 logger=self.logger,
             )
-            self.threads.append(thread)  # Keep track of threads
+            self.threads.append(thread)
             thread.log_signal.connect(self.process_log_widget.append_log)
             thread.zip_ready.connect(self.on_zip_ready)
             thread.metrics_ready.connect(self.on_metrics_ready)
             thread.finished.connect(self.on_thread_finished)
-            thread.original_files_ready.connect(self.update_original_absolute_file_display)  # Connect the new signal
+            thread.original_files_ready.connect(self.update_original_absolute_file_display)
             thread.augmented_files_ready.connect(self.update_output_file_display)
             thread.start()
 
@@ -919,8 +901,8 @@ class Handwriting(QtWidgets.QWidget):
         # Stop all running threads
         for thread in self.threads:
             if thread.isRunning():
-                thread.quit()  # Stop the thread
-                thread.wait()  # Wait until it's fully terminated
+                thread.quit()
+                thread.wait() 
 
         event.accept()
 
@@ -931,9 +913,9 @@ class Handwriting(QtWidgets.QWidget):
         # Check if all threads are done before re-enabling the button
         for thread in self.threads:
             if thread.isFinished():
-                self.threads.remove(thread)  # Remove finished threads
+                self.threads.remove(thread) 
 
-        if not self.threads:  # If all threads are finished
+        if not self.threads:
             self.process_log_widget.append_log("All files have finished processing.")
             self.generate_data_button.setEnabled(True)
 
@@ -953,7 +935,6 @@ class Handwriting(QtWidgets.QWidget):
 
     def on_metrics_ready(self, metrics):
         """Update the results_text widget with the calculated metrics."""
-        # Start building the formatted text for results
         metrics_text = ""
 
         # Normalized Root Mean Square Error (NRMSE)
@@ -971,13 +952,12 @@ class Handwriting(QtWidgets.QWidget):
 
         # Post-Hoc Predictive Score (PHPS)
         if "Mean MAPE" in metrics and "Standard Deviation of MAPE" in metrics:
-            mean_mape = metrics["Mean MAPE"] * 100  # Convert to percentage
-            std_mape = metrics["Standard Deviation of MAPE"] * 100  # Convert to percentage
+            mean_mape = metrics["Mean MAPE"] * 100 
+            std_mape = metrics["Standard Deviation of MAPE"] * 100
             metrics_text += "Post-Hoc Predictive Score (PHPS)\n"
             metrics_text += f"\tMean MAPE: {mean_mape:.2f}%\n"
             metrics_text += f"\tStandard Deviation of MAPE: {std_mape:.2f}%\n"
 
-        # Update the text in the results preview widget
         self.svc_preview.results_text.setPlainText(metrics_text)
 
 
@@ -1035,7 +1015,7 @@ class Handwriting(QtWidgets.QWidget):
         # Ensure paths are correctly set and the files exist
         for index, file_path in enumerate(augmented_files):
             if os.path.exists(file_path):
-                if index == 0:  # Display the first file
+                if index == 0:
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
                     self.svc_preview.display_handwriting_contents(file_path, 1)
@@ -1050,7 +1030,7 @@ class Handwriting(QtWidgets.QWidget):
         """Update the display of original absolute files based on newly generated augmented files."""
         for index, file_path in enumerate(original_absolute_files):
             if os.path.exists(file_path):
-                if index == 0:  # This means it's the first file
+                if index == 0:
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
                     self.svc_preview.display_handwriting_contents(file_path, 0)
@@ -1128,7 +1108,7 @@ class Handwriting(QtWidgets.QWidget):
 
     def clear_all_drawings(self):
         """Clear all added files and reset the state."""
-        self.file_list.clear()  # Empty the file list
+        self.file_list.clear()
 
         # Stop all running threads when clearing all drawings
         for thread in self.threads:
@@ -1161,6 +1141,6 @@ class Handwriting(QtWidgets.QWidget):
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = Handwriting()
-    window.resize(800, 600)  # Adjust window size for the embedded browser
+    window.resize(800, 600)
     window.show()
     sys.exit(app.exec_())
