@@ -325,15 +325,18 @@ class SVCpreview(QtWidgets.QWidget):
             )
             ax.set_xlabel("y")
             ax.set_ylabel("x")
-            ax.invert_yaxis()
-            # ax.invert_xaxis()  # Flip horizontally
+
+            # Flip upward by inverting the x-axis
+            ax.invert_xaxis()
 
             ax.set_aspect("equal")
             ax.legend()
 
-            # Reverse axes limits to reflect the flip
-            ax.set_xlim(ax.get_xlim()[::-1])
-            ax.set_ylim(ax.get_ylim()[::-1])
+            # Reverse axes limits only if necessary
+            if ax.get_xlim()[0] < ax.get_xlim()[1]:  # Check if x-axis is not reversed
+                ax.set_xlim(ax.get_xlim()[::-1])
+            if ax.get_ylim()[0] > ax.get_ylim()[1]:  # Ensure y-axis is in normal order
+                ax.set_ylim(ax.get_ylim()[::-1])
 
             canvas = FigureCanvas(fig)
             if preview_index == 0:
@@ -675,7 +678,7 @@ class SVCpreview(QtWidgets.QWidget):
                 first_file = self.uploaded_files[0]
                 self.display_file_contents(first_file, 0)
                 self.display_graph_contents(first_file, 0)
-                self.display_handwriting_contents(first_file, 0)
+                self.display_emothaw_contents(first_file, 0)
                 self.display_table_contents(first_file, 0)
             except Exception as e:
                 print(f"Error displaying the first uploaded file: {e}")
@@ -782,7 +785,7 @@ class SVCpreview(QtWidgets.QWidget):
             )
             self.display_file_contents(full_path, 0)
             self.display_graph_contents(full_path, 0)
-            self.display_handwriting_contents(full_path, 0)
+            self.display_emothaw_contents(full_path, 0)
             self.display_table_contents(full_path, 0)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph1(full_path))
@@ -902,7 +905,7 @@ class SVCpreview(QtWidgets.QWidget):
             )
             self.display_file_contents(full_path, 1)
             self.display_graph_contents(full_path, 1)
-            self.display_handwriting_contents(full_path, 1)
+            self.display_emothaw_contents(full_path, 1)
             self.display_table_contents(full_path, 1)
 
             QtCore.QTimer.singleShot(100, lambda: self.render_graph(full_path))
