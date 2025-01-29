@@ -72,7 +72,7 @@ def upload_and_process_files(directory, num_files_to_use=None):
     return data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames  # Return original data
 
 
-def save_original_data(data_frames, input_filenames, output_folder='original_absolute'):
+def save_original_data(data_frames, input_filenames, output_folder="files/original_absolute_handwriting"):
     original_absolute_files = []
     os.makedirs(output_folder, exist_ok=True)
     for df, filename in zip(data_frames, input_filenames):
@@ -130,7 +130,7 @@ def fill_gaps_and_interpolate(data_frames):
 
 def convert_and_store_dataframes(input_filenames, data_frames):
     """Convert numeric columns to integers and store processed DataFrames."""
-    imputed_folder = 'imputed'
+    imputed_folder = 'files/imputed_handwriting'
     os.makedirs(imputed_folder, exist_ok=True)
     processed_dataframes = []
 
@@ -501,7 +501,7 @@ def get_unique_filename(directory, filename):
     return filename
 
 # 9. Download augmented data function
-def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory1='augmented_data', directory2='augmented_data_nested'):
+def download_augmented_data_with_modified_timestamp(augmented_datasets, scalers, original_data_frames, original_filenames, directory1='files/augmented_data_handwriting', directory2='files/augmented_data_nested_handwriting'):
     global all_augmented_data, all_augmented_filepath  # Access the global list
 
     if not os.path.exists(directory1):
@@ -600,7 +600,7 @@ def nested_augmentation(num_augmentations, num_files_to_use, data_frames, scaler
         
         if iteration > 0:
             # Update the data for subsequent iterations
-            directory = 'augmented_data_nested'
+            directory = 'files/augmented_data_nested_handwriting'
             data_frames, processed_data, scalers, avg_data_points, input_filenames, original_data_frames = upload_and_process_files(directory, num_files_to_use)
             print(f"processed_data after processing in iteration {iteration + 1}: type={type(processed_data)}, value={processed_data}")
         print(f"Calling generate_augmented_datasets with processed_data shape: {[arr.shape for arr in processed_data]}")
@@ -618,8 +618,8 @@ def nested_augmentation(num_augmentations, num_files_to_use, data_frames, scaler
         print(f"Completed augmentation iteration {iteration + 1}")
     
     # Clear the augmented_data_nested directory after the last iteration
-    if os.path.exists('augmented_data_nested'):
-        shutil.rmtree('augmented_data_nested')
+    if os.path.exists('files/augmented_data_nested_handwriting'):
+        shutil.rmtree('files/augmented_data_nested_handwriting')
         print("Cleared augmented_data_nested directory after the final iteration.")
     
     print("Nested augmentation process completed.")

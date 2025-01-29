@@ -76,7 +76,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
         """Read the contents of the file and display it in the text preview."""
         try:
             # Construct the uploads folder path and the full file path
-            uploads_folder = os.path.join(os.path.dirname(__file__), "../../uploads")
+            uploads_folder = os.path.join(os.path.dirname(__file__), "../../files/uploads")
             file_path = os.path.join(uploads_folder, filename)
 
             # Read the file and set its content to the text preview
