@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton
-from PyQt5.QtCore import pyqtSlot, QFile, QTextStream
+from PyQt5.QtCore import QFile, QTextStream
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtGui import QIcon
 from layout import Ui_MainWindow

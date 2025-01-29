@@ -40,9 +40,9 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
-                padding: 8px 16px;
+                padding: 10px 20px;
                 border-radius: 5px; 
                 border: none;
             }
@@ -73,7 +73,7 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #033;
                 padding: 8px;
                 color: white;            
-                font-size: 13px;
+                font-size: 10px;
                 font-weight: bold;
                 border: none;
                 height: 50px;
@@ -183,7 +183,7 @@ class ModelWidget(QtWidgets.QWidget):
             icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../icon/arrow_up.png")
             if os.path.exists(icon_path):
                 actions_button.setIcon(QtGui.QIcon(icon_path))
-                actions_button.setIconSize(QtCore.QSize(20, 20))
+                actions_button.setIconSize(QtCore.QSize(10, 10))
             
             actions_button.setFixedSize(30, 30)
             actions_button.setStyleSheet("""
@@ -197,6 +197,7 @@ class ModelWidget(QtWidgets.QWidget):
                 }
             """)
             actions_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+            actions_button.setContentsMargins(0, 0, 0, 0)
             actions_button.clicked.connect(lambda _, f=file_name: self.show_file_options(f))
             
             button_layout.addWidget(actions_button)
@@ -237,6 +238,7 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #033; 
                 border: none;
                 font-weight: bold;
+                padding: 0px;
             }
             QMenu::item { 
                 color: white; 
@@ -316,9 +318,9 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -348,9 +350,9 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;

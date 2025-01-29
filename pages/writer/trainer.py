@@ -1,9 +1,5 @@
-import subprocess
-import requests
 import os
-import sys
 import time
-import shutil
 import zipfile
 import numpy as np
 import pandas as pd
@@ -11,21 +7,9 @@ import tensorflow as tf
 from glob import glob
 import re
 from sklearn.model_selection import KFold
-from sklearn.metrics import mean_squared_error, accuracy_score, mean_absolute_percentage_error
+from sklearn.metrics import  accuracy_score, mean_absolute_percentage_error
 from sklearn.preprocessing import MinMaxScaler
-from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
-from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-from components.button.handwriting_button import handwritingButton
-from components.widget.collapsible_widget import CollapsibleWidget
-from components.widget.file_preview_widget import FilePreviewWidget
-from components.widget.process_log_widget import ProcessLogWidget
-from components.widget.output_widget import OutputWidget
-from components.widget.file_container_widget import FileContainerWidget
-from components.widget.plot_container_widget import PlotContainerWidget
-from components.widget.spin_box_widget import SpinBoxWidget
-from components.widget.result_preview_widget import SVCpreview
+from PyQt5.QtCore import QThread, pyqtSignal
 from model.scbetavaegan_pentab import (
     upload_and_process_files,
     process_dataframes,
@@ -35,8 +19,6 @@ from model.scbetavaegan_pentab import (
     VAE,
     LSTMDiscriminator,
     train_models,
-    calculate_nrmse,
-    post_hoc_discriminative_score,
     ensure_data_compatibility,
     save_original_data,
     fill_gaps_and_interpolate

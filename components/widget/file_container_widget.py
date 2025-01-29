@@ -21,10 +21,12 @@ class FileContainerWidget(QtWidgets.QWidget):
         self.container = QtWidgets.QWidget(self)
         self.container.setStyleSheet("background: #DEDEDE; border-radius: 0;")
         self.container.setContentsMargins(0, 0, 0, 0)
+        self.container.setMinimumHeight(50)  
+        self.container.setMaximumHeight(60)
 
         shadow_effect = QGraphicsDropShadowEffect()
-        shadow_effect.setBlurRadius(8)
-        shadow_effect.setColor(QColor(0, 0, 0, 160))
+        shadow_effect.setBlurRadius(6)
+        shadow_effect.setColor(QColor(0, 0, 0, 100))
         shadow_effect.setOffset(2)
         self.container.setGraphicsEffect(shadow_effect)
 
@@ -35,7 +37,7 @@ class FileContainerWidget(QtWidgets.QWidget):
 
         # Label to display the file name
         self.file_label = QtWidgets.QLabel(self.file_name, self.container)
-        self.file_label.setStyleSheet(" margin-left: 10px; background: #DEDEDE; padding: 5px; color: black; color: #000; font-family: Montserrat; font-size: 14px;")
+        self.file_label.setStyleSheet(" margin-left: 10px; background: #DEDEDE; padding: 5px; color: black; color: #000; font-family: Montserrat; font-size: 13px;")
         self.layout.addWidget(self.file_label)
 
         # Spacer to push buttons to the right
@@ -45,7 +47,7 @@ class FileContainerWidget(QtWidgets.QWidget):
         # Button to remove the file
         self.remove_button = QtWidgets.QPushButton(self.container)
         self.remove_button.setIcon(QtGui.QIcon(self.get_image_path('close.png')))
-        self.remove_button.setIconSize(QtCore.QSize(42, 78))
+        self.remove_button.setIconSize(QtCore.QSize(20,20))
         self.remove_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.remove_button.setStyleSheet(""" 
             QPushButton {
@@ -66,9 +68,9 @@ class FileContainerWidget(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333; 
                 color: white; font-family: 
-                Montserrat; font-size: 14px; 
+                Montserrat; font-size: 10px; 
                 font-weight: 600; 
-                padding: 8px 16px; 
+                padding: 5px 15px; 
                 border-radius: 5px;
                 margin-right: 8px;
             }

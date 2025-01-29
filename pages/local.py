@@ -1,7 +1,5 @@
 import os
-import shutil
 from PyQt5 import QtWidgets, QtGui, QtCore
-
 
 class Local(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -41,7 +39,7 @@ class Local(QtWidgets.QWidget):
             margin-left: 25px;
             color: black;
             font-family: Montserrat; 
-            font-size: 14px;
+            font-size: 13px;
             text-decoration: underline;
         """)
         self.path_label.setAlignment(QtCore.Qt.AlignLeft)
@@ -60,9 +58,9 @@ class Local(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -199,6 +197,7 @@ class Local(QtWidgets.QWidget):
                 background-color: #033; 
                 border: none;
                 font-weight: bold;
+                font-size: 13px;
             }
             QMenu::item { 
                 color: white; 
@@ -297,9 +296,9 @@ class Local(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -359,11 +358,16 @@ class Local(QtWidgets.QWidget):
         message_box.setWindowTitle(title)
         message_box.setText(message)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        
+        layout = message_box.layout()
+        layout.setContentsMargins(20, 20, 20, 20)  
+        layout.setSpacing(10)  
         message_box.setStyleSheet("""
             QMessageBox {
                 font-size: 12px;
                 font-weight: bold;
-                padding: 20px;
+                margin: 32px 32px;
+                
                 font-family: 'Montserrat', sans-serif;
             }
             QPushButton {
@@ -371,9 +375,9 @@ class Local(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -392,7 +396,6 @@ class Local(QtWidgets.QWidget):
         input_dialog.setWindowTitle(title)
         input_dialog.setLabelText(label)
         input_dialog.setTextValue(text)
-
         # Apply custom styles to input dialog
         input_dialog.setStyleSheet("""
             QMessageBox {
@@ -404,9 +407,9 @@ class Local(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 10px 20px;
+                padding: 5px 15px;;
                 border-radius: 5px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
