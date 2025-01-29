@@ -101,28 +101,67 @@ class OutputWidget(QtWidgets.QWidget):
         file_container_layout.addWidget(button_container, alignment=QtCore.Qt.AlignRight)
         layout.addWidget(self.file_container)
 
+
     def handle_done_click(self):
-        reply = QMessageBox.question(
-            self,
-            'Confirmation',
-            "Are you done generating synthetic data?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
-        
-        if reply == QMessageBox.Yes:
-            finish_msg = QMessageBox.information(
-                self,
-                'Finished',
-                "Finished Generating Synthetic Data",
-                QMessageBox.Ok
-            )
+        # Create the confirmation QMessageBox manually
+        confirm_msg = QtWidgets.QMessageBox(self)
+        confirm_msg.setWindowTitle("Confirmation")
+        confirm_msg.setText("Are you done generating synthetic data?")
+        confirm_msg.setIcon(QtWidgets.QMessageBox.Question)
+
+        # Add 'Yes' and 'No' buttons
+        yes_button = confirm_msg.addButton(QtWidgets.QMessageBox.Yes)
+        no_button = confirm_msg.addButton(QtWidgets.QMessageBox.No)
+        confirm_msg.setDefaultButton(no_button)
+
+        # Apply the stylesheet
+        confirm_msg.setStyleSheet("""
+            QMessageBox {
+                font-size: 12px;
+                font-weight: bold;
+                margin: 32px 32px;
+                font-family: 'Montserrat', sans-serif;
+            }
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 10px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555;
+            }
+            QPushButton:pressed {
+                background-color: #002222;
+            }
+        """)
+
+        # Show the confirmation message box
+        confirm_msg.exec_()
+
+        # If user clicks 'Yes'
+        if confirm_msg.clickedButton() == yes_button:
+            # Create the information QMessageBox manually
+            finish_msg = QtWidgets.QMessageBox(self)
+            finish_msg.setWindowTitle("Finished")
+            finish_msg.setText("Finished Generating Synthetic Data")
+            finish_msg.setIcon(QtWidgets.QMessageBox.Information)
+
+            # Add the 'Ok' button
+            ok_button = finish_msg.addButton(QtWidgets.QMessageBox.Ok)
+
+            # Apply the same stylesheet
             finish_msg.setStyleSheet("""
                 QMessageBox {
                     font-size: 12px;
                     font-weight: bold;
                     margin: 32px 32px;
-                    
                     font-family: 'Montserrat', sans-serif;
                 }
                 QPushButton {
@@ -140,98 +179,150 @@ class OutputWidget(QtWidgets.QWidget):
                 QPushButton:hover {
                     background-color: #005555;
                 }
+                QPushButton:pressed {
+                    background-color: #002222;
+                }
             """)
+
+            # Show the message box
+            finish_msg.exec_()
+
+            # Emit the signal to clear the UI
             self.clearUI.emit()
 
     def handle_download_click(self):
         if self.output_zip_path and os.path.exists(self.output_zip_path):
-            save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
-                self,
-                "Save Zip File",
-                "Time-series_Data.zip",
-                "Zip files (*.zip)"
-            )
-            if save_path:
-                try:
-                    # Try to copy the file
-                    shutil.copy2(self.output_zip_path, save_path)
-                    
-                    # Create and style the success message box
-                    success_box = QtWidgets.QMessageBox(self)
-                    success_box.setIcon(QtWidgets.QMessageBox.Information)
-                    success_box.setWindowTitle('Success')
-                    success_box.setText(f"File saved successfully to {save_path}")
-                    success_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                    
-                    # Apply custom styles for success box
-                    success_box.setStyleSheet("""
-                        QMessageBox {
-                            font-size: 12px;
-                            font-weight: bold;
-                            margin: 32px 32px;
-                            font-family: 'Montserrat', sans-serif;
-                            color: #333; /* Text color */
-                        }
-                        QPushButton {
-                            margin-left: 10px;
-                            background-color: #003333;
-                            color: white;
-                            border: none;
-                            padding: 5px 15px;
-                            border-radius: 5px;
-                            font-size: 10px;
-                            font-weight: bold;
-                            font-family: 'Montserrat', sans-serif;
-                        }
-                        QPushButton:hover {
-                            background-color: #005555;
-                        }
-                        QPushButton:pressed {
-                            background-color: #002222;
-                        }
-                    """)
+            # Create the confirmation QMessageBox manually
+            confirm_msg = QtWidgets.QMessageBox(self)
+            confirm_msg.setWindowTitle("Download Confirmation")
+            confirm_msg.setText("Do you want to download the generated zip file?")
+            confirm_msg.setIcon(QtWidgets.QMessageBox.Question)
 
-                    # Show success message box
-                    success_box.exec_()
+            # Add 'Yes' and 'No' buttons
+            yes_button = confirm_msg.addButton(QtWidgets.QMessageBox.Yes)
+            no_button = confirm_msg.addButton(QtWidgets.QMessageBox.No)
+            confirm_msg.setDefaultButton(no_button)
 
-                except Exception as e:
-                    # Create and style the error message box
-                    error_box = QtWidgets.QMessageBox(self)
-                    error_box.setIcon(QtWidgets.QMessageBox.Warning)
-                    error_box.setWindowTitle('Error')
-                    error_box.setText(f"Error saving file: {str(e)}")
-                    error_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                    
-                    # Apply custom styles for error box
-                    error_box.setStyleSheet("""
-                        QMessageBox {
-                            font-size: 12px;
-                            font-weight: bold;
-                            margin: 32px 32px;
-                            font-family: 'Montserrat', sans-serif;
-                            color: #333; /* Text color */
-                        }
-                        QPushButton {
-                            margin-left: 10px;
-                            background-color: #003333;
-                            color: white;
-                            border: none;
-                            padding: 5px 15px;
-                            border-radius: 5px;
-                            font-size: 10px;
-                            font-weight: bold;
-                            font-family: 'Montserrat', sans-serif;
-                        }
-                        QPushButton:hover {
-                            background-color: #005555;
-                        }
-                        QPushButton:pressed {
-                            background-color: #002222;
-                        }
-                    """)
+            # Apply the stylesheet for the confirmation box
+            confirm_msg.setStyleSheet("""
+                QMessageBox {
+                    font-size: 12px;
+                    font-weight: bold;
+                    margin: 32px 32px;
+                    font-family: 'Montserrat', sans-serif;
+                }
+                QPushButton {
+                    margin-left: 10px;
+                    background-color: #003333;
+                    color: white;
+                    border: none;
+                    padding: 5px 15px;
+                    border-radius: 5px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    font-family: 'Montserrat', sans-serif;
+                    line-height: 20px;
+                }
+                QPushButton:hover {
+                    background-color: #005555;
+                }
+                QPushButton:pressed {
+                    background-color: #002222;
+                }
+            """)
 
-                    # Show error message box
-                    error_box.exec_()
+            # Show the confirmation message box
+            confirm_msg.exec_()
+
+            # If user clicks 'Yes', proceed with file saving
+            if confirm_msg.clickedButton() == yes_button:
+                save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+                    self,
+                    "Save Zip File",
+                    "Time-series_Data.zip",
+                    "Zip files (*.zip)"
+                )
+                if save_path:
+                    try:
+                        # Try to copy the file
+                        shutil.copy2(self.output_zip_path, save_path)
+                        
+                        # Create and style the success message box
+                        success_box = QtWidgets.QMessageBox(self)
+                        success_box.setIcon(QtWidgets.QMessageBox.Information)
+                        success_box.setWindowTitle('Success')
+                        success_box.setText(f"File saved successfully to {save_path}")
+                        success_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+                        # Apply custom styles for success box
+                        success_box.setStyleSheet("""
+                            QMessageBox {
+                                font-size: 12px;
+                                font-weight: bold;
+                                margin: 32px 32px;
+                                font-family: 'Montserrat', sans-serif;
+                                color: #333; /* Text color */
+                            }
+                            QPushButton {
+                                margin-left: 10px;
+                                background-color: #003333;
+                                color: white;
+                                border: none;
+                                padding: 5px 15px;
+                                border-radius: 5px;
+                                font-size: 10px;
+                                font-weight: bold;
+                                font-family: 'Montserrat', sans-serif;
+                            }
+                            QPushButton:hover {
+                                background-color: #005555;
+                            }
+                            QPushButton:pressed {
+                                background-color: #002222;
+                            }
+                        """)
+
+                        # Show success message box
+                        success_box.exec_()
+
+                    except Exception as e:
+                        # Create and style the error message box
+                        error_box = QtWidgets.QMessageBox(self)
+                        error_box.setIcon(QtWidgets.QMessageBox.Warning)
+                        error_box.setWindowTitle('Error')
+                        error_box.setText(f"Error saving file: {str(e)}")
+                        error_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+                        # Apply custom styles for error box
+                        error_box.setStyleSheet("""
+                            QMessageBox {
+                                font-size: 12px;
+                                font-weight: bold;
+                                margin: 32px 32px;
+                                font-family: 'Montserrat', sans-serif;
+                                color: #333; /* Text color */
+                            }
+                            QPushButton {
+                                margin-left: 10px;
+                                background-color: #003333;
+                                color: white;
+                                border: none;
+                                padding: 5px 15px;
+                                border-radius: 5px;
+                                font-size: 10px;
+                                font-weight: bold;
+                                font-family: 'Montserrat', sans-serif;
+                            }
+                            QPushButton:hover {
+                                background-color: #005555;
+                            }
+                            QPushButton:pressed {
+                                background-color: #002222;
+                            }
+                        """)
+
+                        # Show error message box
+                        error_box.exec_()
 
     def handle_remove_click(self):
         message_box = QtWidgets.QMessageBox(self)
@@ -352,3 +443,11 @@ class OutputWidget(QtWidgets.QWidget):
 
         # Show the error message box
         error_box.exec_()
+        
+        
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    window = OutputWidget()
+    window.show()
+    sys.exit(app.exec_())

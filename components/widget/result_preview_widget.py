@@ -180,7 +180,7 @@ class SVCpreview(QtWidgets.QWidget):
 
         # Results table area
         self.results_table = QtWidgets.QTableWidget(self.container_widget)
-        self.results_table.setFixedHeight(300)
+        self.results_table.setFixedHeight(400)
         self.results_table.setStyleSheet(
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
         )
@@ -345,7 +345,7 @@ class SVCpreview(QtWidgets.QWidget):
         try:
             import os
             from PyQt5.QtWidgets import QTableWidgetItem
-            from PyQt5.QtGui import QColor
+            from PyQt5.QtGui import QColor, QFont
             
             # Ensure the file path is absolute
             if not os.path.isabs(filename):
@@ -366,9 +366,60 @@ class SVCpreview(QtWidgets.QWidget):
             # Initialize table only once
             if self.results_table.columnCount() == 0:
                 self.results_table.setColumnCount(num_columns)
-                self.results_table.setHorizontalHeaderLabels(
-                    [f"{title}1" if i % 2 == 0 else f"{title}2" for title in headers for i in range(2)]
-                )
+                self.results_table.setCornerButtonEnabled(False)
+                titles = ["x", "y", "time stamp", "pen status", "azimuth", "altitude", "pressure"]
+                
+                # Create and style headers
+                header_labels = [f"{title}1" if i % 2 == 0 else f"{title}2" for title in titles for i in range(2)]
+                self.results_table.setHorizontalHeaderLabels(header_labels)
+                
+                self.results_table.horizontalHeader().setVisible(True)
+                self.results_table.verticalHeader().setVisible(False)
+                self.results_table.horizontalHeader().setStretchLastSection(True)
+                self.results_table.horizontalHeader().setDefaultAlignment(Qt.AlignLeft)
+                # Style the header
+                header = self.results_table.horizontalHeader()
+                header_font = QFont()
+                header_font.setBold(True)
+                header_font.setPointSize(10)
+                header.setFont(header_font)
+                header.setStyleSheet("""
+                    QHeaderView::section {
+                        background-color: #f0f0f0;
+                        font-weight: bold;
+                        font-size: 12px;
+                        border: 1px solid #d0d0d0;
+                    }
+                """)
+                
+                # Set header height and style
+                header.setFixedHeight(60)
+                header.setDefaultAlignment(Qt.AlignCenter)
+                
+                
+                # # Set column widths
+                # for i in range(num_columns):
+                #     self.results_table.setColumnWidth(i, 100)  
+                
+                # Enable alternating row colors for better readability
+                self.results_table.setAlternatingRowColors(True)
+                
+                self.results_table.setStyleSheet("""
+                    QHeaderView::section {
+                        background-color: #f0f0f0;
+                        border: 1px solid #d0d0d0;
+                        margin: 0px;
+                    }
+                    QTableWidget {
+                        gridline-color: #d0d0d0;
+                        selection-background-color: #e0e0e0;
+                        alternate-background-color: #f9f9f9;
+                    }
+                    QTableWidget::item:selected {
+                        color: black; 
+                        background-color: #c0c0c0; 
+                    }
+                """)
 
             # Assuming the first line is a header, split it into columns
             header = lines[0].strip().split()
@@ -397,6 +448,7 @@ class SVCpreview(QtWidgets.QWidget):
                         table_col = col_index * 2 + start_col
                         item = QTableWidgetItem(value)
                         item.setForeground(QColor("black") if preview_index == 0 else QColor("green"))
+                        item.setTextAlignment(Qt.AlignCenter)  # Center-align the data
                         self.results_table.setItem(row_index, table_col, item)
 
                     # Check for gaps and fill them
@@ -415,6 +467,7 @@ class SVCpreview(QtWidgets.QWidget):
                                         table_col = col_index * 2 + start_col
                                         nan_item = QTableWidgetItem('NaN')
                                         nan_item.setForeground(QColor("red"))
+                                        nan_item.setTextAlignment(Qt.AlignCenter)
                                         self.results_table.setItem(row_index, table_col, nan_item)
                                 else:
                                     break
@@ -424,6 +477,7 @@ class SVCpreview(QtWidgets.QWidget):
                         table_col = col_index * 2 + start_col
                         nan_item = QTableWidgetItem('NaN')
                         nan_item.setForeground(QColor("red"))
+                        nan_item.setTextAlignment(Qt.AlignCenter)
                         self.results_table.setItem(row_index, table_col, nan_item)
                 row_index += 1
 
@@ -439,10 +493,6 @@ class SVCpreview(QtWidgets.QWidget):
                 self.text_preview1.setPlainText(error_message)
             else:
                 self.text_preview2.setPlainText(error_message)
-
-
-
-
 
     def display_graph_contents(self, filename, preview_index):
         """Read the contents of the file and display it in the appropriate graph preview."""
