@@ -113,7 +113,28 @@ class OutputWidget(QtWidgets.QWidget):
         yes_button = confirm_msg.addButton(QtWidgets.QMessageBox.Yes)
         no_button = confirm_msg.addButton(QtWidgets.QMessageBox.No)
         confirm_msg.setDefaultButton(no_button)
+        # Apply custom styles directly to the buttons
+        yes_button.setStyleSheet("""
+            background-color: #003333;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
+        """)
 
+        no_button.setStyleSheet("""
+            background-color: #003333;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
+        """)
         # Apply the stylesheet
         confirm_msg.setStyleSheet("""
             QMessageBox {
@@ -155,7 +176,17 @@ class OutputWidget(QtWidgets.QWidget):
 
             # Add the 'Ok' button
             ok_button = finish_msg.addButton(QtWidgets.QMessageBox.Ok)
-
+            ok_button.setStyleSheet("""
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 12px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+            """)
+            
             # Apply the same stylesheet
             finish_msg.setStyleSheet("""
                 QMessageBox {
@@ -163,18 +194,6 @@ class OutputWidget(QtWidgets.QWidget):
                     font-weight: bold;
                     margin: 32px 32px;
                     font-family: 'Montserrat', sans-serif;
-                }
-                QPushButton {
-                    margin-left: 10px;
-                    background-color: #003333;
-                    color: white;
-                    border: none;
-                    padding: 5px 15px;
-                    border-radius: 5px;
-                    font-size: 10px;
-                    font-weight: bold;
-                    font-family: 'Montserrat', sans-serif;
-                    line-height: 20px;
                 }
                 QPushButton:hover {
                     background-color: #005555;
@@ -201,6 +220,27 @@ class OutputWidget(QtWidgets.QWidget):
             # Add 'Yes' and 'No' buttons
             yes_button = confirm_msg.addButton(QtWidgets.QMessageBox.Yes)
             no_button = confirm_msg.addButton(QtWidgets.QMessageBox.No)
+            yes_button.setStyleSheet("""
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 12px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+            """)
+
+            no_button.setStyleSheet("""
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 12px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+            """)
             confirm_msg.setDefaultButton(no_button)
 
             # Apply the stylesheet for the confirmation box
@@ -210,18 +250,6 @@ class OutputWidget(QtWidgets.QWidget):
                     font-weight: bold;
                     margin: 32px 32px;
                     font-family: 'Montserrat', sans-serif;
-                }
-                QPushButton {
-                    margin-left: 10px;
-                    background-color: #003333;
-                    color: white;
-                    border: none;
-                    padding: 5px 15px;
-                    border-radius: 5px;
-                    font-size: 10px;
-                    font-weight: bold;
-                    font-family: 'Montserrat', sans-serif;
-                    line-height: 20px;
                 }
                 QPushButton:hover {
                     background-color: #005555;
@@ -252,34 +280,20 @@ class OutputWidget(QtWidgets.QWidget):
                         success_box.setIcon(QtWidgets.QMessageBox.Information)
                         success_box.setWindowTitle('Success')
                         success_box.setText(f"File saved successfully to {save_path}")
-                        success_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
-                        # Apply custom styles for success box
-                        success_box.setStyleSheet("""
-                            QMessageBox {
-                                font-size: 12px;
-                                font-weight: bold;
-                                margin: 32px 32px;
-                                font-family: 'Montserrat', sans-serif;
-                                color: #333; /* Text color */
-                            }
-                            QPushButton {
-                                margin-left: 10px;
-                                background-color: #003333;
-                                color: white;
-                                border: none;
-                                padding: 5px 15px;
-                                border-radius: 5px;
-                                font-size: 10px;
-                                font-weight: bold;
-                                font-family: 'Montserrat', sans-serif;
-                            }
-                            QPushButton:hover {
-                                background-color: #005555;
-                            }
-                            QPushButton:pressed {
-                                background-color: #002222;
-                            }
+                        # Add custom Ok button and apply styles
+                        ok_button = success_box.addButton(QtWidgets.QMessageBox.Ok)
+                        success_box.setDefaultButton(ok_button)
+
+                        ok_button.setStyleSheet("""
+                            background-color: #003333;
+                            color: white;
+                            border: none;
+                            padding: 5px 15px;
+                            border-radius: 5px;
+                            font-size: 12px;
+                            font-weight: bold;
+                            font-family: 'Montserrat', sans-serif;
                         """)
 
                         # Show success message box
@@ -291,72 +305,63 @@ class OutputWidget(QtWidgets.QWidget):
                         error_box.setIcon(QtWidgets.QMessageBox.Warning)
                         error_box.setWindowTitle('Error')
                         error_box.setText(f"Error saving file: {str(e)}")
-                        error_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
-                        # Apply custom styles for error box
-                        error_box.setStyleSheet("""
-                            QMessageBox {
-                                font-size: 12px;
-                                font-weight: bold;
-                                margin: 32px 32px;
-                                font-family: 'Montserrat', sans-serif;
-                                color: #333; /* Text color */
-                            }
-                            QPushButton {
-                                margin-left: 10px;
-                                background-color: #003333;
-                                color: white;
-                                border: none;
-                                padding: 5px 15px;
-                                border-radius: 5px;
-                                font-size: 10px;
-                                font-weight: bold;
-                                font-family: 'Montserrat', sans-serif;
-                            }
-                            QPushButton:hover {
-                                background-color: #005555;
-                            }
-                            QPushButton:pressed {
-                                background-color: #002222;
-                            }
+                        # Add custom Ok button and apply styles
+                        ok_button = error_box.addButton(QtWidgets.QMessageBox.Ok)
+                        error_box.setDefaultButton(ok_button)
+
+                        ok_button.setStyleSheet("""
+                            background-color: #003333;
+                            color: white;
+                            border: none;
+                            padding: 5px 15px;
+                            border-radius: 5px;
+                            font-size: 12px;
+                            font-weight: bold;
+                            font-family: 'Montserrat', sans-serif;
                         """)
+
 
                         # Show error message box
                         error_box.exec_()
 
     def handle_remove_click(self):
+        # Create the confirmation QMessageBox manually
         message_box = QtWidgets.QMessageBox(self)
         message_box.setIcon(QtWidgets.QMessageBox.Question)
         message_box.setWindowTitle('Confirmation')
         message_box.setText("Are you sure you want to remove the output file?")
-        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        message_box.setDefaultButton(QtWidgets.QMessageBox.No)
+        
+        # Add custom Yes and No buttons
+        yes_button = message_box.addButton(QtWidgets.QMessageBox.Yes)
+        no_button = message_box.addButton(QtWidgets.QMessageBox.No)
+        
+        # Set the default button (No button)
+        message_box.setDefaultButton(no_button)
 
-        # Apply custom stylesheet to the message box
-        message_box.setStyleSheet("""
-            QMessageBox {
-                font-size: 12px;
-                font-weight: bold;
-                margin: 32px 32px;
-                font-family: 'Montserrat', sans-serif;
-                color: #333;
-            }
-            QPushButton {
-                margin-left: 10px;
-                background-color: #003333;
-                color: white;
-                border: none;
-                padding: 5px 15px;
-                border-radius: 5px;
-                font-size: 10px;
-                font-weight: bold;
-                font-family: 'Montserrat', sans-serif;
-                line-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #005555;
-            }
+        # Apply custom styles directly to the buttons
+        yes_button.setStyleSheet("""
+            background-color: #003333;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
         """)
+
+        no_button.setStyleSheet("""
+            background-color: #003333;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
+        """)
+
 
         # Execute the message box and capture the user's response
         reply = message_box.exec_()
@@ -365,29 +370,64 @@ class OutputWidget(QtWidgets.QWidget):
         if reply == QtWidgets.QMessageBox.Yes:
             # Proceed with removing the output file
             print("Removing the output file...")
-        else:
-            # Do nothing if 'No' is selected
-            print("Canceling the removal.")
-        
-        if reply == QMessageBox.Yes:
             if self.output_zip_path and os.path.exists(self.output_zip_path):
                 try:
                     os.remove(self.output_zip_path)
                     self.output_zip_path = None
                     self.setVisible(False)
-                    QMessageBox.information(
-                        self,
-                        'Success',
-                        "Output file has been removed",
-                        QMessageBox.Ok
-                    )
+                    
+                    # Show success message after removal
+                    success_msg = QtWidgets.QMessageBox(self)
+                    success_msg.setWindowTitle("Success")
+                    success_msg.setText("Output file has been removed")
+                    success_msg.setIcon(QtWidgets.QMessageBox.Information)
+                    
+                    # Add Ok button and apply custom styles
+                    ok_button = success_msg.addButton(QtWidgets.QMessageBox.Ok)
+                    success_msg.setDefaultButton(ok_button)
+
+                    ok_button.setStyleSheet("""
+                        background-color: #003333;
+                        color: white;
+                        border: none;
+                        padding: 5px 15px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        font-family: 'Montserrat', sans-serif;
+                    """)
+
+
+                    success_msg.exec_()
+
                 except Exception as e:
-                    QMessageBox.warning(
-                        self,
-                        'Error',
-                        f"Error removing file: {str(e)}",
-                        QMessageBox.Ok
-                    )
+                    # Show error message if removal fails
+                    error_msg = QtWidgets.QMessageBox(self)
+                    error_msg.setWindowTitle("Error")
+                    error_msg.setText(f"Error removing file: {str(e)}")
+                    error_msg.setIcon(QtWidgets.QMessageBox.Warning)
+
+                    # Add Ok button and apply custom styles
+                    ok_button = error_msg.addButton(QtWidgets.QMessageBox.Ok)
+                    error_msg.setDefaultButton(ok_button)
+
+                    ok_button.setStyleSheet("""
+                        background-color: #003333;
+                        color: white;
+                        border: none;
+                        padding: 5px 15px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        font-family: 'Montserrat', sans-serif;
+                    """)
+
+                    error_msg.exec_()
+
+        else:
+            # Do nothing if 'No' is selected
+            print("Canceling the removal.")
+
 
     @QtCore.pyqtSlot(str)
     def set_zip_path(self, zip_path):
