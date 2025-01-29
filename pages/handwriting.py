@@ -32,7 +32,7 @@ class Handwriting(QtWidgets.QWidget):
         self.drawing_done = False
         self.flask_process = None
         self.file_list = []
-        self.uploads_dir = os.path.abspath("uploads")
+        self.uploads_dir = os.path.abspath("files/uploads")
         self.threads = []
         self.setupUi()
 
@@ -485,7 +485,7 @@ class Handwriting(QtWidgets.QWidget):
 
     def on_generate_data(self):
         """Start processing the selected .svc files."""
-        uploads_dir = "uploads"
+        uploads_dir = os.path.abspath("files/uploads")
         num_augmented_files = self.spin_box_widget.number_input.value()
         epochs = 350
         self.svc_preview.remove_graph_containers()

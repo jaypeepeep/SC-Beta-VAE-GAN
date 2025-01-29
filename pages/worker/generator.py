@@ -57,7 +57,7 @@ class GenerateDataWorker(QThread):
             self.timestamp = time.strftime("%Y%m%d-%H%M%S")
             self.folder_name = f"SyntheticData_{self.timestamp}"
             self.output_dir = os.path.join(
-                os.path.dirname(__file__), "../files/uploads", self.folder_name
+                os.path.dirname(__file__), "../../files/uploads", self.folder_name
             )
 
             if not os.path.exists(self.output_dir):

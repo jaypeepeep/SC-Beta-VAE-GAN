@@ -65,8 +65,8 @@ class ModelTrainingThread(QThread):
         self.model_output_dir = os.path.join("model", "pentab_vae_models")
         os.makedirs(self.model_output_dir, exist_ok=True)
 
-        self.imputed_folder = os.path.abspath("imputed")
-        self.augmented_folder = os.path.abspath("augmented_data")
+        self.imputed_folder = os.path.abspath("files/imputed_handwriting")
+        self.augmented_folder = os.path.abspath("files/augmented_data_handwriting")
 
     def run(self):
         self.log("Starting the process for file: " + self.handwriting_dir)
@@ -82,7 +82,7 @@ class ModelTrainingThread(QThread):
                 input_filenames,
                 original_data_frames,
             ) = upload_and_process_files(self.handwriting_dir, self.num_of_files)
-            original_absolute_files = save_original_data(data_frames, input_filenames)
+            original_absolute_files = save_original_data(data_frames, input_filenames, "files/original_absolute_handwriting")
             self.original_files_ready.emit(original_absolute_files)
             
             self.log("File loaded and processed successfully.")

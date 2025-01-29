@@ -104,7 +104,7 @@ class FileContainerWidget(QtWidgets.QWidget):
         if save_path:
             try:
                 # Define the source path in the uploads folder
-                source_path = os.path.join(os.path.dirname(__file__), '../../uploads', self.file_name)
+                source_path = os.path.join(os.path.dirname(__file__), '../../files/uploads', self.file_name)
                 
                 # Copy the file to the specified save path
                 shutil.copy(source_path, save_path)

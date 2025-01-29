@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 # Set the folder where files will be saved
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = os.path.join('files', 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 

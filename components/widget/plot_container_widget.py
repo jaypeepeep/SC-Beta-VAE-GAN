@@ -30,7 +30,7 @@ class PlotContainerWidget(QtWidgets.QWidget):
     def loadPlot(self, filename):
         """Load and plot data from a .svc file."""
         # Construct the path to the uploads folder
-        uploads_folder = os.path.join(os.path.dirname(__file__), "../../uploads")
+        uploads_folder = os.path.join(os.path.dirname(__file__), "../../files/uploads")
         file_path = os.path.join(uploads_folder, filename)
 
         # Check if the file exists
