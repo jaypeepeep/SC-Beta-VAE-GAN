@@ -95,7 +95,7 @@ class Workplace(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -115,7 +115,7 @@ class Workplace(QtWidgets.QWidget):
         )
 
         spacer = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+            20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
         )
         button_layout.addItem(spacer)
 
@@ -270,7 +270,30 @@ class Workplace(QtWidgets.QWidget):
         msg.setIcon(QMessageBox.Critical)
         msg.setText("Error")
         msg.setInformativeText(message)
-
+        msg.setStyleSheet("""
+            QMessageBox {
+                font-size: 12px;
+                font-weight: bold;
+                margin: 32px 32px;
+                
+                font-family: 'Montserrat', sans-serif;
+            }
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 10px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555;
+            }
+        """)
         if message == "Please upload a file first":
             msg.setWindowTitle("File Upload Error")
         else:
@@ -282,6 +305,13 @@ class Workplace(QtWidgets.QWidget):
 
         msg.exec_()
 
+    def update_file_scroll_area(self):
+        """Update the scroll area's height based on the visibility of the DragDrop_Button."""
+        if self.file_upload_widget.isVisible():
+            self.file_scroll_area.setMinimumHeight(0)  # Reset to 0 if visible
+        else:
+            self.file_scroll_area.setMinimumHeight(300)  # Expand if not visible
+        
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
         font = QtGui.QFont()
@@ -306,9 +336,9 @@ class Workplace(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
-                padding: 8px 16px;
+                padding: 10px 20px;
                 margin-left: 15px; 
                 margin-right: 15px; 
                 border-radius: 5px; 
@@ -322,22 +352,31 @@ class Workplace(QtWidgets.QWidget):
         self.add_file_button.setFont(font)
         self.add_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.add_file_button.clicked.connect(self.add_more_files)
-        self.collapsible_widget_input.add_widget(self.add_file_button)
+        self.scroll_layout.addWidget(self.add_file_button)
 
         # Create a scrollable area to hold the file widgets
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
         self.file_scroll_area.setMinimumHeight(0)
+        self.scroll_layout.addWidget(self.file_scroll_area)
+        
+
+        # Connect collapsible state or visibility changes
+        self.file_upload_widget.file_uploaded.connect(self.update_file_scroll_area)
 
         # Create a container to hold the file widgets and its layout
         self.file_container_widget = QtWidgets.QWidget(self)
         self.file_container_layout = QtWidgets.QVBoxLayout(self.file_container_widget)
         self.file_container_layout.setSpacing(0)
+        self.file_container_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Ensure the layout is aligned to the top
+        self.file_container_layout.setAlignment(QtCore.Qt.AlignTop)
 
         # Add the file container widget to the scroll area
         self.file_scroll_area.setWidget(self.file_container_widget)
         self.collapsible_widget_input.add_widget(self.file_scroll_area)
-
+                
         # Initially hide other components
         self.file_upload_widget.setVisible(True)
         self.show_other_components(False)

@@ -122,11 +122,13 @@ class Handwriting(QtWidgets.QWidget):
             QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
         )
         message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
+        layout = message_box.layout()
+        layout.setContentsMargins(20, 20, 20, 20)  
+        layout.setSpacing(10)  
         message_box.setStyleSheet("""
             QMessageBox {
                 font-size: 12px;
                 font-weight: bold;
-                padding: 20px;
                 font-family: 'Montserrat', sans-serif;
             }
             QPushButton {
@@ -134,9 +136,9 @@ class Handwriting(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -324,7 +326,7 @@ class Handwriting(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -344,7 +346,7 @@ class Handwriting(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -402,7 +404,7 @@ class Handwriting(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -412,7 +414,7 @@ class Handwriting(QtWidgets.QWidget):
             }
             """
         )
-        self.generate_data_button.setFixedSize(250, 50)
+        
         self.generate_data_button.setCursor(
             QtGui.QCursor(QtCore.Qt.PointingHandCursor)
         )  # put the button at the bottom
@@ -737,9 +739,30 @@ class Handwriting(QtWidgets.QWidget):
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
         )
         message_box.setDefaultButton(QtWidgets.QMessageBox.No)
-
-        message_box.setStyleSheet("QPushButton { font-size: 14px; }")
-
+        message_box.setStyleSheet("""
+            QMessageBox {
+                font-size: 12px;
+                font-weight: bold;
+                margin: 32px 32px;
+                
+                font-family: 'Montserrat', sans-serif;
+            }
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 10px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555;
+            }
+        """)
         response = message_box.exec_()
 
         if response == QtWidgets.QMessageBox.Yes:

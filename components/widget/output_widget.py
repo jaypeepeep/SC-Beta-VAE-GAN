@@ -21,7 +21,7 @@ class OutputWidget(QtWidgets.QWidget):
         self.file_container = QtWidgets.QWidget(self)
         self.file_container.setStyleSheet("""
             background-color: #DEDEDE;
-            padding: 10px;
+            padding: 5px;
             margin-bottom: 20px;
             border-radius: 0;
         """)
@@ -52,8 +52,8 @@ class OutputWidget(QtWidgets.QWidget):
                 background-color: transparent;
                 font-family: Montserrat;
                 font-weight: 600;
-                font-size: 14px;
-                padding: 7px 20px;
+                font-size: 10px;
+                padding: 5px 15px;
                 border-radius: 5px;
             }QPushButton:hover {
                 background-color: #005555;
@@ -70,9 +70,9 @@ class OutputWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
-                padding: 8px 16px; 
+                padding: 5px 15px; 
                 border-radius: 5px;
             }
             QPushButton:hover {
@@ -90,7 +90,7 @@ class OutputWidget(QtWidgets.QWidget):
                 font-weight: 600;
                 color: #FF5252;
                 font-family: Montserrat;
-                font-size: 22px;
+                font-size: 20px;
                 padding: 5px;
             }
         """)
@@ -117,6 +117,30 @@ class OutputWidget(QtWidgets.QWidget):
                 "Finished Generating Synthetic Data",
                 QMessageBox.Ok
             )
+            finish_msg.setStyleSheet("""
+                QMessageBox {
+                    font-size: 12px;
+                    font-weight: bold;
+                    margin: 32px 32px;
+                    
+                    font-family: 'Montserrat', sans-serif;
+                }
+                QPushButton {
+                    margin-left: 10px;
+                    background-color: #003333;
+                    color: white;
+                    border: none;
+                    padding: 5px 15px;
+                    border-radius: 5px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    font-family: 'Montserrat', sans-serif;
+                    line-height: 20px;
+                }
+                QPushButton:hover {
+                    background-color: #005555;
+                }
+            """)
             self.clearUI.emit()
 
     def handle_download_click(self):
@@ -129,29 +153,130 @@ class OutputWidget(QtWidgets.QWidget):
             )
             if save_path:
                 try:
+                    # Try to copy the file
                     shutil.copy2(self.output_zip_path, save_path)
-                    QMessageBox.information(
-                        self,
-                        'Success',
-                        f"File saved successfully to {save_path}",
-                        QMessageBox.Ok
-                    )
+                    
+                    # Create and style the success message box
+                    success_box = QtWidgets.QMessageBox(self)
+                    success_box.setIcon(QtWidgets.QMessageBox.Information)
+                    success_box.setWindowTitle('Success')
+                    success_box.setText(f"File saved successfully to {save_path}")
+                    success_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                    
+                    # Apply custom styles for success box
+                    success_box.setStyleSheet("""
+                        QMessageBox {
+                            font-size: 12px;
+                            font-weight: bold;
+                            margin: 32px 32px;
+                            font-family: 'Montserrat', sans-serif;
+                            color: #333; /* Text color */
+                        }
+                        QPushButton {
+                            margin-left: 10px;
+                            background-color: #003333;
+                            color: white;
+                            border: none;
+                            padding: 5px 15px;
+                            border-radius: 5px;
+                            font-size: 10px;
+                            font-weight: bold;
+                            font-family: 'Montserrat', sans-serif;
+                        }
+                        QPushButton:hover {
+                            background-color: #005555;
+                        }
+                        QPushButton:pressed {
+                            background-color: #002222;
+                        }
+                    """)
+
+                    # Show success message box
+                    success_box.exec_()
+
                 except Exception as e:
-                    QMessageBox.warning(
-                        self,
-                        'Error',
-                        f"Error saving file: {str(e)}",
-                        QMessageBox.Ok
-                    )
+                    # Create and style the error message box
+                    error_box = QtWidgets.QMessageBox(self)
+                    error_box.setIcon(QtWidgets.QMessageBox.Warning)
+                    error_box.setWindowTitle('Error')
+                    error_box.setText(f"Error saving file: {str(e)}")
+                    error_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                    
+                    # Apply custom styles for error box
+                    error_box.setStyleSheet("""
+                        QMessageBox {
+                            font-size: 12px;
+                            font-weight: bold;
+                            margin: 32px 32px;
+                            font-family: 'Montserrat', sans-serif;
+                            color: #333; /* Text color */
+                        }
+                        QPushButton {
+                            margin-left: 10px;
+                            background-color: #003333;
+                            color: white;
+                            border: none;
+                            padding: 5px 15px;
+                            border-radius: 5px;
+                            font-size: 10px;
+                            font-weight: bold;
+                            font-family: 'Montserrat', sans-serif;
+                        }
+                        QPushButton:hover {
+                            background-color: #005555;
+                        }
+                        QPushButton:pressed {
+                            background-color: #002222;
+                        }
+                    """)
+
+                    # Show error message box
+                    error_box.exec_()
 
     def handle_remove_click(self):
-        reply = QMessageBox.question(
-            self,
-            'Confirmation',
-            "Are you sure you want to remove the output file?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
+        message_box = QtWidgets.QMessageBox(self)
+        message_box.setIcon(QtWidgets.QMessageBox.Question)
+        message_box.setWindowTitle('Confirmation')
+        message_box.setText("Are you sure you want to remove the output file?")
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        message_box.setDefaultButton(QtWidgets.QMessageBox.No)
+
+        # Apply custom stylesheet to the message box
+        message_box.setStyleSheet("""
+            QMessageBox {
+                font-size: 12px;
+                font-weight: bold;
+                margin: 32px 32px;
+                font-family: 'Montserrat', sans-serif;
+                color: #333;
+            }
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 10px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555;
+            }
+        """)
+
+        # Execute the message box and capture the user's response
+        reply = message_box.exec_()
+
+        # Handle the response
+        if reply == QtWidgets.QMessageBox.Yes:
+            # Proceed with removing the output file
+            print("Removing the output file...")
+        else:
+            # Do nothing if 'No' is selected
+            print("Canceling the removal.")
         
         if reply == QMessageBox.Yes:
             if self.output_zip_path and os.path.exists(self.output_zip_path):
@@ -190,4 +315,40 @@ class OutputWidget(QtWidgets.QWidget):
 
     def show_error_message(self, message):
         """Show a message box with the error message."""
-        QMessageBox.warning(self, 'Error', message, QMessageBox.Ok)
+        # Create the error message box
+        error_box = QtWidgets.QMessageBox(self)
+        error_box.setIcon(QtWidgets.QMessageBox.Warning)
+        error_box.setWindowTitle('Error')
+        error_box.setText(message)
+        error_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        # Apply custom stylesheet to the error message box
+        error_box.setStyleSheet("""
+            QMessageBox {
+                font-size: 12px;
+                font-weight: bold;
+                margin: 32px 32px;
+                font-family: 'Montserrat', sans-serif;
+                color: #333;
+            }
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 8px 20px;
+                border-radius: 5px;
+                font-size: 10px;
+                font-weight: bold;
+                font-family: 'Montserrat', sans-serif;
+            }
+            QPushButton:hover {
+                background-color: #005555;
+            }
+            QPushButton:pressed {
+                background-color: #002222;
+            }
+        """)
+
+        # Show the error message box
+        error_box.exec_()
