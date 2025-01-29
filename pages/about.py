@@ -75,7 +75,7 @@ class About(QtWidgets.QWidget):
             "    background-color: #003333;"
             "    color: white;"
             "    border: none;"
-            "    padding: 10px 80px;"
+            "    padding: 5px 15px;"
             "    border-radius: 5px;"
             "    font-size: 10px;"
             "    font-weight: bold;"
