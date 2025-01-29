@@ -5,16 +5,10 @@ import sys
 import time
 import shutil
 import zipfile
-import numpy as np
 import pandas as pd
-import tensorflow as tf
-from glob import glob
-import re
-from sklearn.model_selection import KFold
-from sklearn.metrics import mean_squared_error, accuracy_score, mean_absolute_percentage_error
 from sklearn.preprocessing import MinMaxScaler
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
+from PyQt5.QtCore import  QTimer
 from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from components.button.handwriting_button import handwritingButton
