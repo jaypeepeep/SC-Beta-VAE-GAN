@@ -24,8 +24,8 @@ class DragDrop_Button(QtWidgets.QWidget):
 
         # Create a layout for the drag and drop area
         self.drop_area_layout = QtWidgets.QVBoxLayout(self.drop_area)
-        self.drop_area_layout.setAlignment(QtCore.Qt.AlignCenter)  # Align elements vertically at the top
-        self.drop_area_layout.setSpacing(1)  # Set a small gap between elements (10px)
+        self.drop_area_layout.setAlignment(QtCore.Qt.AlignCenter)  
+        self.drop_area_layout.setSpacing(1)  
 
         # Create the "Choose file" button
         self.file_button = QtWidgets.QPushButton("Choose File...", self.drop_area)
@@ -35,9 +35,9 @@ class DragDrop_Button(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 12px; 
                 font-weight: 600; 
-                padding: 8px 16px; 
+                padding: 5px 15px; 
                 border-radius: 5px; 
                 border: none;
             }
@@ -53,14 +53,14 @@ class DragDrop_Button(QtWidgets.QWidget):
         self.or_label = QtWidgets.QLabel("or", self.drop_area)
         self.or_label.setAlignment(QtCore.Qt.AlignCenter)
         self.or_label.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; color: #535353; border: none; padding: 5px;"
+            "font-family: Montserrat; font-size: 12px; font-weight: bold; color: #535353; border: none; padding: 5px;"
         )
 
         # Create the "Drop Files Here" label (no border)
         self.drop_label = QtWidgets.QLabel("Drop File Here", self.drop_area)
         self.drop_label.setAlignment(QtCore.Qt.AlignCenter)
         self.drop_label.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; color: #535353; border: none; padding: 5px;"
+            "font-family: Montserrat; font-size: 12px; font-weight: bold; color: #535353; border: none; padding: 5px;"
         )
 
         # Add the button and labels to the drop area layout

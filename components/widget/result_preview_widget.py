@@ -68,9 +68,9 @@ class SVCpreview(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
-                padding: 8px 16px; 
+                padding: 5px 15px; 
                 border-radius: 5px;
             }
             QPushButton:hover {
@@ -135,9 +135,9 @@ class SVCpreview(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
-                padding: 8px 16px; 
+                padding: 5px 15px; 
                 border-radius: 5px;
             }
             QPushButton:hover {
@@ -607,9 +607,42 @@ class SVCpreview(QtWidgets.QWidget):
     def select_file(self):
         """Open a custom dialog to select a file from the uploaded files, showing only the file name."""
         if not self.uploaded_files:
-            QtWidgets.QMessageBox.warning(
-                self, "No Files", "No files have been uploaded yet."
-            )
+            # Create the warning message box
+            fileMessage_box2 = QtWidgets.QMessageBox(self)
+            fileMessage_box2.setIcon(QtWidgets.QMessageBox.Warning)
+            fileMessage_box2.setWindowTitle("No Files")
+            fileMessage_box2.setText("No files have been uploaded yet.")
+
+            # Apply custom stylesheet to the warning message box
+            fileMessage_box2.setStyleSheet("""
+                QMessageBox {
+                    font-size: 12px;
+                    font-weight: bold;
+                    margin: 32px 32px;
+                    font-family: 'Montserrat', sans-serif;
+                    color: #333;
+                }
+                QPushButton {
+                    margin-left: 10px;
+                    background-color: #003333;
+                    color: white;
+                    border: none;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    font-family: 'Montserrat', sans-serif;
+                }
+                QPushButton:hover {
+                    background-color: #005555;
+                }
+                QPushButton:pressed {
+                    background-color: #002222;
+                }
+            """)
+
+            # Show the message box
+            fileMessage_box2.exec_()
             return
 
         # Display only the file names, not the paths
@@ -632,9 +665,9 @@ class SVCpreview(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333;
                 color: white;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 14px;
+                font-size: 10px;
                 font-weight: bold;
             }
             QPushButton:hover {
@@ -729,9 +762,42 @@ class SVCpreview(QtWidgets.QWidget):
     def select_augmented_file(self):
         """Open a custom dialog to select a file from the uploaded files, showing only the file name."""
         if not self.augmented_files:
-            QtWidgets.QMessageBox.warning(
-                self, "No Files", "No files have been uploaded yet."
-            )
+            # Create the warning message box
+            fileMessage_box = QtWidgets.QMessageBox(self)
+            fileMessage_box.setIcon(QtWidgets.QMessageBox.Warning)
+            fileMessage_box.setWindowTitle("No Files")
+            fileMessage_box.setText("No files have been uploaded yet.")
+
+            # Apply custom stylesheet to the warning message box
+            fileMessage_box.setStyleSheet("""
+                QMessageBox {
+                    font-size: 12px;
+                    font-weight: bold;
+                    margin: 32px 32px;
+                    font-family: 'Montserrat', sans-serif;
+                    color: #333;
+                }
+                QPushButton {
+                    margin-left: 10px;
+                    background-color: #003333;
+                    color: white;
+                    border: none;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    font-family: 'Montserrat', sans-serif;
+                }
+                QPushButton:hover {
+                    background-color: #005555;
+                }
+                QPushButton:pressed {
+                    background-color: #002222;
+                }
+            """)
+
+            # Show the message box
+            fileMessage_box.exec_()
             return
 
         # Display only the file names, not the paths
@@ -754,9 +820,9 @@ class SVCpreview(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333;
                 color: white;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 14px;
+                font-size: 10px;
                 font-weight: bold;
             }
             QPushButton:hover {

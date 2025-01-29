@@ -1,46 +1,23 @@
-from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtGui import QColor
-from components.widget.collapsible_widget import CollapsibleWidget
-from components.widget.file_container_widget import FileContainerWidget
-from components.widget.file_preview_widget import FilePreviewWidget
-from components.widget.model_widget import ModelWidget
-from components.widget.process_log_widget import ProcessLogWidget
-from components.widget.output_widget import OutputWidget
-from components.widget.spin_box_widget import SpinBoxWidget
-from components.button.DragDrop_Button import DragDrop_Button
-from components.widget.result_preview_widget import SVCpreview
 from model import scbetavaegan
 import os
 import time
 import shutil
-
 import tensorflow as tf
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from sklearn.preprocessing import MinMaxScaler
-from tqdm import tqdm
-from sklearn.metrics import (
-    mean_absolute_error,
-    mean_squared_error,
-    mean_absolute_percentage_error,
-)
-import random
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import load_model
 from keras.utils import custom_object_scope
-
 from PyQt5.QtCore import QThread, pyqtSignal
 import traceback
-
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
-
 from glob import glob
 import re
 

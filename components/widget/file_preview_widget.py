@@ -28,9 +28,9 @@ class FilePreviewWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 14px; 
+                font-size: 10px; 
                 font-weight: 600; 
-                padding: 8px 16px; 
+                padding: 5px 15px; 
                 border-radius: 5px;
             }
             QPushButton:hover {
@@ -111,9 +111,9 @@ class FilePreviewWidget(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333;
                 color: white;
-                padding: 10px 20px;
+                padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 14px;
+                font-size: 10px;
                 font-weight: bold;
             }
             QPushButton:hover {

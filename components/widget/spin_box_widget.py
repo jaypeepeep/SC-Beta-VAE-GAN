@@ -14,7 +14,7 @@ class SpinBoxWidget(QtWidgets.QWidget):
 
         self.label = QtWidgets.QLabel("Augmented Data Quantity")
         self.label.setStyleSheet(
-            "font-family: Montserrat; font-size: 16px; font-weight: bold; color: #003333;"
+            "font-family: Montserrat; font-size: 14px; font-weight: bold; color: #003333;"
         )
         self.layout.addWidget(self.label, alignment=QtCore.Qt.AlignLeft)
 
@@ -32,26 +32,30 @@ class SpinBoxWidget(QtWidgets.QWidget):
                 border: 1px solid #003333;
                 background: #f7f7f7;
                 width: 80px;
-                height: 30px;
+                height: 20px;
                 color: #000;
                 font-family: Montserrat;
-                font-size: 14px;
+                font-size: 10px;
                 font-weight: 600;
                 text-align: center;
                 padding: 5px;
             }
             QSpinBox::up-button {
-                width: 25px;
-                height: 25px;
+                width: 10px;
+                height: 10px;
                 border: none;
+                border-radius: 8px;
+                margin-right: 5px;
                 background-color: #f0f0f0;
                 border-top-left-radius: 8px;
                 border-top-right-radius: 8px;
             }
             QSpinBox::down-button {
-                width: 25px;
-                height: 20px;
+                width: 10px;
+                height: 10px;
                 border: none;
+                border-radius: 8px;
+                margin-right: 5px;
                 background-color: #f0f0f0;
                 border-bottom-left-radius: 8px;
                 border-bottom-right-radius: 8px;
@@ -66,13 +70,13 @@ class SpinBoxWidget(QtWidgets.QWidget):
             }
             QSpinBox::up-arrow {
                 image: url(icon/arrow_up.png);
-                width: 10px;
-                height: 10px;
+                width: 5px;
+                height: 5px;
             }
             QSpinBox::down-arrow {
                 image: url(icon/arrow_down.png);
-                width: 10px;
-                height: 10px;
+                width: 5px;
+                height: 5px;
             }
             """
         )
