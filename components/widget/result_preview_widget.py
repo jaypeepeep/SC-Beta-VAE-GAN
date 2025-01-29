@@ -419,6 +419,9 @@ class SVCpreview(QtWidgets.QWidget):
                         color: black; 
                         background-color: #c0c0c0; 
                     }
+                    QTableWidget::item {
+                        padding-left: 10px;
+                    }
                 """)
 
             # Assuming the first line is a header, split it into columns
