@@ -388,7 +388,8 @@ class SVCpreview(QtWidgets.QWidget):
                         background-color: #f0f0f0;
                         font-weight: bold;
                         font-size: 12px;
-                        border: 1px solid #d0d0d0;
+                        border: none;
+                        padding-right: 25px; 
                     }
                 """)
                 
