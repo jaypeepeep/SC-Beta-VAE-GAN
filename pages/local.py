@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 class Local(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Local, self).__init__(parent)
-        self.current_directory = "./uploads"  # Initial directory path
+        self.current_directory = "../files/uploads"  # Initial directory path
         self.selected_file = None  # Track selected file for rename/delete
         self.setupUi()
         self.load_files(self.current_directory)  # Load files from the initial directory

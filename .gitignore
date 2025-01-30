@@ -12,9 +12,12 @@ __pycache__/
 # Ignore folders
 augmented_data/
 files/augmented_data/
-files/augmented_data_nested/
+files/augmented_data_handwriting/
+files/augmented_data_nested_handwriting/
 files/imputed/
+files/imputed_handwriting/
 files/original_absolute/
+files/original_absolute_handwriting/
 files/uploads/
 imputed/
 uploads/
