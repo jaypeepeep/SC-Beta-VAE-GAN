@@ -13,6 +13,7 @@ __pycache__/
 augmented_data/
 files/augmented_data/
 files/augmented_data_handwriting/
+files/augmented_data_nested/
 files/augmented_data_nested_handwriting/
 files/imputed/
 files/imputed_handwriting/
