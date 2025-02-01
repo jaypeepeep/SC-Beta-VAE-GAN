@@ -11,9 +11,10 @@ from PyQt5.QtCore import Qt
 
 
 class SVCpreview(QtWidgets.QWidget):
-    def __init__(self, input=None, output=None, metrics=None, parent=None):
+    def __init__(self, input=None, output=None, mode=None, metrics=None, parent=None):
         super(SVCpreview, self).__init__(parent)
         self.setupUi()
+        self.mode = mode
         self.uploaded_files = []
         self.augmented_files = []
         self.original_absolute_files = []
@@ -240,8 +241,12 @@ class SVCpreview(QtWidgets.QWidget):
             del self.second_input_graph_container
             del self.second_input_graph_layout
 
-    def display_handwriting_contents(self, file_path, preview_index):
+    def display_handwriting_contents(self, file_path, preview_index, mode=None):
         try:
+            # If mode is not passed, use self.mode; otherwise, use the passed mode
+            effective_mode = mode if mode else self.mode
+
+            # Load the data
             df = pd.read_csv(file_path, delim_whitespace=True, header=None)
             df.columns = [
                 "x",
@@ -259,32 +264,57 @@ class SVCpreview(QtWidgets.QWidget):
 
             # Create the plot
             fig, ax = plt.subplots(figsize=(6, 6))
-            ax.scatter(
-                on_surface["y"],
-                on_surface["x"],
-                c="b",
-                s=1,
-                alpha=0.7,
-                label="On Surface",
-            )
-            ax.scatter(in_air["y"], in_air["x"], c="r", s=1, alpha=0.7, label="In Air")
-            ax.set_title(
-                f"Time Series Handwriting Visualization for {os.path.basename(file_path)}"
-            )
-            ax.set_xlabel("y")
-            ax.set_ylabel("x")
+            
+            if effective_mode == "workplace":  # Handwriting Mode
+                ax.scatter(
+                    on_surface["y"],
+                    on_surface["x"],
+                    c="b",
+                    s=1,
+                    alpha=0.7,
+                    label="On Surface",
+                )
+                ax.scatter(in_air["y"], in_air["x"], c="r", s=1, alpha=0.7, label="In Air")
+                ax.set_title(
+                    f"Time Series Handwriting Visualization for {os.path.basename(file_path)}"
+                )
+                ax.set_xlabel("y")
+                ax.set_ylabel("x")
 
-            # Flip upward by inverting the x-axis
-            ax.invert_xaxis()
+                # Flip upward by inverting the x-axis
+                ax.invert_xaxis()
+
+                # Reverse axes limits if necessary
+                if ax.get_xlim()[0] < ax.get_xlim()[1]:  # Check if x-axis is not reversed
+                    ax.set_xlim(ax.get_xlim()[::-1])
+                if ax.get_ylim()[0] > ax.get_ylim()[1]:  # Ensure y-axis is in normal order
+                    ax.set_ylim(ax.get_ylim()[::-1])
+
+            elif effective_mode == "handwriting":  # Workplace Mode
+                ax.scatter(
+                    on_surface["x"],
+                    -on_surface["y"],  # Negate y to rotate clockwise
+                    c="b",
+                    s=1,
+                    alpha=0.7,
+                    label="On Surface",
+                )
+                ax.scatter(
+                    in_air["x"],
+                    -in_air["y"],  # Negate y to rotate clockwise
+                    c="r",
+                    s=1,
+                    alpha=0.7,
+                    label="In Air",
+                )
+                ax.set_title(
+                    f"Time Series Handwriting Visualization for {os.path.basename(file_path)}"
+                )
+                ax.set_xlabel("x")
+                ax.set_ylabel("-y (Rotated)")
 
             ax.set_aspect("equal")
             ax.legend()
-
-            # Reverse axes limits only if necessary
-            if ax.get_xlim()[0] < ax.get_xlim()[1]:  # Check if x-axis is not reversed
-                ax.set_xlim(ax.get_xlim()[::-1])
-            if ax.get_ylim()[0] > ax.get_ylim()[1]:  # Ensure y-axis is in normal order
-                ax.set_ylim(ax.get_ylim()[::-1])
 
             canvas = FigureCanvas(fig)
             if preview_index == 0:
@@ -296,8 +326,10 @@ class SVCpreview(QtWidgets.QWidget):
                 self.second_output_graph_layout.addWidget(canvas)
                 canvas.draw()
 
-        except:
+        except Exception as e:
+            print(f"Error displaying contents: {e}")
             pass
+
 
     def add_result_text(self, text):
 

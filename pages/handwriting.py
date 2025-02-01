@@ -390,7 +390,7 @@ class Handwriting(QtWidgets.QWidget):
         # Call the collapsible widget component for result
         self.collapsible_widget_result = CollapsibleWidget("Result", self)
         scroll_layout.addWidget(self.collapsible_widget_result)
-        self.svc_preview = SVCpreview(input=filename)
+        self.svc_preview = SVCpreview(input=filename, mode="handwriting")
         self.collapsible_widget_result.add_widget(self.svc_preview)
 
         # Generate Synthetic Data button
@@ -659,7 +659,7 @@ class Handwriting(QtWidgets.QWidget):
                 if index == 0:
                     self.svc_preview.display_file_contents(file_path, 1)
                     self.svc_preview.display_graph_contents(file_path, 1)
-                    self.svc_preview.display_handwriting_contents(file_path, 1)
+                    self.svc_preview.display_handwriting_contents(file_path, 1, mode="handwriting")
                     self.svc_preview.display_table_contents(file_path, 1)
 
         self.svc_preview.set_augmented_files(augmented_files)
@@ -674,7 +674,7 @@ class Handwriting(QtWidgets.QWidget):
                 if index == 0:
                     self.svc_preview.display_file_contents(file_path, 0)
                     self.svc_preview.display_graph_contents(file_path, 0)
-                    self.svc_preview.display_handwriting_contents(file_path, 0)
+                    self.svc_preview.display_handwriting_contents(file_path, 0, mode="handwriting")
                     self.svc_preview.display_table_contents(file_path, 0)
 
         self.svc_preview.set_original_absolute_files(original_absolute_files)
