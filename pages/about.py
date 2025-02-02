@@ -1,3 +1,19 @@
+"""
+Program Title: About Page
+Programmer/s:
+- Alpapara, Nichole N.
+- Lagatuz, John Patrick D.
+- Peroche, John Mark P.
+- Torreda, Kurt Denver P.
+Description: The About page serves as the third page that can be accessed by the user in the system. It provides a
+user-friendly interface that contains information about how to use the system, and the thesis paper of the developers.
+PyQt5 and os were utilized for the interface and pathing respectively. The setupUi function is responsible for displaying
+the user interface while open_pdf_viewer allows its users to open the PDF file of the thesis paper.
+Date Added: June 20, 2024
+Last Date Modified: November 17, 2024
+
+"""
+
 from PyQt5 import QtWidgets, QtGui, QtCore
 import os
 from components.widget.pdf_viewer import PDFViewer

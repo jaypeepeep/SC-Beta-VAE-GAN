@@ -1,3 +1,21 @@
+"""
+Program Title: Handwriting Page
+Programmer/s:
+- Alpapara, Nichole N.
+- Lagatuz, John Patrick D.
+- Peroche, John Mark P.
+- Torreda, Kurt Denver P.
+Description: The Handwriting page serves as the second page that can be accessed by the user in the system. It provides
+a user-friendly interface that allows its users to write/draw multivariate time series data on the canvas using a pen
+and tablet. It also composes the same widgets as the Workplace page, and the difference between them is that the user
+can generate synthetic data real time. Moreover, the class uses the module ModelTrainingThread that runs by using a thread.
+Aside from that, PyQt5, numpy, pandas, tensorflow, and keras were utilized. And the user interface was setup using the
+setupUi function.
+Date Added: June 20, 2024
+Last Date Modified: December 11, 2024
+
+"""
+
 import subprocess
 import requests
 import os
