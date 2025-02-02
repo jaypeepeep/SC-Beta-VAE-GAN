@@ -590,6 +590,7 @@ class Handwriting(QtWidgets.QWidget):
             self.output_widget.setVisible(True)
             self.collapsible_widget_output.toggle_container(True)
 
+        self.generate_data_button.setText("Calculating Results...")
         self.collapsible_widget_result.toggle_container(True)
 
     def on_metrics_ready(self, metrics):
@@ -618,6 +619,9 @@ class Handwriting(QtWidgets.QWidget):
             metrics_text += f"\tStandard Deviation of MAPE: {std_mape:.2f}%\n"
 
         self.svc_preview.results_text.setPlainText(metrics_text)
+
+        self.generate_data_button.setText("Generate Synthetic Data")
+        self.generate_data_button.setEnabled(True)
 
 
     def on_training_finished(self):
