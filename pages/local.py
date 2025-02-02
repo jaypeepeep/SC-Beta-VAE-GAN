@@ -1,3 +1,20 @@
+"""
+Program Title: Local Page
+Programmer/s:
+- Alpapara, Nichole N.
+- Lagatuz, John Patrick D.
+- Peroche, John Mark P.
+- Torreda, Kurt Denver P.
+Description: The Local page servers as the fourth page that can be accessed by the user in the system. It provides
+a user-friendly interface that allows its users to change their default location settings. The page is responsible for
+the path where the user can download the synthetic data. Moreover, PyQt5 and os were utilized for the interface and
+the pathing respectively. It also displays the downloaded files by the user through the function showEvent.
+The setupUi is responsible for displaying the user interface.
+Date Added: June 20, 2024
+Last Date Modified: December 09, 2024
+
+"""
+
 import os
 from PyQt5 import QtWidgets, QtGui, QtCore
 

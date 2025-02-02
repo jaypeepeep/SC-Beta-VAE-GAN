@@ -1,3 +1,21 @@
+"""
+Program Title: Workplace Page
+Programmer/s:
+- Alpapara, Nichole N.
+- Lagatuz, John Patrick D.
+- Peroche, John Mark P.
+- Torreda, Kurt Denver P.
+Description: The Workplace page servers as the main page when the user opens the system. It provides a user-friendly
+interface for uploading files and generating synthetic data for the user. It composes of several widgets including
+Input, File Preview, Process Log, Output, and Results. This page runs through the GenerateDataWorker module and is
+connected using a thread so that the model will run smoothly to the user interface. The latter was setup using the
+setupUi function. Moreover, several libraries were utilized such as numpy for numerical operations, pandas for data
+manipulation, tensorflow, keras, and sklearn for model training.
+Date Added: June 20, 2024
+Last Date Modified: December 11, 2024
+
+"""
+
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QColor
