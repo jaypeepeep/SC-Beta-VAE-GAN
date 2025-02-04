@@ -21,19 +21,52 @@ from components.widget.pdf_viewer import PDFViewer
 class About(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(About, self).__init__(parent)
-        self.pdf_viewer = None  # Keep a reference to the PDFViewer instance
-        self.setupUi()  # Set up the user interface
+        self.pdf_viewer = None
+        self.setupUi()
 
     def setupUi(self):
-        # Set up the grid layout for the widget
-        self.gridLayout = QtWidgets.QGridLayout(self)
+        # Create scroll area for the entire page
+        scroll_area = QtWidgets.QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: white;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #f0f0f0;
+                width: 8px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #c0c0c0;
+                min-height: 30px;
+                border-radius: 4px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #a0a0a0;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        """)
 
-        # Create and configure the QTextEdit to display HTML content
-        self.textEdit = QtWidgets.QTextEdit(self)
-        self.textEdit.setHtml(
-            # HTML content providing information about SC-β-VAE-GAN and steps for usage
-            "<p>SC-β-VAE-GAN stands for Shift Correction β-Variational Autoencoder-Generative Adversarial Network. "
-            "It is a hybrid model designed to address the challenges of imputing and augmenting handwriting multivariate time series data.</p>"
+        # Create main content widget
+        content_widget = QtWidgets.QWidget()
+        content_widget.setStyleSheet("background-color: white;")
+        scroll_area.setWidget(content_widget)
+
+        # Main layout
+        self.main_layout = QtWidgets.QVBoxLayout(content_widget)
+        self.main_layout.setContentsMargins(20, 20, 20, 20)
+        self.main_layout.setSpacing(15)
+
+        # Introduction text
+        intro_text = QtWidgets.QLabel(
+            "<p>SC-β-VAE-GAN stands for Shift Correction β-Variational Autoencoder-Generative Adversarial Network. It is a hybrid model designed to address the challenges of imputing and augmenting handwriting multivariate time series data.</p>"
             "<p><b>Key Components</b></p>"
             "<ul>"
             "<li><b>Variational Autoencoder (VAE):</b> A type of generative model that learns the underlying distribution of data to generate new, similar data samples.</li>"
@@ -45,88 +78,180 @@ class About(QtWidgets.QWidget):
             "<li><b>Data Imputation:</b> Filling in missing values in multivariate time series data.</li>"
             "<li><b>Data Augmentation:</b> Generating additional synthetic data to expand the available dataset.</li>"
             "</ul>"
-            "<p><b>Steps in Using this Tool</b></p>"
-            "<p>    <b><i>For Workplace*</i></b></p>"
-            "<ul>"
-            "<li>       <b>Input Files:</b> Input .svc files to augment</li>"
-            "<li>       <b>Multiple Inputs:</b> Add more files by clicking 'Add More.'</li>"
-            "<li>       <b>Preview Section:</b> Review the data you entered.</li>"
-            "<li>       <b>Delete Input:</b> You can delete input by clicking the 'X' button.'</li>"
-            "<li>       <b>Train Model:</b> If the model doesn't exist, train the model first with the selected data</li>"
-            "<li>       <b>Select Model:</b> Select a pre-trained model to use in generating</li>"
-            "<li>       <b>Number of Synthetic Data:</b> Enter the number of data points to generate.</li>"
-            "<li>       <b>Generate Synthetic Data:</b> Click to generate synthetic data.</li>"
-            "<li>       <b>Results:</b> Check the generated results.</li>"
-            "</ul>"
-            "<p>    <b><i>      For Handwriting*</i></b></p>"
-            "<ul>"
-            "<li>       <b>Start Drawing:</b> Click the 'Start Handwriting' button.</li>"
-            "<li>       <b>Handwrite or Draw:</b> Begin drawing or writing. If something goes wrong, click 'Clear Drawing.'</li>"
-            "<li>       <b>Finish Drawing:</b> When you're done, click 'Done' to return to the main page.</li>"
-            "<li>       <b>Multiple Drawings:</b> Add more handwriting by clicking 'Draw More.'</li>"
-            "<li>       <b>Clear Drawing:</b> Clear all handwriting by clicking 'Clear All.'</li>"
-            "<li>       <b>Number of Synthetic Data:</b> Enter the number of data points to generate.</li>"
-            "<li>       <b>Preview Section:</b> Review the data you entered.</li>"
-            "<li>       <b>Generate Synthetic Data:</b> Click to generate synthetic data.</li>"
-            "<li>       <b>Results:</b> Check the generated results.</li>"
-            "</ul>"
         )
-        self.textEdit.setReadOnly(True)  # Make the text edit read-only
-        self.textEdit.setStyleSheet(
-            # Set the stylesheet for the QTextEdit
-            "border: none;"
-            "background: transparent;"
-            "font-size: 13px;"
+        intro_text.setWordWrap(True)
+        intro_text.setStyleSheet(
+            "font-size: 16px;"
             "font-family: 'Montserrat', sans-serif;"
             "line-height: 24.38px;"
-            "padding: 10px 20px;"
         )
-        self.gridLayout.addWidget(self.textEdit, 1, 0, 1, 1)  # Add the QTextEdit to the layout
+        self.main_layout.addWidget(intro_text)
 
-        # Create and style the button to open the PDF viewer
+        # PDF Button
         self.pdf_button = QtWidgets.QPushButton("View Study", self)
         self.pdf_button.setStyleSheet(
             "QPushButton {"
-            "    margin-left: 10px;"
             "    background-color: #003333;"
             "    color: white;"
             "    border: none;"
-            "    padding: 5px 15px;"
-            "    border-radius: 5px;"
-            "    font-size: 10px;"
+            "    padding: 15px 30px;"
+            "    border-radius: 8px;"
+            "    font-size: 14px;"
             "    font-weight: bold;"
             "    font-family: 'Montserrat', sans-serif;"
-            "    line-height: 20px;"
-            "    margin-bottom: 20px"
             "}"
             "QPushButton:hover {"
             "    background-color: #005555;"
             "}"
         )
-        self.pdf_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))  # Set the button cursor
-        self.pdf_button.clicked.connect(self.open_pdf_viewer)  # Connect the button click to the PDF viewer function
+        self.pdf_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.pdf_button.clicked.connect(self.open_pdf_viewer)
 
-        # Add the button to the layout
-        self.gridLayout.addWidget(self.pdf_button, 2, 0, 1, 1, QtCore.Qt.AlignCenter)
+        # Center the button
+        button_container = QtWidgets.QWidget()
+        button_layout = QtWidgets.QHBoxLayout(button_container)
+        button_layout.setContentsMargins(0, 0, 0, 0)
+        button_layout.addWidget(self.pdf_button)
+        button_layout.setAlignment(QtCore.Qt.AlignCenter)
+        self.main_layout.addWidget(button_container)
+
+        # Steps section container
+        steps_container = QtWidgets.QWidget()
+        steps_layout = QtWidgets.QVBoxLayout(steps_container)
+        steps_layout.setContentsMargins(20, 20, 20, 20)
+        steps_layout.setSpacing(20)
+
+        # Steps title
+        steps_title = QtWidgets.QLabel("Steps to Use This Tool")
+        steps_title.setStyleSheet(
+            "font-size: 16px;"
+            "font-family: 'Montserrat', sans-serif;"
+            "font-weight: bold;"
+            "background-color: transparent;"
+        )
+        steps_layout.addWidget(steps_title)
+
+        # Create tables container
+        tables_container = QtWidgets.QWidget()
+        tables_layout = QtWidgets.QHBoxLayout(tables_container)
+        tables_layout.setSpacing(20)
+        tables_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Create tables for workplace and handwriting
+        workplace_table = QtWidgets.QTableWidget()
+        handwriting_table = QtWidgets.QTableWidget()
+
+        # Common table style
+        table_style = """
+            QTableWidget {
+                background-color: white;
+                border-radius: 8px;
+                border: none;
+            }
+            QHeaderView::section {
+                background-color: #e0e0e0;
+                padding: 15px;
+                font-weight: bold;
+                font-size: 14px;
+                font-family: 'Montserrat', sans-serif;
+                border: none;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+            }
+            QTableWidget::item {
+                padding: 15px;
+                font-size: 14px;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 1.6;
+            }
+        """
+        workplace_table.setStyleSheet(table_style)
+        handwriting_table.setStyleSheet(table_style)
+
+        # Configure workplace table
+        workplace_steps = [
+            "<p>1. <b>Input Files:</b> Input .svc files to augment</p>",
+            "<p>2. <b>Multiple Inputs:</b> Add more files by clicking 'Add More.'</p>",
+            "<p>3. <b>Preview Section:</b> Review the data you entered.</p>",
+            "<p>4. <b>Delete Input:</b> You can delete input by clicking the 'X' button.</p>",
+            "<p>5. <b>Train Model:</b> If the model doesn't exist, train the model first with the selected data</p>",
+            "<p>6. <b>Select Model:</b> Select a pre-trained model to use in generating</p>",
+            "<p>7. <b>Number of Synthetic Data:</b> Enter the number of data points to generate.</p>",
+            "<p>8. <b>Generate Synthetic Data:</b> Click to generate synthetic data.</p>",
+            "<p>9. <b>Results:</b> Check the generated results.</p>"
+        ]
+        self.setup_table(workplace_table, "For Workplace", workplace_steps)
+
+        # Configure handwriting table
+        handwriting_steps = [
+            "<p>1. <b>Start Drawing:</b> Click the 'Start Handwriting' button.</p>",
+            "<p>2. <b>Handwrite or Draw:</b> Begin drawing or writing. If something goes wrong, click 'Clear Drawing.'</p>",
+            "<p>3. <b>Finish Drawing:</b> When you're done, click 'Done' to return to the main page.</p>",
+            "<p>4. <b>Multiple Drawings:</b> Add more handwriting by clicking 'Draw More.'</p>",
+            "<p>5. <b>Clear Drawing:</b> Clear all handwriting by clicking 'Clear All.'</p>",
+            "<p>6. <b>Number of Synthetic Data:</b> Enter the number of data points to generate.</p>",
+            "<p>7. <b>Preview Section:</b> Review the data you entered.</p>",
+            "<p>8. <b>Generate Synthetic Data:</b> Click to generate synthetic data.</p>",
+            "<p>9. <b>Results:</b> Check the generated results.</p>"
+        ]
+        self.setup_table(handwriting_table, "For Handwriting", handwriting_steps)
+
+        # Add tables to layout
+        tables_layout.addWidget(workplace_table)
+        tables_layout.addWidget(handwriting_table)
+
+        # Add tables container to steps layout
+        steps_layout.addWidget(tables_container)
+
+        # Add steps container to main layout
+        self.main_layout.addWidget(steps_container)
+
+        # Set up the main layout for the scroll area
+        main_scroll_layout = QtWidgets.QVBoxLayout(self)
+        main_scroll_layout.setContentsMargins(0, 0, 0, 0)
+        main_scroll_layout.addWidget(scroll_area)
+
+    def setup_table(self, table, title, steps):
+        # Set table properties
+        table.setColumnCount(1)
+        table.setRowCount(len(steps))
+        table.setHorizontalHeaderLabels([title])
+        table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        table.verticalHeader().setVisible(False)
+        table.setShowGrid(False)
+        table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+        table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        table.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        
+        # Create label for content
+        for row, step in enumerate(steps):
+            content_label = QtWidgets.QLabel(step)
+            content_label.setWordWrap(True)
+            content_label.setStyleSheet(
+                "font-size: 14px;"
+                "font-family: 'Montserrat', sans-serif;"
+                "line-height: 24px;"
+                "padding: 10px;"
+            )
+        # Add content to table
+            table.setCellWidget(row, 0, content_label)
+            table.resizeRowToContents(row)
 
     def open_pdf_viewer(self):
-        # Open the PDF viewer with the specified file
-        file_name = "main_paper.pdf"  # Name of the PDF file
-        file_path = os.path.join(os.path.dirname(__file__), '../paper', file_name)  # Path to the PDF file
+        file_name = "main_paper.pdf"
+        file_path = os.path.join(os.path.dirname(__file__), '../paper', file_name)
 
-        # Check if the file exists
         if not os.path.exists(file_path):
-            QtWidgets.QMessageBox.critical(self, "Error", "PDF file not found!")  # Show error if the file is missing
+            QtWidgets.QMessageBox.critical(self, "Error", "PDF file not found!")
             return
 
-        # Open the PDF in the PDFViewer component
         self.pdf_viewer = PDFViewer(file_path)
         self.pdf_viewer.show()
 
 
 if __name__ == "__main__":
     import sys
-    app = QtWidgets.QApplication(sys.argv)  # Initialize the Qt application
-    about = About()  # Create an instance of the About widget
-    about.show()  # Show the About widget
-    sys.exit(app.exec_())  # Execute the application event loop
+    app = QtWidgets.QApplication(sys.argv)
+    about = About()
+    about.show()
+    sys.exit(app.exec_())

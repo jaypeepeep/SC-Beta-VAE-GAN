@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect
 
 class CollapsibleWidget(QtWidgets.QWidget):
     def __init__(self, title="Show More", parent=None):
@@ -63,6 +64,13 @@ class CollapsibleWidget(QtWidgets.QWidget):
                 background-color: #DADADA; /* Slightly darker for checked state */
             }
         """)
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setXOffset(0)
+        shadow.setYOffset(2)
+        shadow.setColor(QtGui.QColor(0, 0, 0, 25))
+        self.toggle_button.setGraphicsEffect(shadow)
+
         self.toggle_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.main_layout.addWidget(self.toggle_button)
 
@@ -82,6 +90,13 @@ class CollapsibleWidget(QtWidgets.QWidget):
                 padding: 15px;  /* Optional: adds padding around content */
             }
         """)
+
+        container_shadow = QGraphicsDropShadowEffect()
+        container_shadow.setBlurRadius(15)
+        container_shadow.setXOffset(0)
+        container_shadow.setYOffset(2)
+        container_shadow.setColor(QtGui.QColor(0, 0, 0, 25))
+        self.collapsible_container.setGraphicsEffect(container_shadow)
 
         self.main_layout.addWidget(self.collapsible_container)
 
