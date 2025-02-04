@@ -215,7 +215,56 @@ class SVCpreview(QtWidgets.QWidget):
         )
         self.container_layout.addWidget(self.results_text)
 
-        self.results_text.setPlainText("Results")
+        # Performance Metrics Description
+        self.performance_metrics_title = QtWidgets.QLabel("What do these performance metrics mean?", self.container_widget)
+        self.performance_metrics_title.setStyleSheet(
+            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-top: 20px; margin-bottom: 10px;"
+        )
+        self.container_layout.addWidget(self.performance_metrics_title)
+
+        # NRMSE description
+        self.nrmse_description = QtWidgets.QLabel(
+            "<b>1. Normalized Root Mean Square Error (NRMSE)</b><br>"
+            "What it means: NRMSE shows how close synthetic data is to real data.<br>"
+            "<b>Low NRMSE:</b> Synthetic data is very similar to real data.<br>"
+            "<b>High NRMSE:</b> Synthetic data differs a lot from real data, and the model needs improvement.",
+            self.container_widget
+        )
+        self.nrmse_description.setStyleSheet(
+            "font-family: Montserrat; font-size: 12px; font-weight: normal; margin-bottom: 10px;"
+        )
+        self.nrmse_description.setTextFormat(QtCore.Qt.RichText)
+        self.container_layout.addWidget(self.nrmse_description)
+
+        # Post-Hoc Discriminative Score description
+        self.discriminative_description = QtWidgets.QLabel(
+            "<b>2. Post-Hoc Discriminative Score</b><br>"
+            "What it means: This score shows how well a model can tell the difference between real and synthetic data.<br>"
+            "<b>50% accuracy:</b> Synthetic data is as realistic as real data.<br>"
+            "<b>Close to 50%:</b> Synthetic data is very similar to real data.<br>"
+            "<b>Above 50%:</b> The model can easily tell the difference, meaning the synthetic data is not realistic.",
+            self.container_widget
+        )
+        self.discriminative_description.setStyleSheet(
+            "font-family: Montserrat; font-size: 12px; font-weight: normal; margin-bottom: 10px;"
+        )
+        self.discriminative_description.setTextFormat(QtCore.Qt.RichText)
+        self.container_layout.addWidget(self.discriminative_description)
+
+        # MAPE description
+        self.mape_description = QtWidgets.QLabel(
+            "<b>3. Post-Hoc Predictive Score</b><br>"
+            "What it means: This shows how accurately synthetic data can predict future data points.<br>"
+            "<b>Low PHPS:</b> Synthetic data predicts well, matching real data patterns.<br>"
+            "<b>High PHPS:</b> Synthetic data doesn't predict well and differs from real data trends.",
+            self.container_widget
+        )
+        self.mape_description.setStyleSheet(
+            "font-family: Montserrat; font-size: 12px; font-weight: normal; margin-bottom: 10px;"
+        )
+        self.mape_description.setTextFormat(QtCore.Qt.RichText)
+        self.container_layout.addWidget(self.mape_description)
+
 
         # Set the layout for the widget
         self.setLayout(self.container_layout)
