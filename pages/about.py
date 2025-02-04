@@ -242,7 +242,7 @@ class About(QtWidgets.QWidget):
             table.resizeRowToContents(row)
 
     def open_pdf_viewer(self):
-        file_name = "main_paper.pdf"
+        file_name = "final_paper.pdf"
         file_path = os.path.join(os.path.dirname(__file__), '../paper', file_name)
 
         if not os.path.exists(file_path):
