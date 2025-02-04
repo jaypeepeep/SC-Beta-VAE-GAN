@@ -132,10 +132,10 @@ class Workplace(QtWidgets.QWidget):
             self.generate_data_button, alignment=QtCore.Qt.AlignCenter
         )
 
-        spacer = QtWidgets.QSpacerItem(
-            20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
-        button_layout.addItem(spacer)
+        # spacer = QtWidgets.QSpacerItem(
+        #     8, 8, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        # )
+        # button_layout.addItem(spacer)
 
         # Adding the button to the main layout
         self.gridLayout.addLayout(button_layout, 1, 0)
