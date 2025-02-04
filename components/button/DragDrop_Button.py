@@ -63,10 +63,18 @@ class DragDrop_Button(QtWidgets.QWidget):
             "font-family: Montserrat; font-size: 12px; font-weight: bold; color: #535353; border: none; padding: 5px;"
         )
 
+        # Add text for "Accepted files"
+        self.accepted_files_label = QtWidgets.QLabel("Accepted files: *.svc", self.drop_area)
+        self.accepted_files_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.accepted_files_label.setStyleSheet(
+            "font-family: Montserrat; font-size: 12px; font-weight: bold; color: #535353; border: none; padding: 5px;"
+        )
+
         # Add the button and labels to the drop area layout
         self.drop_area_layout.addWidget(self.file_button, 0, QtCore.Qt.AlignHCenter)
         self.drop_area_layout.addWidget(self.or_label, 0, QtCore.Qt.AlignHCenter)
         self.drop_area_layout.addWidget(self.drop_label, 0, QtCore.Qt.AlignHCenter)
+        self.drop_area_layout.addWidget(self.accepted_files_label, 0, QtCore.Qt.AlignHCenter)
 
         # Add the drop area to the main layout
         self.layout.addWidget(self.drop_area)
