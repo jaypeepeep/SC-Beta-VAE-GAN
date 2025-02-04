@@ -326,7 +326,7 @@ class Workplace(QtWidgets.QWidget):
     def update_file_scroll_area(self):
         """Update the scroll area's height based on the visibility of the DragDrop_Button."""
         if self.file_upload_widget.isVisible():
-            self.file_scroll_area.setMinimumHeight(0)  # Reset to 0 if visible
+            self.file_scroll_area.setMinimumHeight(140)  # Reset to 0 if visible
         else:
             self.file_scroll_area.setMinimumHeight(300)  # Expand if not visible
         
@@ -375,7 +375,7 @@ class Workplace(QtWidgets.QWidget):
         # Create a scrollable area to hold the file widgets
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
-        self.file_scroll_area.setMinimumHeight(0)
+        self.file_scroll_area.setMinimumHeight(70)
         self.scroll_layout.addWidget(self.file_scroll_area)
         
 
