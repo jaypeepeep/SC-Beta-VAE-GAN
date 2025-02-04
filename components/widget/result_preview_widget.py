@@ -96,6 +96,7 @@ class SVCpreview(QtWidgets.QWidget):
             "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
         )
         self.text_preview1_layout.addWidget(self.text_preview1)
+        
 
         # Graph container for input
         self.input_graph_container = QtWidgets.QWidget(self.container_widget)
@@ -179,7 +180,15 @@ class SVCpreview(QtWidgets.QWidget):
         # Add the horizontal layout to the container layout
         self.container_layout.addLayout(self.preview_layout)
 
-        # Results table area
+        # Comparison table title
+        self.results_table_title = QtWidgets.QLabel("Comparison of Original and Synthetic Handwriting Time Series Data (1: Original, 2: Synthetic)", self.container_widget)
+        self.results_table_title.setStyleSheet(
+            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+        )
+        self.results_table_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.container_layout.addWidget(self.results_table_title)
+
+        # Comparison table
         self.results_table = QtWidgets.QTableWidget(self.container_widget)
         self.results_table.setFixedHeight(400)
         self.results_table.setStyleSheet(
@@ -188,6 +197,14 @@ class SVCpreview(QtWidgets.QWidget):
         self.results_table.setColumnCount(0)  
         self.results_table.setRowCount(0)  
         self.container_layout.addWidget(self.results_table)
+
+        # Results text title
+        self.results_text_title = QtWidgets.QLabel("Performance Metrics", self.container_widget)
+        self.results_text_title.setStyleSheet(
+            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+        )
+        self.results_text_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.container_layout.addWidget(self.results_text_title)
 
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
