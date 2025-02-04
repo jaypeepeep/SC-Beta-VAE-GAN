@@ -29,14 +29,14 @@ class Ui_MainWindow(object):
         self.widget_3 = QtWidgets.QWidget(self.centralwidget)
         self.widget_3.setObjectName("widget_3")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.widget_3)
-        self.verticalLayout_5.setContentsMargins(0, 10, 0, 0)
+        self.verticalLayout_5.setContentsMargins(0, 3, 0, 0)
         self.verticalLayout_5.setSpacing(0)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
 
         # Horizontal Layout for Menu Button, Title, and Subtitle
         self.header_widget = QtWidgets.QWidget(self.widget_3)
         self.header_layout = QtWidgets.QHBoxLayout(self.header_widget)
-        self.header_layout.setContentsMargins(5, 5, 5, 5)
+        # self.header_layout.setContentsMargins(5, 2, 5, 2)
         self.header_layout.setSpacing(0)
         self.header_layout.setObjectName("header_layout")
 
@@ -79,7 +79,7 @@ class Ui_MainWindow(object):
         self.header_layout.addLayout(self.title_subtitle_layout)
 
         # Spacer After Title (Right Spacer)
-        self.right_spacer = QtWidgets.QSpacerItem(300, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.right_spacer = QtWidgets.QSpacerItem(100, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.header_layout.addItem(self.right_spacer)
 
         # Add Header Layout to Vertical Layout
