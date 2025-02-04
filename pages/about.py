@@ -66,7 +66,8 @@ class About(QtWidgets.QWidget):
 
         # Introduction text
         intro_text = QtWidgets.QLabel(
-            "<p>SC-β-VAE-GAN stands for Shift Correction β-Variational Autoencoder-Generative Adversarial Network. It is a hybrid model designed to address the challenges of imputing and augmenting handwriting multivariate time series data.</p>"
+            "<p><span style='color: #005555; font-weight: bold;'>SC-β-VAE-GAN</span> stands for Shift Correction β-Variational Autoencoder-Generative Adversarial Network. "
+            "It is a hybrid model designed to address the challenges of imputing and augmenting handwriting multivariate time series data.</p>"
             "<p><b>Key Components</b></p>"
             "<ul>"
             "<li><b>Variational Autoencoder (VAE):</b> A type of generative model that learns the underlying distribution of data to generate new, similar data samples.</li>"
@@ -78,10 +79,12 @@ class About(QtWidgets.QWidget):
             "<li><b>Data Imputation:</b> Filling in missing values in multivariate time series data.</li>"
             "<li><b>Data Augmentation:</b> Generating additional synthetic data to expand the available dataset.</li>"
             "</ul>"
+            "<p style='text-align: center;'>View the full study to understand the complete framework, methodology, and key insights behind "
+            "<span style='color: #005555; font-weight: bold;'>SC-β-VAE-GAN</span>.</p>"
         )
         intro_text.setWordWrap(True)
         intro_text.setStyleSheet(
-            "font-size: 16px;"
+            "font-size: 20px;"
             "font-family: 'Montserrat', sans-serif;"
             "line-height: 24.38px;"
         )
@@ -96,7 +99,7 @@ class About(QtWidgets.QWidget):
             "    border: none;"
             "    padding: 15px 30px;"
             "    border-radius: 8px;"
-            "    font-size: 14px;"
+            "    font-size: 20px;"
             "    font-weight: bold;"
             "    font-family: 'Montserrat', sans-serif;"
             "}"
@@ -122,9 +125,10 @@ class About(QtWidgets.QWidget):
         steps_layout.setSpacing(20)
 
         # Steps title
-        steps_title = QtWidgets.QLabel("Steps to Use This Tool")
+        steps_title = QtWidgets.QLabel("HOW TO USE THE TOOL")
+        steps_title.setAlignment(QtCore.Qt.AlignCenter) 
         steps_title.setStyleSheet(
-            "font-size: 16px;"
+            "font-size: 25px;"
             "font-family: 'Montserrat', sans-serif;"
             "font-weight: bold;"
             "background-color: transparent;"
@@ -152,7 +156,7 @@ class About(QtWidgets.QWidget):
                 background-color: #e0e0e0;
                 padding: 15px;
                 font-weight: bold;
-                font-size: 14px;
+                font-size: 20px;
                 font-family: 'Montserrat', sans-serif;
                 border: none;
                 border-top-left-radius: 8px;
@@ -160,7 +164,7 @@ class About(QtWidgets.QWidget):
             }
             QTableWidget::item {
                 padding: 15px;
-                font-size: 14px;
+                font-size: 20px;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 1.6;
             }
@@ -185,7 +189,7 @@ class About(QtWidgets.QWidget):
         # Configure handwriting table
         handwriting_steps = [
             "<p>1. <b>Start Drawing:</b> Click the 'Start Handwriting' button.</p>",
-            "<p>2. <b>Handwrite or Draw:</b> Begin drawing or writing. If something goes wrong, click 'Clear Drawing.'</p>",
+            "<p>2. <b>Handwrite or Draw:</b> Begin drawing or writing.</p>",
             "<p>3. <b>Finish Drawing:</b> When you're done, click 'Done' to return to the main page.</p>",
             "<p>4. <b>Multiple Drawings:</b> Add more handwriting by clicking 'Draw More.'</p>",
             "<p>5. <b>Clear Drawing:</b> Clear all handwriting by clicking 'Clear All.'</p>",
@@ -228,10 +232,10 @@ class About(QtWidgets.QWidget):
             content_label = QtWidgets.QLabel(step)
             content_label.setWordWrap(True)
             content_label.setStyleSheet(
-                "font-size: 14px;"
+                "font-size: 20px;"
                 "font-family: 'Montserrat', sans-serif;"
-                "line-height: 24px;"
-                "padding: 10px;"
+                "line-height: 10x;"
+                "padding: 0px;"
             )
         # Add content to table
             table.setCellWidget(row, 0, content_label)
