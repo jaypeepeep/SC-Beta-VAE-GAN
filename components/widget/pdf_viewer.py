@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtGui import QIcon
 import fitz  # PyMuPDF
 import os
+import shutil  # To copy the file to a user-selected location
 
 class PDFViewer(QtWidgets.QWidget):
     def __init__(self, pdf_path, parent=None):
@@ -18,7 +19,6 @@ class PDFViewer(QtWidgets.QWidget):
         # Set window size to a fraction of the screen
         screen = QtWidgets.QDesktopWidget().screenGeometry()
         self.setGeometry(screen.width() // 4, screen.height() // 4, screen.width() // 2, screen.height() // 2)
-
 
         self.gridLayout = QtWidgets.QGridLayout(self)
 
@@ -41,6 +41,11 @@ class PDFViewer(QtWidgets.QWidget):
         self.zoom_slider.setValue(100)  # Default to 100%
         self.zoom_slider.valueChanged.connect(self.on_zoom_changed)
         self.gridLayout.addWidget(self.zoom_slider, 1, 0)
+
+        # Download Button
+        self.download_button = QtWidgets.QPushButton("Download PDF", self)
+        self.download_button.clicked.connect(self.on_download_button_clicked)
+        self.gridLayout.addWidget(self.download_button, 2, 0)
 
     def load_pdf(self):
         if not os.path.exists(self.pdf_path):
@@ -91,6 +96,18 @@ class PDFViewer(QtWidgets.QWidget):
     def on_zoom_changed(self, value):
         self.zoom_factor = value / 100.0  # Convert slider value to zoom factor
         self.display_all_pages()  # Re-render pages with the new zoom factor
+
+    def on_download_button_clicked(self):
+        default_filename = "SC-β-VAE-GAN A SHIFT CORRECTION VAE-GAN MODEL FOR IMPUTATION AND AUGMENTATION OF HANDWRITING MULTIVARIATE TIME SERIES DATA.pdf"
+        save_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save PDF", default_filename, "PDF Files (*.pdf)")
+
+        if save_path:
+            try:
+                # Copy the PDF file to the selected path
+                shutil.copy(self.pdf_path, save_path)
+                QtWidgets.QMessageBox.information(self, "Download Successful", "PDF downloaded successfully!")
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(self, "Error", f"Failed to download PDF: {e}")
 
     def resizeEvent(self, event):
         # Center the PDF in the scroll area when the window is resized
