@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QMessageBox
 from PyQt5.QtGui import QColor
 import os
 import shutil
+from font.dynamic_font_size import get_font_sizes, apply_fonts
+from PyQt5.QtGui import QFont
 
 class OutputWidget(QtWidgets.QWidget):
     clearUI = QtCore.pyqtSignal()
@@ -12,7 +14,10 @@ class OutputWidget(QtWidgets.QWidget):
         self.parent = parent
         self.output_zip_path = None
         self.setup_output_collapsible()
-        self.setVisible(False) 
+        self.setVisible(False)
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        content_font = QFont(font_family, font_sizes["content"]) 
 
     def setup_output_collapsible(self):
         """Set up the 'Output' collapsible widget"""
@@ -37,7 +42,7 @@ class OutputWidget(QtWidgets.QWidget):
         file_container_layout.setContentsMargins(10, 10, 10, 10)
 
         self.file_label = QtWidgets.QLabel("Time-series_Data.zip")
-        self.file_label.setStyleSheet("font-family: Montserrat; font-size: 14px; color: black;")
+        self.file_label.setStyleSheet("font-family: Montserrat; font-size: {font_sizes['title']}px; color: black;")
         file_container_layout.addWidget(self.file_label)
 
         button_container = QtWidgets.QWidget(self)
@@ -52,7 +57,7 @@ class OutputWidget(QtWidgets.QWidget):
                 background-color: transparent;
                 font-family: Montserrat;
                 font-weight: 600;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 padding: 5px 15px;
                 border-radius: 5px;
             }QPushButton:hover {
@@ -70,7 +75,7 @@ class OutputWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: {font_sizes['button']}px;
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px;
@@ -90,7 +95,7 @@ class OutputWidget(QtWidgets.QWidget):
                 font-weight: 600;
                 color: #FF5252;
                 font-family: Montserrat;
-                font-size: 20px;
+                font-size: {font_sizes['button']}px;
                 padding: 5px;
             }
         """)
@@ -120,7 +125,7 @@ class OutputWidget(QtWidgets.QWidget):
             border: none;
             padding: 5px 15px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: {font_sizes['button']}px;
             font-weight: bold;
             font-family: 'Montserrat', sans-serif;
         """)
@@ -131,14 +136,14 @@ class OutputWidget(QtWidgets.QWidget):
             border: none;
             padding: 5px 15px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: {font_sizes['button']}px;
             font-weight: bold;
             font-family: 'Montserrat', sans-serif;
         """)
         # Apply the stylesheet
         confirm_msg.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
                 font-weight: bold;
                 margin: 32px 32px;
                 font-family: 'Montserrat', sans-serif;
@@ -150,7 +155,7 @@ class OutputWidget(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -182,7 +187,7 @@ class OutputWidget(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 12px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             """)
@@ -190,7 +195,7 @@ class OutputWidget(QtWidgets.QWidget):
             # Apply the same stylesheet
             finish_msg.setStyleSheet("""
                 QMessageBox {
-                    font-size: 12px;
+                    font-size: {font_sizes['content']}px;
                     font-weight: bold;
                     margin: 32px 32px;
                     font-family: 'Montserrat', sans-serif;
@@ -226,7 +231,7 @@ class OutputWidget(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 12px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             """)
@@ -237,7 +242,7 @@ class OutputWidget(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 12px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             """)
@@ -246,7 +251,7 @@ class OutputWidget(QtWidgets.QWidget):
             # Apply the stylesheet for the confirmation box
             confirm_msg.setStyleSheet("""
                 QMessageBox {
-                    font-size: 12px;
+                    font-size: {font_sizes['content']}px;
                     font-weight: bold;
                     margin: 32px 32px;
                     font-family: 'Montserrat', sans-serif;
@@ -291,7 +296,7 @@ class OutputWidget(QtWidgets.QWidget):
                             border: none;
                             padding: 5px 15px;
                             border-radius: 5px;
-                            font-size: 12px;
+                            font-size: {font_sizes['button']}px;
                             font-weight: bold;
                             font-family: 'Montserrat', sans-serif;
                         """)
@@ -316,7 +321,7 @@ class OutputWidget(QtWidgets.QWidget):
                             border: none;
                             padding: 5px 15px;
                             border-radius: 5px;
-                            font-size: 12px;
+                            font-size: {font_sizes['button']}px;
                             font-weight: bold;
                             font-family: 'Montserrat', sans-serif;
                         """)
@@ -346,7 +351,7 @@ class OutputWidget(QtWidgets.QWidget):
             border: none;
             padding: 5px 15px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: {font_sizes['button']}px;
             font-weight: bold;
             font-family: 'Montserrat', sans-serif;
         """)
@@ -357,7 +362,7 @@ class OutputWidget(QtWidgets.QWidget):
             border: none;
             padding: 5px 15px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: {font_sizes['button']}px;
             font-weight: bold;
             font-family: 'Montserrat', sans-serif;
         """)
@@ -392,7 +397,7 @@ class OutputWidget(QtWidgets.QWidget):
                         border: none;
                         padding: 5px 15px;
                         border-radius: 5px;
-                        font-size: 12px;
+                        font-size: {font_sizes['button']}px;
                         font-weight: bold;
                         font-family: 'Montserrat', sans-serif;
                     """)
@@ -417,7 +422,7 @@ class OutputWidget(QtWidgets.QWidget):
                         border: none;
                         padding: 5px 15px;
                         border-radius: 5px;
-                        font-size: 12px;
+                        font-size: {font_sizes['button']}px;
                         font-weight: bold;
                         font-family: 'Montserrat', sans-serif;
                     """)
@@ -456,7 +461,7 @@ class OutputWidget(QtWidgets.QWidget):
         # Apply custom stylesheet to the error message box
         error_box.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
                 font-weight: bold;
                 margin: 32px 32px;
                 font-family: 'Montserrat', sans-serif;
@@ -469,7 +474,7 @@ class OutputWidget(QtWidgets.QWidget):
                 border: none;
                 padding: 8px 20px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             }

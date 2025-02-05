@@ -1,12 +1,17 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect
+from font.dynamic_font_size import get_font_sizes, apply_fonts
+from PyQt5.QtGui import QFont
 
 class CollapsibleWidget(QtWidgets.QWidget):
     def __init__(self, title="Show More", parent=None):
         super(CollapsibleWidget, self).__init__(parent)
         self.title = title
         self.setupUi()
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        content_font = QFont(font_family, font_sizes["content"]) 
 
     def setupUi(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
@@ -34,10 +39,12 @@ class CollapsibleWidget(QtWidgets.QWidget):
         self.button_text.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.button_text.setStyleSheet("""
             font-family: 'Montserrat';
-            font-size: 14px;
+            font-size: {font_sizes['title']}px;
             font-weight: 600;
             color: #000000;
             padding: 15px;
+            padding-bottom: 0px;
+            padding-top: 0px;
         """)
 
         # Label for the icon

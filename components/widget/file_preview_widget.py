@@ -1,11 +1,16 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import os
+from font.dynamic_font_size import get_font_sizes, apply_fonts
+from PyQt5.QtGui import QFont
 
 class FilePreviewWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(FilePreviewWidget, self).__init__(parent)
         self.uploaded_files = []
         self.setupUi()
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        content_font = QFont(font_family, font_sizes["content"])
 
     def setupUi(self):
         self.container_widget = QtWidgets.QWidget(self)
@@ -17,7 +22,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
         # Horizontal layout for first filename and select file button
         self.filename_button_layout = QtWidgets.QHBoxLayout()
         self.filename = QtWidgets.QLabel("Filename", self.container_widget)
-        self.filename.setStyleSheet("font-family: Montserrat; font-size: 14px; font-weight: bold;")
+        self.filename.setStyleSheet("font-family: Montserrat; font-size: {font_sizes['content']}px; font-weight: bold;")
         self.filename_button_layout.addWidget(self.filename, alignment=QtCore.Qt.AlignLeft)
 
         # Select file button
@@ -28,7 +33,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 15px; 
+                font-size: {font_sizes['button']}px; 
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px;
@@ -61,7 +66,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
                 background-color: white; 
                 border: 1px solid #dcdcdc; 
                 font-family: Montserrat; 
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
             }
             QTextEdit QScrollBar:vertical {
                 border: none;
@@ -134,6 +139,8 @@ class FilePreviewWidget(QtWidgets.QWidget):
         dialog = QtWidgets.QDialog(self)
         dialog.setWindowTitle("Select File")
         dialog.setWindowFlags(dialog.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
+        dialog.setMinimumSize(400, 300)
+        dialog.setMaximumSize(600, 500)
         dialog.setStyleSheet(
             """
             QDialog {
@@ -147,7 +154,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
                 color: white;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
             }
             QPushButton:hover {
@@ -158,7 +165,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
                 border: 1px solid #dcdcdc;
                 padding: 5px;
                 margin: 5px 0;
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
             }
             """
         )
@@ -172,7 +179,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
         label.setStyleSheet(
             """
             QLabel {
-                font-size: 16px; 
+                font-size: {font_sizes['title']}px; 
                 font-weight: bold; 
                 color: black;      
                 background: none;  
