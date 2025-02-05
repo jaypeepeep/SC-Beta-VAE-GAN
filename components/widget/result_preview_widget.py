@@ -37,17 +37,23 @@ class SVCpreview(QtWidgets.QWidget):
         self.container_layout = QtWidgets.QVBoxLayout(self.container_widget)
 
         # Horizontal layout for text previews and their labels
-        self.preview_layout = QtWidgets.QHBoxLayout()
+        self.title_layout = QtWidgets.QHBoxLayout()
+        self.text_preview_layout = QtWidgets.QHBoxLayout()
+        self.graph_preview_layout = QtWidgets.QHBoxLayout()
+        self.handwriting_preview_layout = QtWidgets.QHBoxLayout()
 
-        # Vertical layout for first text preview
-        self.text_preview1_layout = QtWidgets.QVBoxLayout()
+        # Vertical layout for results title
+        self.text_title1_layout = QtWidgets.QVBoxLayout()
+
         self.label1 = QtWidgets.QLabel("Input", self.container_widget)
         self.label1.setStyleSheet(
             "font-family: Montserrat; font-size: 14px; font-weight: bold; text-align: center;"
         )
-        self.text_preview1_layout.addWidget(
-            self.label1, alignment=QtCore.Qt.AlignCenter
-        )
+        self.label1.setAlignment(QtCore.Qt.AlignCenter)
+        self.text_title1_layout.addWidget(self.label1)
+
+        # Vertical layout for first text preview
+        self.text_preview1_layout = QtWidgets.QVBoxLayout()
 
         # Horizontal layout for first filename and select file button
         self.filename_button_layout1 = QtWidgets.QHBoxLayout()
@@ -126,8 +132,21 @@ class SVCpreview(QtWidgets.QWidget):
                 """
         )
         self.text_preview1_layout.addWidget(self.text_preview1)
-        
 
+        # Vertical layout for graph form title
+        self.graph_title_layout = QtWidgets.QHBoxLayout()
+
+        # Graph form title
+        self.graph_form_title = QtWidgets.QLabel("Graph Form", self.container_widget)
+        self.graph_form_title.setStyleSheet(
+            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+        )
+        self.graph_form_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.graph_title_layout.addWidget(self.graph_form_title)
+
+        # Vertical layout for first graph preview
+        self.graph_preview1_layout = QtWidgets.QVBoxLayout()
+        
         # Graph container for input
         self.input_graph_container = QtWidgets.QWidget(self.container_widget)
         self.input_graph_container.setFixedHeight(400)
@@ -135,17 +154,22 @@ class SVCpreview(QtWidgets.QWidget):
             "background-color: #f0f0f0; border: 1px solid #dcdcdc;"
         )
         self.input_graph_layout = QtWidgets.QVBoxLayout(self.input_graph_container)
-        self.text_preview1_layout.addWidget(self.input_graph_container)
+        self.graph_preview1_layout.addWidget(self.input_graph_container)
 
         # Vertical layout for second text preview
         self.text_preview2_layout = QtWidgets.QVBoxLayout()
+
+        # Vertical layout for results title
+        self.text_title2_layout = QtWidgets.QVBoxLayout()
+        self.text_title2_layout.setAlignment(QtCore.Qt.AlignCenter)  # Ensure layout contents are centered
+
         self.label2 = QtWidgets.QLabel("Output", self.container_widget)
         self.label2.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; text-align: center;"
+            "font-family: Montserrat; font-size: 14px; font-weight: bold;"
         )
-        self.text_preview2_layout.addWidget(
-            self.label2, alignment=QtCore.Qt.AlignCenter
-        )
+        self.label2.setAlignment(QtCore.Qt.AlignCenter)
+        self.text_title2_layout.addWidget(self.label2)
+
 
         # Horizontal layout for second filename and select file button
         self.filename_button_layout2 = QtWidgets.QHBoxLayout()
@@ -193,20 +217,67 @@ class SVCpreview(QtWidgets.QWidget):
         self.text_preview2.setStyleSheet(self.text_preview1.styleSheet())
         self.text_preview2_layout.addWidget(self.text_preview2)
 
+        # Vertical layout for second graph preview
+        self.graph_preview2_layout = QtWidgets.QVBoxLayout()
+
         self.output_graph_container = QtWidgets.QWidget(self.container_widget)
         self.output_graph_container.setFixedHeight(400)
         self.output_graph_container.setStyleSheet(
             "background-color: #f0f0f0; border: 1px solid #dcdcdc;"
         )
         self.output_graph_layout = QtWidgets.QVBoxLayout(self.output_graph_container)
-        self.text_preview2_layout.addWidget(self.output_graph_container)
+        self.graph_preview2_layout.addWidget(self.output_graph_container)
+
+        # Vertical layout for text form title
+        self.text_title_layout = QtWidgets.QHBoxLayout()
+
+        # Text form title
+        self.text_form_title = QtWidgets.QLabel("Text Form", self.container_widget)
+        self.text_form_title.setStyleSheet(
+            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+        )
+        self.text_form_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.text_title_layout.addWidget(self.text_form_title)
+
+        # Vertical layout for handwriting form title
+        self.handwriting_title_layout = QtWidgets.QHBoxLayout()
+
+        # Handwriting form title
+        self.handwriting_form_title = QtWidgets.QLabel("Handwriting Form", self.container_widget)
+        self.handwriting_form_title.setStyleSheet(
+            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+        )
+        self.handwriting_form_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.handwriting_title_layout.addWidget(self.handwriting_form_title)
+
+        # Vertical layout for first handwriting preview
+        self.handwriting_preview1_layout = QtWidgets.QVBoxLayout()
+
+        # Vertical layout for second handwriting preview
+        self.handwriting_preview2_layout = QtWidgets.QVBoxLayout()
+
+        # Add both vertical label to the horizontal layout
+        self.title_layout.addLayout(self.text_title1_layout)
+        self.title_layout.addLayout(self.text_title2_layout)
 
         # Add both vertical layouts to the horizontal layout
-        self.preview_layout.addLayout(self.text_preview1_layout)
-        self.preview_layout.addLayout(self.text_preview2_layout)
+        self.text_preview_layout.addLayout(self.text_preview1_layout)
+        self.text_preview_layout.addLayout(self.text_preview2_layout)
+
+        self.graph_preview_layout.addLayout(self.graph_preview1_layout)
+        self.graph_preview_layout.addLayout(self.graph_preview2_layout)
+
+        self.handwriting_preview_layout.addLayout(self.handwriting_preview1_layout)
+        self.handwriting_preview_layout.addLayout(self.handwriting_preview2_layout)
 
         # Add the horizontal layout to the container layout
-        self.container_layout.addLayout(self.preview_layout)
+        self.container_layout.addLayout(self.title_layout)
+        self.container_layout.addLayout(self.text_title_layout)
+        self.container_layout.addLayout(self.text_preview_layout)
+        self.container_layout.addLayout(self.graph_title_layout)
+        self.container_layout.addLayout(self.graph_preview_layout)
+        self.container_layout.addLayout(self.handwriting_title_layout)
+        self.container_layout.addLayout(self.handwriting_preview_layout)
 
         # Comparison table title
         self.results_table_title = QtWidgets.QLabel("Comparison of Original and Synthetic Handwriting Time Series Data (1: Original, 2: Synthetic)", self.container_widget)
@@ -335,7 +406,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.second_output_graph_layout = QtWidgets.QVBoxLayout(
             self.second_output_graph_container
         )
-        self.text_preview2_layout.addWidget(self.second_output_graph_container)
+        self.handwriting_preview2_layout.addWidget(self.second_output_graph_container)
 
         # Second graph container for input
         self.second_input_graph_container = QtWidgets.QWidget(self.container_widget)
@@ -346,19 +417,19 @@ class SVCpreview(QtWidgets.QWidget):
         self.second_input_graph_layout = QtWidgets.QVBoxLayout(
             self.second_input_graph_container
         )
-        self.text_preview1_layout.addWidget(self.second_input_graph_container)
+        self.handwriting_preview1_layout.addWidget(self.second_input_graph_container)
 
     def remove_graph_containers(self):
         # Remove and delete the second output graph container
         if hasattr(self, "second_output_graph_container"):
-            self.text_preview2_layout.removeWidget(self.second_output_graph_container)
+            self.handwriting_preview2_layout.removeWidget(self.second_output_graph_container)
             self.second_output_graph_container.deleteLater()
             del self.second_output_graph_container
             del self.second_output_graph_layout
 
         # Remove and delete the second input graph container
         if hasattr(self, "second_input_graph_container"):
-            self.text_preview1_layout.removeWidget(self.second_input_graph_container)
+            self.handwriting_preview1_layout.removeWidget(self.second_input_graph_container)
             self.second_input_graph_container.deleteLater()
             del self.second_input_graph_container
             del self.second_input_graph_layout
