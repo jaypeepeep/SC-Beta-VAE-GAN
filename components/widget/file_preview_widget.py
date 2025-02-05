@@ -28,7 +28,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: 15px; 
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px;
@@ -40,6 +40,10 @@ class FilePreviewWidget(QtWidgets.QWidget):
         )
         self.select_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.select_file_button.clicked.connect(self.select_file)
+
+        # Set fixed size for the button (CHANGED)
+        self.select_file_button.setFixedSize(150, 40)  # Width: 150px, Height: 40px
+
         self.filename_button_layout.addWidget(self.select_file_button, alignment=QtCore.Qt.AlignRight)
 
         # Add the filename and button layout to the first text preview layout
@@ -63,6 +67,7 @@ class FilePreviewWidget(QtWidgets.QWidget):
 
         # Automatically open the widget
         self.setVisible(True)
+
 
     def set_uploaded_files(self, files):
         """Set the list of uploaded files and display the first one."""

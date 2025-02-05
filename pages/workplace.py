@@ -354,11 +354,9 @@ class Workplace(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: 15px; 
                 font-weight: 600; 
                 padding: 10px 20px;
-                margin-left: 15px; 
-                margin-right: 15px; 
                 border-radius: 5px; 
                 border: none;
             }
@@ -370,14 +368,25 @@ class Workplace(QtWidgets.QWidget):
         self.add_file_button.setFont(font)
         self.add_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.add_file_button.clicked.connect(self.add_more_files)
-        self.scroll_layout.addWidget(self.add_file_button)
+
+        # Set a fixed size to prevent it from expanding
+        self.add_file_button.setFixedSize(180, 40)
+
+        # Create a container and layout to center the button
+        self.button_container = QtWidgets.QWidget(self)
+        self.button_layout = QtWidgets.QHBoxLayout(self.button_container)
+        self.button_layout.setAlignment(QtCore.Qt.AlignCenter)  # Center horizontally
+        self.button_layout.addWidget(self.add_file_button)
+        self.button_container.setLayout(self.button_layout)
+
+        # Add the container to the scroll layout instead of directly adding the button
+        self.scroll_layout.addWidget(self.button_container)
 
         # Create a scrollable area to hold the file widgets
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
         self.file_scroll_area.setMinimumHeight(70)
         self.scroll_layout.addWidget(self.file_scroll_area)
-        
 
         # Connect collapsible state or visibility changes
         self.file_upload_widget.file_uploaded.connect(self.update_file_scroll_area)
@@ -394,13 +403,15 @@ class Workplace(QtWidgets.QWidget):
         # Add the file container widget to the scroll area
         self.file_scroll_area.setWidget(self.file_container_widget)
         self.collapsible_widget_input.add_widget(self.file_scroll_area)
-                
+
         # Initially hide other components
         self.file_upload_widget.setVisible(True)
         self.show_other_components(False)
 
         # Open the collapsible widget by default
         self.collapsible_widget_input.toggle_container(True)
+
+
 
     def show_other_components(self, show=True):
         """Show or hide other components based on file upload."""

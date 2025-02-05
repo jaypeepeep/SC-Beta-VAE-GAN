@@ -40,7 +40,7 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: 15px; 
                 font-weight: 600; 
                 padding: 10px 20px;
                 border-radius: 5px; 
@@ -56,7 +56,12 @@ class ModelWidget(QtWidgets.QWidget):
         """
         self.train_button.setStyleSheet(button_style)
         self.train_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.layout.addWidget(self.train_button)
+
+        # Set fixed size for the button (CHANGED)
+        self.train_button.setFixedSize(160, 40)  # Width: 200px, Height: 40px
+
+        # Center the button horizontally (CHANGED)
+        self.layout.addWidget(self.train_button, alignment=QtCore.Qt.AlignHCenter)
 
         # Table to display files
         self.files_table = QtWidgets.QTableWidget(self)
@@ -83,8 +88,6 @@ class ModelWidget(QtWidgets.QWidget):
                 border: none;
             }
             QTableWidget::item {
-                /* border-bottom: 1px solid #ccc; */
-                 /* padding: 5px; */
                 padding-left: 30px;
                 background-color: transparent;
             }
@@ -112,6 +115,8 @@ class ModelWidget(QtWidgets.QWidget):
         # SpinBox widget
         self.slider_widget = SpinBoxWidget(1)
         self.layout.addWidget(self.slider_widget)
+
+
 
     def load_files(self, directory=None):
         self.uncheck_checkbox()
