@@ -49,25 +49,25 @@ class OutputWidget(QtWidgets.QWidget):
         button_layout = QtWidgets.QHBoxLayout(button_container)
         button_layout.setSpacing(10)
 
-        done_button = QtWidgets.QPushButton("Done")
-        done_button.setStyleSheet("""
-            QPushButton {
-                border: 2px solid #003333;
-                color: #003333;
-                background-color: transparent;
-                font-family: Montserrat;
-                font-weight: 600;
-                font-size: {font_sizes['button']}px;
-                padding: 5px 15px;
-                border-radius: 5px;
-            }QPushButton:hover {
-                background-color: #005555;
-                color: white;
-            }
-        """)
-        done_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        done_button.clicked.connect(self.handle_done_click)
-        button_layout.addWidget(done_button)
+        # done_button = QtWidgets.QPushButton("Done")
+        # done_button.setStyleSheet("""
+        #     QPushButton {
+        #         border: 2px solid #003333;
+        #         color: #003333;
+        #         background-color: transparent;
+        #         font-family: Montserrat;
+        #         font-weight: 600;
+        #         font-size: {font_sizes['button']}px;
+        #         padding: 5px 15px;
+        #         border-radius: 5px;
+        #     }QPushButton:hover {
+        #         background-color: #005555;
+        #         color: white;
+        #     }
+        # """)
+        # done_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        # done_button.clicked.connect(self.handle_done_click)
+        # button_layout.addWidget(done_button)
 
         download_button = QtWidgets.QPushButton("Download")
         download_button.setStyleSheet("""
