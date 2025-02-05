@@ -379,14 +379,14 @@ class Workplace(QtWidgets.QWidget):
         self.button_layout.addWidget(self.add_file_button)
         self.button_container.setLayout(self.button_layout)
 
-        # Add the container to the scroll layout instead of directly adding the button
-        self.scroll_layout.addWidget(self.button_container)
-
         # Create a scrollable area to hold the file widgets
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
         self.file_scroll_area.setMinimumHeight(70)
         self.scroll_layout.addWidget(self.file_scroll_area)
+
+        # Add the container to the scroll layout instead of directly adding the button
+        self.collapsible_widget_input.add_widget(self.button_container)
 
         # Connect collapsible state or visibility changes
         self.file_upload_widget.file_uploaded.connect(self.update_file_scroll_area)
