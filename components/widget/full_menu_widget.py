@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from font.dynamic_font_size import get_font_sizes, apply_fonts   
+from PyQt5.QtGui import QFont
 class FullMenuWidget(QtWidgets.QWidget):
     def __init__(self, parent):
         super(FullMenuWidget, self).__init__(parent)
@@ -47,7 +48,7 @@ class FullMenuWidget(QtWidgets.QWidget):
         workIcon.addPixmap(QtGui.QPixmap("./icon/home active.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.workplace_btn_2.setIcon(workIcon)
         self.workplace_btn_2.setText("Hello")
-        self.workplace_btn_2.setIconSize(QtCore.QSize(20, 20))
+        self.workplace_btn_2.setIconSize(QtCore.QSize(22, 22))
         self.workplace_btn_2.setCheckable(True)
         self.workplace_btn_2.setAutoExclusive(True)
         self.workplace_btn_2.setObjectName("workplace_btn_2")
@@ -58,7 +59,7 @@ class FullMenuWidget(QtWidgets.QWidget):
         handIcon.addPixmap(QtGui.QPixmap("./icon/hand inactive.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         handIcon.addPixmap(QtGui.QPixmap("./icon/hand active.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.handwriting_btn_2.setIcon(handIcon)
-        self.handwriting_btn_2.setIconSize(QtCore.QSize(20, 20))
+        self.handwriting_btn_2.setIconSize(QtCore.QSize(22, 22))
         self.handwriting_btn_2.setCheckable(True)
         self.handwriting_btn_2.setAutoExclusive(True)
         self.handwriting_btn_2.setObjectName("handwriting_btn_2")
@@ -70,7 +71,7 @@ class FullMenuWidget(QtWidgets.QWidget):
         aboutIcon.addPixmap(QtGui.QPixmap("./icon/about inactive.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         aboutIcon.addPixmap(QtGui.QPixmap("./icon/about active.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.about_btn_2.setIcon(aboutIcon)
-        self.about_btn_2.setIconSize(QtCore.QSize(20, 20))
+        self.about_btn_2.setIconSize(QtCore.QSize(22, 22))
         self.about_btn_2.setCheckable(True)
         self.about_btn_2.setAutoExclusive(True)
         self.about_btn_2.setObjectName("about_btn_2")
@@ -82,7 +83,7 @@ class FullMenuWidget(QtWidgets.QWidget):
         localIcon.addPixmap(QtGui.QPixmap("./icon/local inactive.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         localIcon.addPixmap(QtGui.QPixmap("./icon/local active.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.local_btn_2.setIcon(localIcon)
-        self.local_btn_2.setIconSize(QtCore.QSize(20, 20))
+        self.local_btn_2.setIconSize(QtCore.QSize(22, 22))
         self.local_btn_2.setCheckable(True)
         self.local_btn_2.setAutoExclusive(True)
         self.local_btn_2.setObjectName("local_btn_2")
@@ -97,18 +98,21 @@ class FullMenuWidget(QtWidgets.QWidget):
         exitIcon = QtGui.QIcon()
         exitIcon.addPixmap(QtGui.QPixmap("./icon/close.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.exit_btn_2.setIcon(exitIcon)
-        self.exit_btn_2.setIconSize(QtCore.QSize(20, 20))
+        self.exit_btn_2.setIconSize(QtCore.QSize(22, 22))
         self.exit_btn_2.setObjectName("exit_btn_2")
         self.verticalLayout_4.addWidget(self.exit_btn_2)
         
-        font = QtGui.QFont()
-        font.setPointSize(8)  
-        font.setBold(True)     
-        self.workplace_btn_2.setFont(font)
-        self.handwriting_btn_2.setFont(font)
-        self.about_btn_2.setFont(font)
-        self.local_btn_2.setFont(font)
-        self.exit_btn_2.setFont(font)
+
+        font_sizes = get_font_sizes()  
+        font_family = "Montserrat"
+        side_font = QFont(font_family, font_sizes["sidebar"])
+        side_font.setBold(True)
+        self.workplace_btn_2.setFont(side_font)
+        self.handwriting_btn_2.setFont(side_font)
+        self.about_btn_2.setFont(side_font)
+        self.local_btn_2.setFont(side_font)
+        self.exit_btn_2.setFont(side_font)
+
         
         #set cursor to pointer
         self.workplace_btn_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))

@@ -4,6 +4,7 @@ from PyQt5.QtCore import QFile, QTextStream
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtGui import QIcon
 from layout import Ui_MainWindow
+from PyQt5.QtGui import QFont
 
 
 
@@ -82,7 +83,7 @@ if __name__ == "__main__":
     thin_font_family = QFontDatabase.applicationFontFamilies(thin_font_id)[0]
 
     # Set the default font for the application
-    app.setFont(QFont(regular_font_family, 15))  # Set the default font to regular
+    app.setFont(QFont(regular_font_family, 12))  # Set the default font to regular
 
     # Load and apply the stylesheet
     style_file = QFile("style.qss")
