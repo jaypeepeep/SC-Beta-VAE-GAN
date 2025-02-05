@@ -59,10 +59,15 @@ from glob import glob
 import re
 from PyQt5.QtWidgets import QApplication
 from pages.worker.generator import GenerateDataWorker
+from PyQt5 import QtWidgets, QtGui, QtCore
+from font.dynamic_font_size import apply_fonts, get_font_sizes
 class Workplace(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Workplace, self).__init__(parent)
         self.uploaded_files = []
+        # Get dynamic font sizes and set font family globally for this widget
+        self.font_sizes = get_font_sizes()  
+        self.font_family = "Montserrat"
         self.setupUi()
         self.worker = None
         self.has_files = False
@@ -104,16 +109,12 @@ class Workplace(QtWidgets.QWidget):
 
         # Generate Synthetic Data button
         button_layout = QtWidgets.QVBoxLayout()
-        self.generate_data_button = QtWidgets.QPushButton(
-            "Generate Synthetic Data", self
-        )
+        self.generate_data_button = QtWidgets.QPushButton("Generate Synthetic Data", self)
         self.generate_data_button.setStyleSheet(
             """
             QPushButton {
                 background-color: #003333; 
                 color: white; 
-                font-family: Montserrat; 
-                font-size: 10px; 
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -123,21 +124,12 @@ class Workplace(QtWidgets.QWidget):
             }
             """
         )
-        self.generate_data_button.setCursor(
-            QtGui.QCursor(QtCore.Qt.PointingHandCursor)
-        )  # put the button at the bottom
+        # Use dynamic font size for buttons:
+        button_font = QtGui.QFont(self.font_family, self.font_sizes["button"])
+        self.generate_data_button.setFont(button_font)
+        self.generate_data_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.generate_data_button.clicked.connect(self.on_generate_data)
-
-        button_layout.addWidget(
-            self.generate_data_button, alignment=QtCore.Qt.AlignCenter
-        )
-
-        # spacer = QtWidgets.QSpacerItem(
-        #     8, 8, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        # )
-        # button_layout.addItem(spacer)
-
-        # Adding the button to the main layout
+        button_layout.addWidget(self.generate_data_button, alignment=QtCore.Qt.AlignCenter)
         self.gridLayout.addLayout(button_layout, 1, 0)
 
     def train_vae(self):
@@ -290,11 +282,7 @@ class Workplace(QtWidgets.QWidget):
         msg.setInformativeText(message)
         msg.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
-                font-weight: bold;
                 margin: 32px 32px;
-                
-                font-family: 'Montserrat', sans-serif;
             }
             QPushButton {
                 margin-left: 10px;
@@ -303,24 +291,19 @@ class Workplace(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
-                font-weight: bold;
-                font-family: 'Montserrat', sans-serif;
-                line-height: 20px;
             }
             QPushButton:hover {
                 background-color: #005555;
             }
         """)
+        # Set the font dynamically
+        msg.setFont(QtGui.QFont(self.font_family, self.font_sizes["content"]))
         if message == "Please upload a file first":
             msg.setWindowTitle("File Upload Error")
         else:
             msg.setWindowTitle("Model Selection Error")
-
-        # Set custom icon
         icon = QIcon("icon/icon.ico")
         msg.setWindowIcon(icon)
-
         msg.exec_()
 
     def update_file_scroll_area(self):
@@ -353,24 +336,22 @@ class Workplace(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333; 
                 color: white; 
-                font-family: Montserrat; 
-                font-size: 15px; 
-                font-weight: 600; 
                 padding: 10px 20px;
                 border-radius: 5px; 
                 border: none;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #005555;  /* Change this to your desired hover color */
+                background-color: #005555; 
             }
             """
         )
-        self.add_file_button.setFont(font)
+        # Use dynamic font size for buttons:
+        button_font = QtGui.QFont(self.font_family, self.font_sizes["button"])
+        self.add_file_button.setFont(button_font)
         self.add_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.add_file_button.clicked.connect(self.add_more_files)
-
-        # Set a fixed size to prevent it from expanding
-        self.add_file_button.setFixedSize(180, 40)
+        self.add_file_button.setFixedSize(150, 40)
 
         # Create a container and layout to center the button
         self.button_container = QtWidgets.QWidget(self)

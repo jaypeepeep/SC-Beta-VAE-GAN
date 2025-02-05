@@ -69,7 +69,7 @@ class SVCpreview(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: 15px; 
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px;
