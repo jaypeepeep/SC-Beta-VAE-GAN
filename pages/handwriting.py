@@ -71,7 +71,7 @@ class Handwriting(QtWidgets.QWidget):
         self.layout.setContentsMargins(50, 0, 50, 50)
 
         # Initialize Process Log Widget
-        self.process_log_widget = ProcessLogWidget(self)
+        self.process_log_widget = ProcessLogWidget("handwriting")
         self.logger = self.process_log_widget.get_logger()
         self.layout.addWidget(self.process_log_widget)
 
@@ -119,7 +119,8 @@ class Handwriting(QtWidgets.QWidget):
     def show_drawing_page(self):
         """Show the drawing page layout with the Draw and Handwrite button."""
         self.clear_layout()
-
+        font_sizes = get_font_sizes()  
+        titlefont= QtGui.QFont("Montserrat", font_sizes["title"])
         # Create a layout for the text
         top_layout = QtWidgets.QVBoxLayout()
         top_layout.setAlignment(QtCore.Qt.AlignCenter)
@@ -127,7 +128,8 @@ class Handwriting(QtWidgets.QWidget):
 
         top_text = QtWidgets.QLabel("Draw and Handwrite", self)
         top_text.setAlignment(QtCore.Qt.AlignCenter)
-        top_text.setStyleSheet("font-size: {font_sizes['title']}px; font-weight: bold; color: #033; ")
+        top_text.setStyleSheet("font-weight: bold; color: #033; ")
+        top_text.setFont(titlefont)
         top_layout.addWidget(top_text)
         self.layout.addLayout(top_layout)
 
@@ -403,7 +405,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add the Process Log Widget
         self.collapsible_widget_process_log = CollapsibleWidget("Process Log", self)
         scroll_layout.addWidget(self.collapsible_widget_process_log)
-        self.process_log_widget = ProcessLogWidget(self)
+        self.process_log_widget = ProcessLogWidget("handwriting")
         self.collapsible_widget_process_log.add_widget(self.process_log_widget)
 
         # Add the Output Widget

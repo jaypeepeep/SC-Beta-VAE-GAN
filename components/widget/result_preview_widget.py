@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QTableWidgetItem
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QFont
 import os
 import zipfile
 import pandas as pd
@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtCore import Qt
-
+from font.dynamic_font_size import get_font_sizes, apply_fonts
 
 class SVCpreview(QtWidgets.QWidget):
     def __init__(self, input=None, output=None, mode=None, metrics=None, parent=None):
@@ -29,10 +29,17 @@ class SVCpreview(QtWidgets.QWidget):
                 output, 1
             )  # Display content in the second text preview
             self.display_graph_contents(output, 1)
-        if metrics:
-            self.display_metrics(metrics)
 
     def setupUi(self):
+
+        # Font definition
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        self.label1 = QtGui.QFont(font_family, font_sizes["title"])
+        self.label2 = QtGui.QFont(font_family, font_sizes["title"])
+        self.text_form_title = QtGui.QFont(font_family, font_sizes["subtitle"])
+        self.graph_form_title = QtGui.QFont(font_family, font_sizes["subtitle"])
+        self.handwriting_form_title = QtGui.QFont(font_family, font_sizes["subtitle"])
         self.container_widget = QtWidgets.QWidget(self)
         self.container_layout = QtWidgets.QVBoxLayout(self.container_widget)
 
@@ -45,9 +52,9 @@ class SVCpreview(QtWidgets.QWidget):
         # Vertical layout for results title
         self.text_title1_layout = QtWidgets.QVBoxLayout()
 
-        self.label1 = QtWidgets.QLabel("Input", self.container_widget)
+        self.label1 = QtWidgets.QLabel("INPUT", self.container_widget)
         self.label1.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; text-align: center;"
+            "font-weight: bold; text-align: center;"
         )
         self.label1.setAlignment(QtCore.Qt.AlignCenter)
         self.text_title1_layout.addWidget(self.label1)
@@ -59,7 +66,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.filename_button_layout1 = QtWidgets.QHBoxLayout()
         self.filename1 = QtWidgets.QLabel("Filename", self.container_widget)
         self.filename1.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold;"
+            "font-weight: bold;"
         )
         self.filename_button_layout1.addWidget(
             self.filename1, alignment=QtCore.Qt.AlignLeft
@@ -74,8 +81,6 @@ class SVCpreview(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333; 
                 color: white; 
-                font-family: Montserrat; 
-                font-size: 15px; 
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px;
@@ -103,8 +108,6 @@ class SVCpreview(QtWidgets.QWidget):
                 QTextEdit {
                     background-color: white; 
                     border: 1px solid #dcdcdc; 
-                    font-family: Montserrat; 
-                    font-size: 12px;
                 }
                 QTextEdit QScrollBar:vertical {
                     border: none;
@@ -139,7 +142,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Graph form title
         self.graph_form_title = QtWidgets.QLabel("Graph Form", self.container_widget)
         self.graph_form_title.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+            "color: #003333; font-weight: bold; margin-bottom: 10px;"
         )
         self.graph_form_title.setAlignment(QtCore.Qt.AlignCenter)
         self.graph_title_layout.addWidget(self.graph_form_title)
@@ -163,9 +166,9 @@ class SVCpreview(QtWidgets.QWidget):
         self.text_title2_layout = QtWidgets.QVBoxLayout()
         self.text_title2_layout.setAlignment(QtCore.Qt.AlignCenter)  # Ensure layout contents are centered
 
-        self.label2 = QtWidgets.QLabel("Output", self.container_widget)
+        self.label2 = QtWidgets.QLabel("OUTPUT", self.container_widget)
         self.label2.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold;"
+            "font-weight: bold;"
         )
         self.label2.setAlignment(QtCore.Qt.AlignCenter)
         self.text_title2_layout.addWidget(self.label2)
@@ -175,7 +178,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.filename_button_layout2 = QtWidgets.QHBoxLayout()
         self.filename2 = QtWidgets.QLabel("Filename", self.container_widget)
         self.filename2.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold;"
+            "font-weight: bold;"
         )
         self.filename_button_layout2.addWidget(
             self.filename2, alignment=QtCore.Qt.AlignLeft
@@ -190,8 +193,6 @@ class SVCpreview(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333; 
                 color: white; 
-                font-family: Montserrat; 
-                font-size: 10px; 
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px;
@@ -234,7 +235,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Text form title
         self.text_form_title = QtWidgets.QLabel("Text Form", self.container_widget)
         self.text_form_title.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+            "color: #003333; font-weight: bold; margin-bottom: 10px;"
         )
         self.text_form_title.setAlignment(QtCore.Qt.AlignCenter)
         self.text_title_layout.addWidget(self.text_form_title)
@@ -245,7 +246,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Handwriting form title
         self.handwriting_form_title = QtWidgets.QLabel("Handwriting Form", self.container_widget)
         self.handwriting_form_title.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+            "color: #003333; font-weight: bold; margin-bottom: 10px;"
         )
         self.handwriting_form_title.setAlignment(QtCore.Qt.AlignCenter)
         self.handwriting_title_layout.addWidget(self.handwriting_form_title)
@@ -282,7 +283,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Comparison table title
         self.results_table_title = QtWidgets.QLabel("Comparison of Original and Synthetic Handwriting Time Series Data (1: Original, 2: Synthetic)", self.container_widget)
         self.results_table_title.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+            "font-weight: bold; margin-bottom: 10px;"
         )
         self.results_table_title.setAlignment(QtCore.Qt.AlignCenter)
         self.container_layout.addWidget(self.results_table_title)
@@ -296,8 +297,6 @@ class SVCpreview(QtWidgets.QWidget):
                 QTableWidget {
                     background-color: white;
                     border: 1px solid #dcdcdc;
-                    font-family: Montserrat;
-                    font-size: 14px;
                 }
                 QTableWidget QScrollBar:vertical {
                     border: 1px solid #c0c0c0;
@@ -330,7 +329,7 @@ class SVCpreview(QtWidgets.QWidget):
         # Results text title
         self.results_text_title = QtWidgets.QLabel("Performance Metrics", self.container_widget)
         self.results_text_title.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-bottom: 10px;"
+            "font-weight: bold; margin-bottom: 10px;"
         )
         self.results_text_title.setAlignment(QtCore.Qt.AlignCenter)
         self.container_layout.addWidget(self.results_text_title)
@@ -338,14 +337,14 @@ class SVCpreview(QtWidgets.QWidget):
         # Results text area
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
         self.results_text.setReadOnly(True)
-        self.results_text.setFixedHeight(225)
+        self.results_text.setFixedHeight(300)
         self.results_text.setStyleSheet(self.text_preview1.styleSheet())
         self.container_layout.addWidget(self.results_text)
 
         # Performance Metrics Description
         self.performance_metrics_title = QtWidgets.QLabel("What do these performance metrics mean?", self.container_widget)
         self.performance_metrics_title.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; margin-top: 20px; margin-bottom: 10px;"
+            "font-weight: bold; margin-top: 20px; margin-bottom: 10px;"
         )
         self.container_layout.addWidget(self.performance_metrics_title)
 
@@ -358,7 +357,7 @@ class SVCpreview(QtWidgets.QWidget):
             self.container_widget
         )
         self.nrmse_description.setStyleSheet(
-            "font-family: Montserrat; font-size: 12px; font-weight: normal; margin-bottom: 10px;"
+            "font-weight: normal; margin-bottom: 10px;"
         )
         self.nrmse_description.setTextFormat(QtCore.Qt.RichText)
         self.container_layout.addWidget(self.nrmse_description)
@@ -373,7 +372,7 @@ class SVCpreview(QtWidgets.QWidget):
             self.container_widget
         )
         self.discriminative_description.setStyleSheet(
-            "font-family: Montserrat; font-size: 12px; font-weight: normal; margin-bottom: 10px;"
+            "font-weight: normal; margin-bottom: 10px;"
         )
         self.discriminative_description.setTextFormat(QtCore.Qt.RichText)
         self.container_layout.addWidget(self.discriminative_description)
@@ -387,7 +386,7 @@ class SVCpreview(QtWidgets.QWidget):
             self.container_widget
         )
         self.mape_description.setStyleSheet(
-            "font-family: Montserrat; font-size: 12px; font-weight: normal; margin-bottom: 10px;"
+            "font-weight: normal; margin-bottom: 10px;"
         )
         self.mape_description.setTextFormat(QtCore.Qt.RichText)
         self.container_layout.addWidget(self.mape_description)
@@ -568,10 +567,6 @@ class SVCpreview(QtWidgets.QWidget):
     def display_table_contents(self, filename, preview_index):
         """Read the contents of the file and display it in a comparison table format, inserting NaNs where gaps are detected."""
         try:
-            import os
-            from PyQt5.QtWidgets import QTableWidgetItem
-            from PyQt5.QtGui import QColor, QFont
-            
             # Ensure the file path is absolute
             if not os.path.isabs(filename):
                 filename = os.path.abspath(filename)
@@ -612,7 +607,6 @@ class SVCpreview(QtWidgets.QWidget):
                     QHeaderView::section {
                         background-color: #f0f0f0;
                         font-weight: bold;
-                        font-size: 12px;
                         border: none;
                         padding-right: 25px; 
                     }
@@ -895,10 +889,8 @@ class SVCpreview(QtWidgets.QWidget):
             # Apply custom stylesheet to the warning message box
             fileMessage_box2.setStyleSheet("""
                 QMessageBox {
-                    font-size: 12px;
                     font-weight: bold;
                     margin: 32px 32px;
-                    font-family: 'Montserrat', sans-serif;
                     color: #333;
                 }
                 QPushButton {
@@ -908,9 +900,7 @@ class SVCpreview(QtWidgets.QWidget):
                     border: none;
                     padding: 8px 20px;
                     border-radius: 5px;
-                    font-size: 10px;
                     font-weight: bold;
-                    font-family: 'Montserrat', sans-serif;
                 }
                 QPushButton:hover {
                     background-color: #005555;
@@ -937,7 +927,6 @@ class SVCpreview(QtWidgets.QWidget):
             """
             QDialog {
                 background-color: #f0f0f0; 
-                font-family: Montserrat;
                 padding: 20px;              
                 border-radius: 10px;        
             }
@@ -946,7 +935,6 @@ class SVCpreview(QtWidgets.QWidget):
                 color: white;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
                 font-weight: bold;
             }
             QPushButton:hover {
@@ -957,7 +945,6 @@ class SVCpreview(QtWidgets.QWidget):
                 border: 1px solid #dcdcdc;
                 padding: 5px;
                 margin: 5px 0;
-                font-size: 12px;
             }
             """
         )
@@ -971,7 +958,6 @@ class SVCpreview(QtWidgets.QWidget):
         label.setStyleSheet(
             """
             QLabel {
-                font-size: 16px; 
                 font-weight: bold; 
                 color: black;      
                 background: none;  
@@ -1050,10 +1036,8 @@ class SVCpreview(QtWidgets.QWidget):
             # Apply custom stylesheet to the warning message box
             fileMessage_box.setStyleSheet("""
                 QMessageBox {
-                    font-size: 12px;
                     font-weight: bold;
                     margin: 32px 32px;
-                    font-family: 'Montserrat', sans-serif;
                     color: #333;
                 }
                 QPushButton {
@@ -1063,9 +1047,7 @@ class SVCpreview(QtWidgets.QWidget):
                     border: none;
                     padding: 8px 20px;
                     border-radius: 5px;
-                    font-size: 10px;
                     font-weight: bold;
-                    font-family: 'Montserrat', sans-serif;
                 }
                 QPushButton:hover {
                     background-color: #005555;
@@ -1092,7 +1074,6 @@ class SVCpreview(QtWidgets.QWidget):
             """
             QDialog {
                 background-color: #f0f0f0; 
-                font-family: Montserrat;
                 padding: 20px;              
                 border-radius: 10px;        
             }
@@ -1101,7 +1082,6 @@ class SVCpreview(QtWidgets.QWidget):
                 color: white;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
                 font-weight: bold;
             }
             QPushButton:hover {
@@ -1112,7 +1092,6 @@ class SVCpreview(QtWidgets.QWidget):
                 border: 1px solid #dcdcdc;
                 padding: 5px;
                 margin: 5px 0;
-                font-size: 12px;
             }
             """
         )
@@ -1126,7 +1105,6 @@ class SVCpreview(QtWidgets.QWidget):
         label.setStyleSheet(
             """
             QLabel {
-                font-size: 16px; 
                 font-weight: bold; 
                 color: black;      
                 background: none;  

@@ -20,7 +20,6 @@ class DragDrop_Button(QtWidgets.QWidget):
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
         # Create drag and drop area container.
-        # Remove inline font definitions from the stylesheet.
         self.drop_area = QtWidgets.QWidget(self)
         self.drop_area.setStyleSheet(
             "border: 3px dashed #003333; background-color: transparent; padding: 20px; color: #535353;"
@@ -53,8 +52,6 @@ class DragDrop_Button(QtWidgets.QWidget):
         # Set dynamic font for the button.
         file_button_font = QtGui.QFont(self.font_family, self.font_sizes["button"])
         self.file_button.setFont(file_button_font)
-        # self.file_button.setFixedWidth(150)
-        # self.file_button.setFixedHeight(40)
         self.file_button.clicked.connect(self.open_file_dialog)
 
         # Create the "or" label.
@@ -63,7 +60,6 @@ class DragDrop_Button(QtWidgets.QWidget):
         self.or_label.setStyleSheet(
             "color: #535353; border: none; padding: 5px;"
         )
-        # Set dynamic font for the or_label (using "content" size, for example).
         or_label_font = QtGui.QFont(self.font_family, self.font_sizes["content"])
         self.or_label.setFont(or_label_font)
 
@@ -73,7 +69,6 @@ class DragDrop_Button(QtWidgets.QWidget):
         self.drop_label.setStyleSheet(
             "color: #535353; border: none; padding: 5px;"
         )
-        # Set dynamic font for the drop_label.
         drop_label_font = QtGui.QFont(self.font_family, self.font_sizes["content"])
         self.drop_label.setFont(drop_label_font)
 
@@ -83,7 +78,6 @@ class DragDrop_Button(QtWidgets.QWidget):
         self.accepted_files_label.setStyleSheet(
             "color: #535353; border: none; padding: 5px;"
         )
-        # Set dynamic font for the accepted_files_label.
         accepted_files_font = QtGui.QFont(self.font_family, self.font_sizes["content"])
         self.accepted_files_label.setFont(accepted_files_font)
 
@@ -115,12 +109,17 @@ class DragDrop_Button(QtWidgets.QWidget):
     def open_file_dialog(self):
         file_dialog = QtWidgets.QFileDialog(self)
         file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
-        file_paths, _ = file_dialog.getOpenFileNames(self, "Select Files")
+        file_paths, _ = file_dialog.getOpenFileNames(self, "Select Files", filter="*.svc")  # Restrict to .svc files
         if file_paths:
             self.handle_files(file_paths)
 
     def handle_files(self, file_paths):
-        for file_path in file_paths:
+        valid_files = [file for file in file_paths if file.lower().endswith('.svc')]  # Filter out non-.svc files
+        if not valid_files:
+            QtWidgets.QMessageBox.warning(self, "Invalid File Type", "Please select only .svc files.")  # Show warning for invalid files
+            return
+
+        for file_path in valid_files:
             try:
                 # Get the base name of the file.
                 file_name = os.path.basename(file_path)
@@ -132,7 +131,7 @@ class DragDrop_Button(QtWidgets.QWidget):
             except Exception as e:
                 print(f"Error saving file '{file_path}': {e}")
         # Emit the signal with the list of files.
-        self.file_uploaded.emit(file_paths)
+        self.file_uploaded.emit(valid_files)
 
     def remove_file(self, file_path):
         if file_path in self.uploaded_files:
@@ -141,7 +140,7 @@ class DragDrop_Button(QtWidgets.QWidget):
                 self.file_uploaded.emit(self.uploaded_files)
 
     def enterEvent(self, event):
-        # Update drop area style on hover (retain only styling properties other than font).
+        # Update drop area style on hover.
         self.drop_area.setStyleSheet(
             "background-color: #A3BFBF; border: 3px dashed #003333; padding: 20px; color: #535353;"
         )
