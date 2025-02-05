@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QGraphicsDropShadowEffect
 from PyQt5.QtGui import QColor
 import os
 import shutil
+from font.dynamic_font_size import get_font_sizes, apply_fonts  
+from PyQt5.QtGui import QFont
 
 class FileContainerWidget(QtWidgets.QWidget):
     remove_file_signal = QtCore.pyqtSignal(str, str)
@@ -16,7 +18,12 @@ class FileContainerWidget(QtWidgets.QWidget):
     def setupUi(self):
         # Set the background color for the entire widget
         self.setStyleSheet("background: #DEDEDE;")
-
+        self.font_sizes = get_font_sizes()  
+        self.font_family = "Montserrat"
+        self.buttonfont = QtGui.QFont("Montserrat", self.font_sizes["content"])
+        self.titlefont= QtGui.QFont("Montserrat", self.font_sizes["title"])
+        self.buttonfont = QtGui.QFont("Montserrat", self.font_sizes["button"])
+        
         # Create a container widget for the layout
         self.container = QtWidgets.QWidget(self)
         self.container.setStyleSheet("background: #DEDEDE; border-radius: 0;")
@@ -59,6 +66,7 @@ class FileContainerWidget(QtWidgets.QWidget):
                 background: #C0C0C0;
             }
         """)
+        self.remove_button.setFont(self.buttonfont)
         self.remove_button.clicked.connect(self.remove_file)
         self.layout.addWidget(self.remove_button)
 
@@ -79,6 +87,7 @@ class FileContainerWidget(QtWidgets.QWidget):
             }
         """)
         self.download_button.clicked.connect(self.download_file)
+        self.download_button.setFont(self.buttonfont)
         self.layout.addWidget(self.download_button)
 
         # Set the container as the central widget of this class
