@@ -45,7 +45,7 @@ class Local(QtWidgets.QWidget):
             color: black;
             font-weight: bold;
             font-family: Montserrat; 
-            font-size: 14px; 
+            font-size: 18px; 
         """)
         self.local_storage_label.setAlignment(QtCore.Qt.AlignLeft)
         label_layout.addWidget(self.local_storage_label)
@@ -56,7 +56,7 @@ class Local(QtWidgets.QWidget):
             margin-left: 25px;
             color: black;
             font-family: Montserrat; 
-            font-size: 13px;
+            font-size: 16px;
             text-decoration: underline;
         """)
         self.path_label.setAlignment(QtCore.Qt.AlignLeft)
@@ -75,9 +75,9 @@ class Local(QtWidgets.QWidget):
                 background-color: #003333;
                 color: white;
                 border: none;
-                padding: 5px 15px;
+                padding: 8px 17px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: 18px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -99,7 +99,7 @@ class Local(QtWidgets.QWidget):
             margin-left: 5px; 
             color: black;
             font-family: Montserrat; 
-            font-size: 14px; 
+            font-size: 18px; 
             font-weight: 600;
         """)
         self.files_label.setAlignment(QtCore.Qt.AlignLeft)
@@ -136,13 +136,13 @@ class Local(QtWidgets.QWidget):
             QHeaderView::section {
                 color: #033;
                 padding: 5px;
-                font-size: 13px;
+                font-size: 16px;
                 font-weight: bold;
                 border: none;
             }
 
             QTableWidget::item {
-                padding: 10px;
+                padding: 16px;
                 border: none;
             }
 
@@ -214,7 +214,7 @@ class Local(QtWidgets.QWidget):
                 background-color: #033; 
                 border: none;
                 font-weight: bold;
-                font-size: 13px;
+                font-size: 16px;
             }
             QMenu::item { 
                 color: white; 
@@ -315,7 +315,7 @@ class Local(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: 16px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -381,7 +381,7 @@ class Local(QtWidgets.QWidget):
         layout.setSpacing(10)  
         message_box.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
+                font-size: 18px;
                 font-weight: bold;
                 margin: 32px 32px;
                 
@@ -394,7 +394,7 @@ class Local(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: 18px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -416,7 +416,7 @@ class Local(QtWidgets.QWidget):
         # Apply custom styles to input dialog
         input_dialog.setStyleSheet("""
             QMessageBox {
-                font-size: 11px;
+                font-size: 18px;
                 font-family: 'Montserrat', sans-serif;
             }
             QPushButton {
@@ -426,7 +426,7 @@ class Local(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: 18px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -438,10 +438,10 @@ class Local(QtWidgets.QWidget):
                 padding: 5px;
                 width: 500px;
                 font-family: 'Montserrat', sans-serif;
-                font-size: 11px;
+                font-size: 18px;
             }
             QLabel {
-                font-size: 12px; 
+                font-size: 18px; 
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             }

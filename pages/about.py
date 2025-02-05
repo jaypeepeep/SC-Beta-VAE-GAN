@@ -18,19 +18,32 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 import os
 from components.widget.pdf_viewer import PDFViewer
 
-class About(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super(About, self).__init__(parent)
-        self.pdf_viewer = None
-        self.setupUi()
+class ScrollableTableWidget(QtWidgets.QWidget):
+    def __init__(self, title, steps, parent=None):
+        super(ScrollableTableWidget, self).__init__(parent)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
-    def setupUi(self):
-        # Create scroll area for the entire page
-        scroll_area = QtWidgets.QScrollArea(self)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
-        scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        scroll_area.setStyleSheet("""
+        # Header
+        header = QtWidgets.QLabel(title)
+        header.setStyleSheet("""
+            background-color: #e0e0e0;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 20px;
+            font-family: 'Montserrat', sans-serif;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        """)
+        header.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(header)
+
+        # Scrollable content area
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll.setStyleSheet("""
             QScrollArea {
                 border: none;
                 background-color: white;
@@ -54,15 +67,44 @@ class About(QtWidgets.QWidget):
             }
         """)
 
-        # Create main content widget
+        # Content widget
         content_widget = QtWidgets.QWidget()
-        content_widget.setStyleSheet("background-color: white;")
-        scroll_area.setWidget(content_widget)
+        content_layout = QtWidgets.QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
 
+        # Steps
+        for step in steps:
+            step_label = QtWidgets.QLabel(step)
+            step_label.setWordWrap(True)
+            step_label.setStyleSheet("""
+                font-size: 18px;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 1.2;
+                padding: 5px 10px;
+                background-color: white;
+            """)
+            content_layout.addWidget(step_label)
+
+        content_layout.addStretch()
+        scroll.setWidget(content_widget)
+        layout.addWidget(scroll)
+
+class About(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(About, self).__init__(parent)
+        self.pdf_viewer = None
+        self.setupUi()
+
+    def setupUi(self):
         # Main layout
-        self.main_layout = QtWidgets.QVBoxLayout(content_widget)
-        self.main_layout.setContentsMargins(20, 20, 20, 20)
-        self.main_layout.setSpacing(15)
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Fixed header container
+        header_container = QtWidgets.QWidget()
+        header_layout = QtWidgets.QVBoxLayout(header_container)
+        header_layout.setContentsMargins(20, 20, 20, 20)
 
         # Introduction text
         intro_text = QtWidgets.QLabel(
@@ -84,11 +126,11 @@ class About(QtWidgets.QWidget):
         )
         intro_text.setWordWrap(True)
         intro_text.setStyleSheet(
-            "font-size: 20px;"
+            "font-size: 18px;"
             "font-family: 'Montserrat', sans-serif;"
             "line-height: 24.38px;"
         )
-        self.main_layout.addWidget(intro_text)
+        header_layout.addWidget(intro_text)
 
         # PDF Button
         self.pdf_button = QtWidgets.QPushButton("View Study", self)
@@ -97,11 +139,12 @@ class About(QtWidgets.QWidget):
             "    background-color: #003333;"
             "    color: white;"
             "    border: none;"
-            "    padding: 15px 30px;"
+            "    padding: 10px 20px;"
             "    border-radius: 8px;"
-            "    font-size: 20px;"
+            "    font-size: 18px;"
             "    font-weight: bold;"
             "    font-family: 'Montserrat', sans-serif;"
+            "    margin-top: 12px;"      
             "}"
             "QPushButton:hover {"
             "    background-color: #005555;"
@@ -116,130 +159,63 @@ class About(QtWidgets.QWidget):
         button_layout.setContentsMargins(0, 0, 0, 0)
         button_layout.addWidget(self.pdf_button)
         button_layout.setAlignment(QtCore.Qt.AlignCenter)
-        self.main_layout.addWidget(button_container)
+        header_layout.addWidget(button_container)
 
-        # Steps section container
-        steps_container = QtWidgets.QWidget()
-        steps_layout = QtWidgets.QVBoxLayout(steps_container)
-        steps_layout.setContentsMargins(20, 20, 20, 20)
-        steps_layout.setSpacing(20)
+        # Add header container to main layout
+        main_layout.addWidget(header_container)
 
         # Steps title
         steps_title = QtWidgets.QLabel("HOW TO USE THE TOOL")
-        steps_title.setAlignment(QtCore.Qt.AlignCenter) 
+        steps_title.setAlignment(QtCore.Qt.AlignCenter)
         steps_title.setStyleSheet(
-            "font-size: 25px;"
+            "font-size: 20px;"
             "font-family: 'Montserrat', sans-serif;"
             "font-weight: bold;"
             "background-color: transparent;"
+            "margin: 20px 0;"
         )
-        steps_layout.addWidget(steps_title)
+        main_layout.addWidget(steps_title)
 
-        # Create tables container
+        # Tables container
         tables_container = QtWidgets.QWidget()
         tables_layout = QtWidgets.QHBoxLayout(tables_container)
         tables_layout.setSpacing(20)
-        tables_layout.setContentsMargins(0, 0, 0, 0)
+        tables_layout.setContentsMargins(20, 0, 20, 20)
 
-        # Create tables for workplace and handwriting
-        workplace_table = QtWidgets.QTableWidget()
-        handwriting_table = QtWidgets.QTableWidget()
-
-        # Common table style
-        table_style = """
-            QTableWidget {
-                background-color: white;
-                border-radius: 8px;
-                border: none;
-            }
-            QHeaderView::section {
-                background-color: #e0e0e0;
-                padding: 15px;
-                font-weight: bold;
-                font-size: 20px;
-                font-family: 'Montserrat', sans-serif;
-                border: none;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-            }
-            QTableWidget::item {
-                padding: 15px;
-                font-size: 20px;
-                font-family: 'Montserrat', sans-serif;
-                line-height: 1.6;
-            }
-        """
-        workplace_table.setStyleSheet(table_style)
-        handwriting_table.setStyleSheet(table_style)
-
-        # Configure workplace table
+        # Workplace steps
         workplace_steps = [
-            "<p>1. <b>Input Files:</b> Input .svc files to augment</p>",
-            "<p>2. <b>Multiple Inputs:</b> Add more files by clicking 'Add More.'</p>",
-            "<p>3. <b>Preview Section:</b> Review the data you entered.</p>",
-            "<p>4. <b>Delete Input:</b> You can delete input by clicking the 'X' button.</p>",
-            "<p>5. <b>Train Model:</b> If the model doesn't exist, train the model first with the selected data</p>",
-            "<p>6. <b>Select Model:</b> Select a pre-trained model to use in generating</p>",
-            "<p>7. <b>Number of Synthetic Data:</b> Enter the number of data points to generate.</p>",
-            "<p>8. <b>Generate Synthetic Data:</b> Click to generate synthetic data.</p>",
-            "<p>9. <b>Results:</b> Check the generated results.</p>"
+            "1. <b>Input Files:</b> Input .svc files to augment",
+            "2. <b>Multiple Inputs:</b> Add more files by clicking 'Add More.'",
+            "3. <b>Preview Section:</b> Review the data you entered.",
+            "4. <b>Delete Input:</b> You can delete input by clicking the 'X' button.",
+            "5. <b>Train Model:</b> If the model doesn't exist, train the model first with the selected data",
+            "6. <b>Select Model:</b> Select a pre-trained model to use in generating",
+            "7. <b>Number of Synthetic Data:</b> Enter the number of data points to generate.",
+            "8. <b>Generate Synthetic Data:</b> Click to generate synthetic data.",
+            "9. <b>Results:</b> Check the generated results."
         ]
-        self.setup_table(workplace_table, "For Workplace", workplace_steps)
 
-        # Configure handwriting table
+        # Handwriting steps
         handwriting_steps = [
-            "<p>1. <b>Start Drawing:</b> Click the 'Start Handwriting' button.</p>",
-            "<p>2. <b>Handwrite or Draw:</b> Begin drawing or writing.</p>",
-            "<p>3. <b>Finish Drawing:</b> When you're done, click 'Done' to return to the main page.</p>",
-            "<p>4. <b>Multiple Drawings:</b> Add more handwriting by clicking 'Draw More.'</p>",
-            "<p>5. <b>Clear Drawing:</b> Clear all handwriting by clicking 'Clear All.'</p>",
-            "<p>6. <b>Number of Synthetic Data:</b> Enter the number of data points to generate.</p>",
-            "<p>7. <b>Preview Section:</b> Review the data you entered.</p>",
-            "<p>8. <b>Generate Synthetic Data:</b> Click to generate synthetic data.</p>",
-            "<p>9. <b>Results:</b> Check the generated results.</p>"
+            "1. <b>Start Drawing:</b> Click the 'Start Handwriting' button.",
+            "2. <b>Handwrite or Draw:</b> Begin drawing or writing.",
+            "3. <b>Finish Drawing:</b> When you're done, click 'Done' to return to the main page.",
+            "4. <b>Multiple Drawings:</b> Add more handwriting by clicking 'Draw More.'",
+            "5. <b>Clear Drawing:</b> Clear all handwriting by clicking 'Clear All.'",
+            "6. <b>Number of Synthetic Data:</b> Enter the number of data points to generate.",
+            "7. <b>Preview Section:</b> Review the data you entered.",
+            "8. <b>Generate Synthetic Data:</b> Click to generate synthetic data.",
+            "9. <b>Results:</b> Check the generated results."
         ]
-        self.setup_table(handwriting_table, "For Handwriting", handwriting_steps)
 
-        # Add tables to layout
+        # Create scrollable tables
+        workplace_table = ScrollableTableWidget("For Workplace", workplace_steps)
+        handwriting_table = ScrollableTableWidget("For Handwriting", handwriting_steps)
+
+        # Add tables to container
         tables_layout.addWidget(workplace_table)
         tables_layout.addWidget(handwriting_table)
-
-        # Add tables container to steps layout
-        steps_layout.addWidget(tables_container)
-
-        # Add steps container to main layout
-        self.main_layout.addWidget(steps_container)
-
-        # Set up the main layout for the scroll area
-        main_scroll_layout = QtWidgets.QVBoxLayout(self)
-        main_scroll_layout.setContentsMargins(0, 0, 0, 0)
-        main_scroll_layout.addWidget(scroll_area)
-
-    def setup_table(self, table, title, steps):
-        # Set table properties
-        table.setColumnCount(1)
-        table.setRowCount(len(steps))
-        table.setHorizontalHeaderLabels([title])
-        table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        table.verticalHeader().setVisible(False)
-        table.setShowGrid(False)
-        table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
-        table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        table.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
-        
-        # Create label for content
-        for row, step in enumerate(steps):
-            content_label = QtWidgets.QLabel(step)
-            content_label.setWordWrap(True)
-            content_label.setStyleSheet(
-                "font-size: 20px;"
-                "font-family: 'Montserrat', sans-serif;"
-                "line-height: 10x;"
-                "padding: 0px;"
-            )
-        # Add content to table
-            table.setCellWidget(row, 0, content_label)
-            table.resizeRowToContents(row)
+        main_layout.addWidget(tables_container)
 
     def open_pdf_viewer(self):
         file_name = "final_paper.pdf"
