@@ -107,6 +107,8 @@ class Workplace(QtWidgets.QWidget):
         self.setup_output_collapsible()
         self.setup_result_collapsible()
 
+        self.process_log_widget = ProcessLogWidget("workplace")
+
         # Generate Synthetic Data button
         button_layout = QtWidgets.QVBoxLayout()
         self.generate_data_button = QtWidgets.QPushButton("Generate Synthetic Data", self)
@@ -415,7 +417,7 @@ class Workplace(QtWidgets.QWidget):
         self.collapsible_widget_process_log = CollapsibleWidget("Process Log", self)
         self.scroll_layout.addWidget(self.collapsible_widget_process_log)
 
-        self.process_log_widget = ProcessLogWidget(self)
+        self.process_log_widget = ProcessLogWidget("workplace")
         self.logger = self.process_log_widget.get_logger()
         self.collapsible_widget_process_log.add_widget(self.process_log_widget)
 

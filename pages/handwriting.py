@@ -71,7 +71,7 @@ class Handwriting(QtWidgets.QWidget):
         self.layout.setContentsMargins(50, 0, 50, 50)
 
         # Initialize Process Log Widget
-        self.process_log_widget = ProcessLogWidget(self)
+        self.process_log_widget = ProcessLogWidget("handwriting")
         self.logger = self.process_log_widget.get_logger()
         self.layout.addWidget(self.process_log_widget)
 
@@ -403,7 +403,7 @@ class Handwriting(QtWidgets.QWidget):
         # Add the Process Log Widget
         self.collapsible_widget_process_log = CollapsibleWidget("Process Log", self)
         scroll_layout.addWidget(self.collapsible_widget_process_log)
-        self.process_log_widget = ProcessLogWidget(self)
+        self.process_log_widget = ProcessLogWidget("handwriting")
         self.collapsible_widget_process_log.add_widget(self.process_log_widget)
 
         # Add the Output Widget
