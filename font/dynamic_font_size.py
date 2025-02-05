@@ -42,5 +42,7 @@ def apply_fonts(widget, font_family):
         title.setFont(QFont(font_family, font_sizes["title"]))
     for subcontent in widget.findChildren(QFont):
         subcontent.setFont(QFont(font_family, font_sizes["subcontent"]))
+    for subtitle in widget.findChildren(QFont):
+        subtitle.setFont(QFont(font_family, font_sizes["subtitle"]))
     for sidebar in widget.findChildren(QFont):
         sidebar.setFont(QFont(font_family, font_sizes["sidebar"]))
