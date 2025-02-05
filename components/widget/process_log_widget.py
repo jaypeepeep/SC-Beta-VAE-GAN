@@ -54,7 +54,7 @@ class ProcessLogWidget(QtWidgets.QWidget):
                 font-size: 12px;
                 padding: 5px;
             }
-                        QTextEdit QScrollBar:vertical {
+            QTextEdit QScrollBar:vertical {
                 border: none;
                 background: #f0f0f0;
                 width: 10px;
