@@ -2,6 +2,8 @@ import os
 from components.widget.spin_box_widget import SpinBoxWidget
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtGui import QIcon
+from font.dynamic_font_size import get_font_sizes, apply_fonts
+from PyQt5.QtGui import QFont
 
 
 class ModelWidget(QtWidgets.QWidget):
@@ -21,6 +23,9 @@ class ModelWidget(QtWidgets.QWidget):
         self.setup_ui()
 
         self.load_files()
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        content_font = QFont(font_family, font_sizes["content"]) 
 
 
     def setup_ui(self):
@@ -40,7 +45,7 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 15px; 
+                font-size: {font_sizes['button']}px; 
                 font-weight: 600; 
                 padding: 10px 20px;
                 border-radius: 5px; 
@@ -78,7 +83,7 @@ class ModelWidget(QtWidgets.QWidget):
                 background-color: #033;
                 padding: 8px;
                 color: white;            
-                font-size: 10px;
+                font-size: {font_sizes['content']}px;
                 font-weight: bold;
                 border: none;
                 height: 50px;
@@ -313,7 +318,7 @@ class ModelWidget(QtWidgets.QWidget):
         message_box.setSizeGripEnabled(True)
         message_box.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
                 font-weight: bold;
                 padding: 20px;
                 font-family: 'Montserrat', sans-serif;
@@ -325,7 +330,7 @@ class ModelWidget(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -347,7 +352,7 @@ class ModelWidget(QtWidgets.QWidget):
         # Apply custom styles to input dialog
         input_dialog.setStyleSheet("""
             QMessageBox {
-                font-size: 11px;
+                font-size: {font_sizes['content']}px;
                 font-family: 'Montserrat', sans-serif;
             }
             QPushButton {
@@ -357,7 +362,7 @@ class ModelWidget(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -369,11 +374,11 @@ class ModelWidget(QtWidgets.QWidget):
                 padding: 5px;
                 width: 500px;
                 font-family: 'Montserrat', sans-serif;
-                font-size: 11px;
+                font-size: {font_sizes['content']}px;
                 border: 1px solid #ccc;
             }
             QLabel {
-                font-size: 12px; 
+                font-size: {font_sizes['title']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             }
