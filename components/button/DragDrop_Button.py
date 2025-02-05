@@ -53,8 +53,8 @@ class DragDrop_Button(QtWidgets.QWidget):
         # Set dynamic font for the button.
         file_button_font = QtGui.QFont(self.font_family, self.font_sizes["button"])
         self.file_button.setFont(file_button_font)
-        self.file_button.setFixedWidth(150)
-        self.file_button.setFixedHeight(40)
+        # self.file_button.setFixedWidth(150)
+        # self.file_button.setFixedHeight(40)
         self.file_button.clicked.connect(self.open_file_dialog)
 
         # Create the "or" label.

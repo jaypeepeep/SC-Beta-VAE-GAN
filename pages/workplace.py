@@ -349,7 +349,7 @@ class Workplace(QtWidgets.QWidget):
         self.add_file_button.setFont(button_font)
         self.add_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.add_file_button.clicked.connect(self.add_more_files)
-        self.add_file_button.setFixedSize(150, 40)
+        # self.add_file_button.setFixedSize(150, 40)
 
         # Create a container and layout to center the button.
         self.button_container = QtWidgets.QWidget(self)
