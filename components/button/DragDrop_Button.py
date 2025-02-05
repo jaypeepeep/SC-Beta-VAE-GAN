@@ -35,7 +35,7 @@ class DragDrop_Button(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 12px; 
+                font-size: 15px; 
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px; 
@@ -46,7 +46,8 @@ class DragDrop_Button(QtWidgets.QWidget):
             }
             """
         )
-        self.file_button.setFixedWidth(150)
+        self.file_button.setFixedWidth(150)   # Updated width from 150 to 160
+        self.file_button.setFixedHeight(40)   # Added this line to set the fixed height
         self.file_button.clicked.connect(self.open_file_dialog)
 
         # Create the "or" label (no border)
