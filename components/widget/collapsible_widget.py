@@ -72,8 +72,8 @@ class CollapsibleWidget(QtWidgets.QWidget):
             }
         """)
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
-        shadow.setXOffset(0)
+        shadow.setBlurRadius(0)
+        shadow.setXOffset(2)
         shadow.setYOffset(2)
         shadow.setColor(QtGui.QColor(0, 0, 0, 25))
         self.toggle_button.setGraphicsEffect(shadow)
@@ -99,8 +99,8 @@ class CollapsibleWidget(QtWidgets.QWidget):
         """)
 
         container_shadow = QGraphicsDropShadowEffect()
-        container_shadow.setBlurRadius(15)
-        container_shadow.setXOffset(0)
+        container_shadow.setBlurRadius(0)
+        container_shadow.setXOffset(2)
         container_shadow.setYOffset(2)
         container_shadow.setColor(QtGui.QColor(0, 0, 0, 25))
         self.collapsible_container.setGraphicsEffect(container_shadow)
