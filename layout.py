@@ -5,9 +5,13 @@ from pages.workplace import Workplace
 from pages.handwriting import Handwriting
 from pages.about import About
 from pages.local import Local
+from font.dynamic_font_size import get_font_sizes, apply_fonts  
+from PyQt5.QtGui import QFont
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+        font_sizes = get_font_sizes()  
+        font_family = "Montserrat"
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1420, 820)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -72,7 +76,8 @@ class Ui_MainWindow(object):
         self.subtitle_label = QtWidgets.QLabel(self.header_widget)
         self.subtitle_label.setText("Synthetic Data Generator")
         self.subtitle_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.subtitle_label.setStyleSheet("font-weight: bold; color: #003333; font-size: 15px;")
+        self.subtitle_label.setStyleSheet("font-weight: bold; color: #003333")
+        self.subtitle_label.setFont(QFont(font_family, font_sizes["title"]))
         self.title_subtitle_layout.addWidget(self.subtitle_label)
 
         # Add Title and Subtitle Layout to Header Layout
