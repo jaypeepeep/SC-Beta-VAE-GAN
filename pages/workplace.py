@@ -320,7 +320,7 @@ class Workplace(QtWidgets.QWidget):
         button_font = QtGui.QFont(self.font_family, self.font_sizes["button"])
 
         # Create the collapsible widget using the dynamic subtitle font for its title.
-        self.collapsible_widget_input = CollapsibleWidget("Input", self, title_font=subtitle_font)
+        self.collapsible_widget_input = CollapsibleWidget("Input", self)
         self.scroll_layout.addWidget(self.collapsible_widget_input)
 
         # Add the FileUploadWidget.
