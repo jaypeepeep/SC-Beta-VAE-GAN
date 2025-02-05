@@ -40,11 +40,12 @@ class Ui_MainWindow(object):
         # Horizontal Layout for Menu Button, Title, and Subtitle
         self.header_widget = QtWidgets.QWidget(self.widget_3)
         self.header_layout = QtWidgets.QHBoxLayout(self.header_widget)
-        # self.header_layout.setContentsMargins(5, 2, 5, 2)
+        self.header_layout.setContentsMargins(5, 2, 5, 2)
         self.header_layout.setSpacing(0)
         self.header_layout.setObjectName("header_layout")
 
-        # Menu Button
+
+        # Menu Button (Positioned Absolutely)
         self.change_btn = QtWidgets.QPushButton(self.header_widget)
         self.change_btn.setText("")
         icon6 = QtGui.QIcon()
@@ -53,10 +54,12 @@ class Ui_MainWindow(object):
         self.change_btn.setIconSize(QtCore.QSize(14, 14))
         self.change_btn.setCheckable(True)
         self.change_btn.setObjectName("change_btn")
-        self.header_layout.addWidget(self.change_btn)
         self.change_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
-        # Spacer Before Title (Left Spacer)
+        # Absolute Positioning of Menu Button
+        self.change_btn.move(-29, 0)  # Positioning the button at the top-left corner of the header widget
+
+        # Spacer Before Title (Optional, if needed)
         self.left_spacer = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.header_layout.addItem(self.left_spacer)
 
@@ -84,12 +87,16 @@ class Ui_MainWindow(object):
         # Add Title and Subtitle Layout to Header Layout
         self.header_layout.addLayout(self.title_subtitle_layout)
 
-        # Spacer After Title (Right Spacer)
-        self.right_spacer = QtWidgets.QSpacerItem(100, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        # Spacer After Title (Optional, if needed)
+        self.right_spacer = QtWidgets.QSpacerItem(100, 70, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.header_layout.addItem(self.right_spacer)
 
         # Add Header Layout to Vertical Layout
         self.verticalLayout_5.addWidget(self.header_widget)
+
+        # Update layout for title and subtitle to be centered in the header
+        self.header_layout.setAlignment(QtCore.Qt.AlignCenter)  # Ensures the content is centered in the layout
+
 
         # Menu Button and Spacer
         self.widget = QtWidgets.QWidget(self.widget_3)
