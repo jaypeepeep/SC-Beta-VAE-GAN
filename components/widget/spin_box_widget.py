@@ -1,5 +1,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import sys
+from font.dynamic_font_size import get_font_sizes, apply_fonts
+from PyQt5.QtGui import QFont
 
 
 class SpinBoxWidget(QtWidgets.QWidget):
@@ -7,6 +9,9 @@ class SpinBoxWidget(QtWidgets.QWidget):
         super(SpinBoxWidget, self).__init__(parent)
         self.min_value = min_value
         self.setupUi()
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        content_font = QFont(font_family, font_sizes["content"]) 
 
     def setupUi(self):        
         self.layout = QtWidgets.QHBoxLayout(self)
@@ -14,7 +19,7 @@ class SpinBoxWidget(QtWidgets.QWidget):
 
         self.label = QtWidgets.QLabel("Augmented Data Quantity")
         self.label.setStyleSheet(
-            "font-family: Montserrat; font-size: 14px; font-weight: bold; color: #003333;"
+            "font-family: Montserrat; font-size: {font_sizes['title']}px; font-weight: bold; color: #003333;"
         )
         self.layout.addWidget(self.label, alignment=QtCore.Qt.AlignLeft)
 
@@ -35,7 +40,7 @@ class SpinBoxWidget(QtWidgets.QWidget):
                 height: 20px;
                 color: #000;
                 font-family: Montserrat;
-                font-size: 10px;
+                font-size: {font_sizes['content']}px;
                 font-weight: 600;
                 text-align: center;
                 padding: 5px;
