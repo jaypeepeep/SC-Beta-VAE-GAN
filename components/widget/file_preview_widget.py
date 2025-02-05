@@ -120,11 +120,58 @@ class FilePreviewWidget(QtWidgets.QWidget):
 
             # Read the file and set its content to the text preview
             with open(file_path, "r") as file:
-                content = file.read()
+                content = file.readlines()
+
+                # Modify the first row to have different spaces between columns
+                if content:
+                    # Define the column-wise spaces for the first row (adjust as needed)
+                    first_row_columns = content[0].split()
+                    if len(first_row_columns) == 7:
+                        spaced_first_row = f"     {first_row_columns[0]}                                        {first_row_columns[1]}                           {first_row_columns[2]}               {first_row_columns[3]}                 {first_row_columns[4]}                   {first_row_columns[5]}                  {first_row_columns[6]}\n"
+                        content[0] = spaced_first_row                    
+                    # Modify the subsequent rows to have two tabs between columns
+                    content[1:] = [line.replace(" ", "                               ") for line in content[1:]]  # Other rows with four spaces (tabs can also be added as needed)
+                # Join the content back into a single string
+                formatted_content = ''.join(content)
+
             self.filename.setText(os.path.basename(filename))
-            self.text_preview.setPlainText(content)
+            self.text_preview.setPlainText(formatted_content)
         except Exception as e:
             self.text_preview.setPlainText(f"Error reading file: {str(e)}")
+
+
+
+
+
+            # Modify the first row to have different spaces between columns
+            if content:
+                # Process the first row with special handling for both 1 and 7 columns
+                first_row_columns = content[0].split()
+
+                if len(first_row_columns) == 7:
+                    # Define the column-wise spaces for the first row (adjust as needed)
+                    spaced_first_row = f"     {first_row_columns[0]}                                        {first_row_columns[1]}                           {first_row_columns[2]}               {first_row_columns[3]}                 {first_row_columns[4]}                   {first_row_columns[5]}                  {first_row_columns[6]}\n"
+                    content[0] = spaced_first_row
+                elif len(first_row_columns) == 1:
+                    # Handle single column row (add extra spaces or formatting as needed)
+                    spaced_first_row = f"{first_row_columns[0]}                          \n"  # Adjust spacing if needed
+                    content[0] = spaced_first_row
+                else:
+                    raise ValueError(f"First row should have 1 or 7 columns, but found {len(first_row_columns)} columns.")
+
+                # Modify the subsequent rows to handle 7 or 1 column format
+                for i in range(1, len(content)):
+                    row_columns = content[i].split()
+                    if len(row_columns) == 7:
+                        content[i] = "    ".join(row_columns) + "\n"  # Adjust spacing for 7 column rows
+                    elif len(row_columns) == 1:
+                        content[i] = row_columns[0] + "\n"  # Handle single column row format
+                    else:
+                        raise ValueError(f"Row {i + 1} does not have exactly 1 or 7 columns.")
+
+
+
+
 
     def select_file(self):
         """Open a custom dialog to select a file from the uploaded files, showing only the file name."""

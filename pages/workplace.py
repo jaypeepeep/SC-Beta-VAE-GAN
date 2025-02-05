@@ -148,6 +148,7 @@ class Workplace(QtWidgets.QWidget):
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
             self.collapsible_widget_process_log.toggle_container(True)
+            self.svc_preview.add_graph_containers()
 
             # Disable the generate button and change text
             self.generate_data_button.setEnabled(False)
@@ -186,8 +187,7 @@ class Workplace(QtWidgets.QWidget):
             self.collapsible_widget_output.toggle_container(False)
             self.collapsible_widget_result.toggle_container(False)
             self.collapsible_widget_process_log.toggle_container(True)
-            if self.selected_model == "EMOTHAW.h5":
-                self.svc_preview.add_graph_containers()
+            self.svc_preview.add_graph_containers()
             # Disable the generate button and change text
             self.generate_data_button.setEnabled(False)
             self.generate_data_button.setText("Generating...")
@@ -223,6 +223,9 @@ class Workplace(QtWidgets.QWidget):
             self.worker = None
 
     def on_generation_finished(self):
+        # Refresh model list to update trained model in the list
+        self.model_widget.refresh_file_list()
+
         # Disable the generate button and change text
         self.generate_data_button.setEnabled(False)
         self.generate_data_button.setText("Calculating Results...")
