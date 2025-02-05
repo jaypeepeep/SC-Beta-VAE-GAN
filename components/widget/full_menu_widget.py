@@ -24,8 +24,8 @@ class FullMenuWidget(QtWidgets.QWidget):
         # LOGO LABEL FOR TEXT AND ICON
         # Icon logo label
         self.logo_label_2 = QtWidgets.QLabel(self)
-        self.logo_label_2.setMinimumSize(QtCore.QSize(100, 100))
-        self.logo_label_2.setMaximumSize(QtCore.QSize(100, 100))
+        self.logo_label_2.setMinimumSize(QtCore.QSize(130, 130))
+        self.logo_label_2.setMaximumSize(QtCore.QSize(130, 130))
         self.logo_label_2.setText("")
         self.logo_label_2.setPixmap(QtGui.QPixmap("./icon/Logo.png"))
         self.logo_label_2.setScaledContents(True)
@@ -87,6 +87,7 @@ class FullMenuWidget(QtWidgets.QWidget):
         self.local_btn_2.setCheckable(True)
         self.local_btn_2.setAutoExclusive(True)
         self.local_btn_2.setObjectName("local_btn_2")
+        self.local_btn_2.setStyleSheet("padding-left: 10px; padding-right: 10px;")
         self.verticalLayout_4.addWidget(self.local_btn_2)
         
         # Spacer Item

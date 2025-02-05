@@ -24,7 +24,7 @@ def get_font_sizes():
         "content": int(16 * scale_factor),
         "title": int(24 * scale_factor),
         "subcontent": int(12 * scale_factor),
-        "sidebar": int(14 * scale_factor)
+        "sidebar": int(18 * scale_factor)
     }
     
     return font_sizes
