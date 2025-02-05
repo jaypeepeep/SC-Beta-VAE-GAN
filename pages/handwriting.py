@@ -45,6 +45,7 @@ from model.scbetavaegan_pentab import (
 )
 
 class Handwriting(QtWidgets.QWidget):
+    partial_metric_signal = QtCore.pyqtSignal(str, str)
     def __init__(self, parent=None):
         super(Handwriting, self).__init__(parent)
         self.drawing_done = False
@@ -53,6 +54,7 @@ class Handwriting(QtWidgets.QWidget):
         self.uploads_dir = os.path.abspath("files/uploads")
         self.threads = []
         self.setupUi()
+        self.partial_metric_signal.connect(self.update_partial_metrics)
 
         if not os.path.exists(self.uploads_dir):
             os.makedirs(self.uploads_dir)
@@ -525,12 +527,8 @@ class Handwriting(QtWidgets.QWidget):
 
         for selected_file in self.file_list:
             if not selected_file.endswith(".svc"):
-                self.process_log_widget.append_log(
-                    f"Skipping non-.svc file: {selected_file}"
-                )
                 continue
 
-            # Start a new thread for each file
             thread = ModelTrainingThread(
                 self.handwriting_data_dir,
                 self.file_list,
@@ -543,6 +541,10 @@ class Handwriting(QtWidgets.QWidget):
             self.threads.append(thread)
             thread.log_signal.connect(self.process_log_widget.append_log)
             thread.zip_ready.connect(self.on_zip_ready)
+            
+            # Modify the metrics signal connection
+            thread.partial_metric_ready.connect(self.update_partial_metrics)
+            
             thread.metrics_ready.connect(self.on_metrics_ready)
             thread.finished.connect(self.on_thread_finished)
             thread.original_files_ready.connect(self.update_original_absolute_file_display)
@@ -593,6 +595,26 @@ class Handwriting(QtWidgets.QWidget):
         self.generate_data_button.setText("Calculating Results...")
         self.collapsible_widget_result.toggle_container(True)
 
+    def update_partial_metrics(self, metric_name, metric_value):
+        """Update the results text with partial metrics as they are calculated"""
+        current_text = self.svc_preview.results_text.toPlainText()
+        
+        # Check if the metric is already in the text to avoid duplicates
+        if metric_name not in current_text:
+            if metric_name == "NRMSE":
+                formatted_text = f"Normalized Root Mean Square Error (NRMSE)\n\tOverall Average NRMSE: {metric_value:.4f}\n\n"
+            elif metric_name == "Discriminative Score":
+                formatted_text = f"Post-Hoc Discriminative Score (PHDS)\n\tMean accuracy: {metric_value[0]:.4f} (±{metric_value[1]:.4f})\n\n"
+            elif metric_name == "Predictive Score":
+                formatted_text = f"Post-Hoc Predictive Score (PHPS)\n\tMean MAPE: {metric_value[0] * 100:.2f}%\n\tStandard Deviation of MAPE: {metric_value[1] * 100:.2f}%\n"
+            else:
+                formatted_text = f"{metric_name}: {metric_value}\n\n"
+            
+            # Append the new metric to the existing text
+            updated_text = current_text + formatted_text
+            
+            # Update the results text
+            self.svc_preview.results_text.setPlainText(updated_text)
     def on_metrics_ready(self, metrics):
         """Update the results_text widget with the calculated metrics."""
         metrics_text = ""

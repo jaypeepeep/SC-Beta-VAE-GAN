@@ -99,7 +99,37 @@ class SVCpreview(QtWidgets.QWidget):
         self.text_preview1.setReadOnly(True)
         self.text_preview1.setFixedHeight(300)
         self.text_preview1.setStyleSheet(
-            "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
+                """
+                QTextEdit {
+                    background-color: white; 
+                    border: 1px solid #dcdcdc; 
+                    font-family: Montserrat; 
+                    font-size: 12px;
+                }
+                QTextEdit QScrollBar:vertical {
+                    border: none;
+                    background: #f0f0f0;
+                    width: 10px;
+                    margin: 0px;
+                }
+                QTextEdit QScrollBar::handle:vertical {
+                    background: #003333; 
+                    min-height: 30px;
+                    border-radius: 4px;
+                }
+                QTextEdit QScrollBar::handle:vertical:hover {
+                    background: #005555;
+                }
+                QTextEdit QScrollBar::add-line:vertical, 
+                QTextEdit QScrollBar::sub-line:vertical {
+                    height: 0px;
+                    background: transparent;
+                }
+                QTextEdit QScrollBar::add-page:vertical, 
+                QTextEdit QScrollBar::sub-page:vertical {
+                    background: transparent;
+                }
+                """
         )
         self.text_preview1_layout.addWidget(self.text_preview1)
 
@@ -184,9 +214,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.text_preview2 = QtWidgets.QTextEdit(self.container_widget)
         self.text_preview2.setReadOnly(True)
         self.text_preview2.setFixedHeight(300)
-        self.text_preview2.setStyleSheet(
-            "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
-        )
+        self.text_preview2.setStyleSheet(self.text_preview1.styleSheet())
         self.text_preview2_layout.addWidget(self.text_preview2)
 
         # Vertical layout for second graph preview
@@ -262,9 +290,39 @@ class SVCpreview(QtWidgets.QWidget):
         # Comparison table
         self.results_table = QtWidgets.QTableWidget(self.container_widget)
         self.results_table.setFixedHeight(400)
-        self.results_table.setStyleSheet(
-            "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
-        )
+        self.results_table.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.results_table.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.results_table.setStyleSheet("""
+                QTableWidget {
+                    background-color: white;
+                    border: 1px solid #dcdcdc;
+                    font-family: Montserrat;
+                    font-size: 14px;
+                }
+                QTableWidget QScrollBar:vertical {
+                    border: 1px solid #c0c0c0;
+                    background: #e0e0e0;  /* Make scrollbar background more distinct */
+                    width: 12px;
+                    margin: 2px;
+                }
+                QTableWidget QScrollBar::handle:vertical {
+                    background: #007777;  /* Brighter color for better visibility */
+                    min-height: 40px;  /* Increase size for better interaction */
+                    border-radius: 5px;
+                }
+                QTableWidget QScrollBar::handle:vertical:hover {
+                    background: #005555;
+                }
+                QTableWidget QScrollBar::add-line:vertical, 
+                QTableWidget QScrollBar::sub-line:vertical {
+                    height: 0px;
+                    background: transparent;
+                }
+                QTableWidget QScrollBar::add-page:vertical, 
+                QTableWidget QScrollBar::sub-page:vertical {
+                    background: transparent;
+                }
+                """)
         self.results_table.setColumnCount(0)  
         self.results_table.setRowCount(0)  
         self.container_layout.addWidget(self.results_table)
@@ -281,9 +339,7 @@ class SVCpreview(QtWidgets.QWidget):
         self.results_text = QtWidgets.QTextEdit(self.container_widget)
         self.results_text.setReadOnly(True)
         self.results_text.setFixedHeight(225)
-        self.results_text.setStyleSheet(
-            "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 14px;"
-        )
+        self.results_text.setStyleSheet(self.text_preview1.styleSheet())
         self.container_layout.addWidget(self.results_text)
 
         # Performance Metrics Description

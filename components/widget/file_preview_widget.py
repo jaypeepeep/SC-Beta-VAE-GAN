@@ -56,9 +56,38 @@ class FilePreviewWidget(QtWidgets.QWidget):
         self.text_preview.setReadOnly(True)
         self.text_preview.setFixedHeight(300)
         self.text_preview.setStyleSheet(
-            "background-color: white; border: 1px solid #dcdcdc; font-family: Montserrat; font-size: 12px;"
+            """
+            QTextEdit {
+                background-color: white; 
+                border: 1px solid #dcdcdc; 
+                font-family: Montserrat; 
+                font-size: 12px;
+            }
+            QTextEdit QScrollBar:vertical {
+                border: none;
+                background: #f0f0f0;
+                width: 10px;
+                margin: 0px;
+            }
+            QTextEdit QScrollBar::handle:vertical {
+                background: #003333; 
+                min-height: 30px;
+                border-radius: 4px;
+            }
+            QTextEdit QScrollBar::handle:vertical:hover {
+                background: #005555;
+            }
+            QTextEdit QScrollBar::add-line:vertical, 
+            QTextEdit QScrollBar::sub-line:vertical {
+                height: 0px;
+                background: transparent;
+            }
+            QTextEdit QScrollBar::add-page:vertical, 
+            QTextEdit QScrollBar::sub-page:vertical {
+                background: transparent;
+            }
+            """
         )
-
         # Add the text preview to the container layout
         self.container_layout.addWidget(self.text_preview)
 

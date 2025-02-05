@@ -32,6 +32,7 @@ class ModelTrainingThread(QThread):
     metrics_ready = pyqtSignal(dict)
     original_files_ready = pyqtSignal(list) 
     augmented_files_ready = pyqtSignal(list)
+    partial_metric_ready = pyqtSignal(str, object)
 
     def __init__(
         self,
@@ -348,20 +349,25 @@ class ModelTrainingThread(QThread):
 
             nrmse_values, average_nrmse = calculate_nrmse_for_augmented_data(original_data, augmented_data)
             metrics["Normalized Root Mean Square Error (NRMSE)"] = average_nrmse
+            self.partial_metric_ready.emit("NRMSE", average_nrmse)
             self.log(f"Average NRMSE: {average_nrmse:.4f}")
 
+            # Calculate and emit Discriminative Score
             real_data, synthetic_data = np.concatenate(original_data), np.concatenate(augmented_data)
             mean_acc, std_acc = post_hoc_discriminative_score(real_data, synthetic_data)
             metrics["Discriminative Mean Accuracy"] = mean_acc
             metrics["Discriminative Accuracy Std"] = std_acc
+            self.partial_metric_ready.emit("Discriminative Score", (mean_acc, std_acc))
 
+            # Calculate and emit Predictive Score
             X, y, scaler = prepare_data(data_frames[0])
             mean_mape, std_mape = k_fold_cross_validation(X, y, scaler)
             metrics["Mean MAPE"] = mean_mape
             metrics["Standard Deviation of MAPE"] = std_mape
+            self.partial_metric_ready.emit("Predictive Score", (mean_mape, std_mape))
 
         except Exception as e:
-            self.log(f"Error calculating NRMSE: {e}", level="ERROR")
+            self.log(f"Error calculating metrics: {e}", level="ERROR")
             metrics["Average NRMSE"] = "Error"
         self.metrics_ready.emit(metrics)
         self.finished.emit()
