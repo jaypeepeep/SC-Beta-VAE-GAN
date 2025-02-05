@@ -1,6 +1,8 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import logging
 import queue
+from font.dynamic_font_size import get_font_sizes, apply_fonts
+from PyQt5.QtGui import QFont
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, widget):
@@ -10,6 +12,9 @@ class QTextEditLogger(logging.Handler):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_widget)
         self.timer.start(100)  # Update every 100ms
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        content_font = QFont(font_family, font_sizes["content"])
 
     def emit(self, record):
         self.queue.put(record)
@@ -51,7 +56,7 @@ class ProcessLogWidget(QtWidgets.QWidget):
                 background-color: white;
                 border: 1px solid #dcdcdc;
                 font-family: 'Consolas', monospace;
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
                 padding: 5px;
             }
             QTextEdit QScrollBar:vertical {

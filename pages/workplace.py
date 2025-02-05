@@ -59,10 +59,15 @@ from glob import glob
 import re
 from PyQt5.QtWidgets import QApplication
 from pages.worker.generator import GenerateDataWorker
+from PyQt5 import QtWidgets, QtGui, QtCore
+from font.dynamic_font_size import apply_fonts, get_font_sizes
 class Workplace(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Workplace, self).__init__(parent)
         self.uploaded_files = []
+        # Get dynamic font sizes and set font family globally for this widget
+        self.font_sizes = get_font_sizes()  
+        self.font_family = "Montserrat"
         self.setupUi()
         self.worker = None
         self.has_files = False
@@ -104,16 +109,12 @@ class Workplace(QtWidgets.QWidget):
 
         # Generate Synthetic Data button
         button_layout = QtWidgets.QVBoxLayout()
-        self.generate_data_button = QtWidgets.QPushButton(
-            "Generate Synthetic Data", self
-        )
+        self.generate_data_button = QtWidgets.QPushButton("Generate Synthetic Data", self)
         self.generate_data_button.setStyleSheet(
             """
             QPushButton {
                 background-color: #003333; 
                 color: white; 
-                font-family: Montserrat; 
-                font-size: 10px; 
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -123,21 +124,12 @@ class Workplace(QtWidgets.QWidget):
             }
             """
         )
-        self.generate_data_button.setCursor(
-            QtGui.QCursor(QtCore.Qt.PointingHandCursor)
-        )  # put the button at the bottom
+        # Use dynamic font size for buttons:
+        button_font = QtGui.QFont(self.font_family, self.font_sizes["button"])
+        self.generate_data_button.setFont(button_font)
+        self.generate_data_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.generate_data_button.clicked.connect(self.on_generate_data)
-
-        button_layout.addWidget(
-            self.generate_data_button, alignment=QtCore.Qt.AlignCenter
-        )
-
-        # spacer = QtWidgets.QSpacerItem(
-        #     8, 8, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        # )
-        # button_layout.addItem(spacer)
-
-        # Adding the button to the main layout
+        button_layout.addWidget(self.generate_data_button, alignment=QtCore.Qt.AlignCenter)
         self.gridLayout.addLayout(button_layout, 1, 0)
 
     def train_vae(self):
@@ -290,11 +282,7 @@ class Workplace(QtWidgets.QWidget):
         msg.setInformativeText(message)
         msg.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
-                font-weight: bold;
                 margin: 32px 32px;
-                
-                font-family: 'Montserrat', sans-serif;
             }
             QPushButton {
                 margin-left: 10px;
@@ -303,24 +291,19 @@ class Workplace(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
-                font-weight: bold;
-                font-family: 'Montserrat', sans-serif;
-                line-height: 20px;
             }
             QPushButton:hover {
                 background-color: #005555;
             }
         """)
+        # Set the font dynamically
+        msg.setFont(QtGui.QFont(self.font_family, self.font_sizes["content"]))
         if message == "Please upload a file first":
             msg.setWindowTitle("File Upload Error")
         else:
             msg.setWindowTitle("Model Selection Error")
-
-        # Set custom icon
         icon = QIcon("icon/icon.ico")
         msg.setWindowIcon(icon)
-
         msg.exec_()
 
     def update_file_scroll_area(self):
@@ -332,83 +315,77 @@ class Workplace(QtWidgets.QWidget):
         
     def setup_input_collapsible(self):
         """Set up the 'Input' collapsible widget and its contents."""
-        font = QtGui.QFont()
-        font.setPointSize(20)
+        # Create dynamic fonts for the title and buttons.
+        subtitle_font = QtGui.QFont(self.font_family, self.font_sizes["subtitle"])
+        button_font = QtGui.QFont(self.font_family, self.font_sizes["button"])
 
-        # Call the collapsible widget component for Input
-        self.collapsible_widget_input = CollapsibleWidget("Input", self)
+        # Create the collapsible widget using the dynamic subtitle font for its title.
+        self.collapsible_widget_input = CollapsibleWidget("Input", self, title_font=subtitle_font)
         self.scroll_layout.addWidget(self.collapsible_widget_input)
 
-        # Add the FileUploadWidget
+        # Add the FileUploadWidget.
         self.file_upload_widget = DragDrop_Button(self)
-        self.file_upload_widget.file_uploaded.connect(
-            self.update_file_display
-        )  # Connect the signal
+        self.file_upload_widget.file_uploaded.connect(self.update_file_display)
         self.collapsible_widget_input.add_widget(self.file_upload_widget)
 
-        # Add "Add More Files" button to Input collapsible widget
+        # Add the "Add More Files" button.
         self.add_file_button = QtWidgets.QPushButton("Add More Files", self)
         self.add_file_button.setStyleSheet(
             """
             QPushButton {
                 background-color: #003333; 
                 color: white; 
-                font-family: Montserrat; 
-                font-size: 15px; 
-                font-weight: 600; 
                 padding: 10px 20px;
                 border-radius: 5px; 
                 border: none;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #005555;  /* Change this to your desired hover color */
+                background-color: #005555; 
             }
             """
         )
-        self.add_file_button.setFont(font)
+        # Apply the dynamic button font.
+        self.add_file_button.setFont(button_font)
         self.add_file_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.add_file_button.clicked.connect(self.add_more_files)
+        self.add_file_button.setFixedSize(150, 40)
 
-        # Set a fixed size to prevent it from expanding
-        self.add_file_button.setFixedSize(180, 40)
-
-        # Create a container and layout to center the button
+        # Create a container and layout to center the button.
         self.button_container = QtWidgets.QWidget(self)
         self.button_layout = QtWidgets.QHBoxLayout(self.button_container)
-        self.button_layout.setAlignment(QtCore.Qt.AlignCenter)  # Center horizontally
+        self.button_layout.setAlignment(QtCore.Qt.AlignCenter)
         self.button_layout.addWidget(self.add_file_button)
         self.button_container.setLayout(self.button_layout)
 
-        # Create a scrollable area to hold the file widgets
+        # Create a scrollable area to hold the file widgets.
         self.file_scroll_area = QtWidgets.QScrollArea(self)
         self.file_scroll_area.setWidgetResizable(True)
         self.file_scroll_area.setMinimumHeight(70)
         self.scroll_layout.addWidget(self.file_scroll_area)
 
-        # Add the container to the scroll layout instead of directly adding the button
+        # Add the button container to the collapsible widget.
         self.collapsible_widget_input.add_widget(self.button_container)
 
-        # Connect collapsible state or visibility changes
+        # Connect the FileUploadWidget signal to update the scroll area.
         self.file_upload_widget.file_uploaded.connect(self.update_file_scroll_area)
 
-        # Create a container to hold the file widgets and its layout
+        # Create a container to hold the file widgets and its layout.
         self.file_container_widget = QtWidgets.QWidget(self)
         self.file_container_layout = QtWidgets.QVBoxLayout(self.file_container_widget)
         self.file_container_layout.setSpacing(0)
         self.file_container_layout.setContentsMargins(0, 0, 0, 0)
-
-        # Ensure the layout is aligned to the top
         self.file_container_layout.setAlignment(QtCore.Qt.AlignTop)
 
-        # Add the file container widget to the scroll area
+        # Add the file container widget to the scroll area.
         self.file_scroll_area.setWidget(self.file_container_widget)
         self.collapsible_widget_input.add_widget(self.file_scroll_area)
 
-        # Initially hide other components
+        # Initially hide other components.
         self.file_upload_widget.setVisible(True)
         self.show_other_components(False)
 
-        # Open the collapsible widget by default
+        # Open the collapsible widget by default.
         self.collapsible_widget_input.toggle_container(True)
 
 

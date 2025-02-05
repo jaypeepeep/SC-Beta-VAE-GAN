@@ -43,6 +43,8 @@ from model.scbetavaegan_pentab import (
     calculate_nrmse,
     post_hoc_discriminative_score,
 )
+from font.dynamic_font_size import get_font_sizes, apply_fonts
+from PyQt5.QtGui import QFont
 
 class Handwriting(QtWidgets.QWidget):
     partial_metric_signal = QtCore.pyqtSignal(str, str)
@@ -55,6 +57,9 @@ class Handwriting(QtWidgets.QWidget):
         self.threads = []
         self.setupUi()
         self.partial_metric_signal.connect(self.update_partial_metrics)
+        font_sizes = get_font_sizes()
+        font_family = "Montserrat"
+        content_font = QFont(font_family, font_sizes["content"]) 
 
         if not os.path.exists(self.uploads_dir):
             os.makedirs(self.uploads_dir)
@@ -122,7 +127,7 @@ class Handwriting(QtWidgets.QWidget):
 
         top_text = QtWidgets.QLabel("Draw and Handwrite", self)
         top_text.setAlignment(QtCore.Qt.AlignCenter)
-        top_text.setStyleSheet("font-size: 30px; font-weight: bold; color: #033; ")
+        top_text.setStyleSheet("font-size: {font_sizes['title']}px; font-weight: bold; color: #033; ")
         top_layout.addWidget(top_text)
         self.layout.addLayout(top_layout)
 
@@ -147,7 +152,7 @@ class Handwriting(QtWidgets.QWidget):
         layout.setSpacing(10)  
         message_box.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             }
@@ -158,7 +163,7 @@ class Handwriting(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
@@ -291,7 +296,7 @@ class Handwriting(QtWidgets.QWidget):
                 color: white; 
                 font-weight: bold;           
                 font-family: Montserrat; 
-                font-size: 14px;        
+                font-size: {font_sizes['content']}px;       
                 padding: 10px;            
                 border: 2px solid #033;  
                 border-radius: 5px;      
@@ -315,7 +320,7 @@ class Handwriting(QtWidgets.QWidget):
                 color: #033;                 
                 border: 1px solid #033;    
                 font-family: Montserrat;
-                font-size: 14px;
+                font-size: {font_sizes['content']}px;
         }"""
         )
         self.file_dropdown.addItems(self.file_list)
@@ -346,7 +351,7 @@ class Handwriting(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: {font_sizes['button']}px;
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -366,7 +371,7 @@ class Handwriting(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: {font_sizes['button']}px;
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -424,7 +429,7 @@ class Handwriting(QtWidgets.QWidget):
                 background-color: #003333; 
                 color: white; 
                 font-family: Montserrat; 
-                font-size: 10px; 
+                font-size: {font_sizes['button']}px;
                 font-weight: 600; 
                 padding: 10px 20px; 
                 border-radius: 5px;
@@ -785,7 +790,7 @@ class Handwriting(QtWidgets.QWidget):
         message_box.setDefaultButton(QtWidgets.QMessageBox.No)
         message_box.setStyleSheet("""
             QMessageBox {
-                font-size: 12px;
+                font-size: {font_sizes['content']}px;
                 font-weight: bold;
                 margin: 32px 32px;
                 
@@ -798,7 +803,7 @@ class Handwriting(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 10px;
+                font-size: {font_sizes['button']}px;
                 font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
