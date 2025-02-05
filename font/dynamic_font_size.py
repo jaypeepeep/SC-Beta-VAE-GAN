@@ -21,8 +21,9 @@ def get_font_sizes():
     
     font_sizes = {
         "button": int(14 * scale_factor),
-        "content": int(16 * scale_factor),
+        "content": int(18 * scale_factor),
         "title": int(24 * scale_factor),
+        "subtitle": int(20 * scale_factor),
         "subcontent": int(12 * scale_factor),
         "sidebar": int(18 * scale_factor)
     }

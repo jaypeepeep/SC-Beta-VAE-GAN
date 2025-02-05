@@ -5,7 +5,8 @@ from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtGui import QIcon
 from layout import Ui_MainWindow
 from PyQt5.QtGui import QFont
-
+from font.dynamic_font_size import get_font_sizes, apply_fonts   
+from PyQt5.QtGui import QFont
 
 
 class MainWindow(QMainWindow):
@@ -61,6 +62,7 @@ class MainWindow(QMainWindow):
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    font_sizes = get_font_sizes() 
 
     # Load Montserrat fonts
     regular_font_id = QFontDatabase.addApplicationFont("./font/Montserrat-Regular.ttf")
@@ -83,7 +85,7 @@ if __name__ == "__main__":
     thin_font_family = QFontDatabase.applicationFontFamilies(thin_font_id)[0]
 
     # Set the default font for the application
-    app.setFont(QFont(regular_font_family, 20))  # Set the default font to regular
+    app.setFont(QFont(regular_font_family, font_sizes["content"]))  # Set the default font to regular
 
     # Load and apply the stylesheet
     style_file = QFile("style.qss")
