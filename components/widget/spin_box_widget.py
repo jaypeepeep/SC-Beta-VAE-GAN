@@ -1,8 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
-import sys
-from font.dynamic_font_size import get_font_sizes, apply_fonts
+from font.dynamic_font_size import get_font_sizes
 from PyQt5.QtGui import QFont
-
 
 class SpinBoxWidget(QtWidgets.QWidget):
     def __init__(self, min_value, parent=None):
@@ -11,85 +9,72 @@ class SpinBoxWidget(QtWidgets.QWidget):
         self.setupUi()
         font_sizes = get_font_sizes()
         font_family = "Montserrat"
-        content_font = QFont(font_family, font_sizes["content"]) 
+        content_font = QFont(font_family, font_sizes["content"])
 
-    def setupUi(self):        
+    def setupUi(self):
         self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.setContentsMargins(10, 10, 10, 10)  # Add some margins to the layout
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(10)
 
         self.label = QtWidgets.QLabel("Augmented Data Quantity")
         self.label.setStyleSheet(
-            "font-family: Montserrat; font-size: {font_sizes['title']}px; font-weight: bold; color: #003333;"
+            "font-family: Montserrat; font-weight: bold; color: #003333;"
         )
-        self.layout.addWidget(self.label, alignment=QtCore.Qt.AlignLeft)
+        self.layout.addWidget(self.label)
 
-        # Create the number input (QSpinBox)
         self.number_input = QtWidgets.QSpinBox(self)
         self.number_input.setMinimum(self.min_value)
         self.number_input.setValue(self.min_value)
-        self.number_input.setSingleStep(1)  # Set the step value to 1
-
-        # Apply custom styles to the number input
+        self.number_input.setSingleStep(1)
+        self.number_input.setFixedSize(80, 40)
         self.number_input.setStyleSheet(
             """
             QSpinBox {
-                border-radius: 8px;
                 border: 1px solid #003333;
                 background: #f7f7f7;
-                width: 80px;
-                height: 20px;
                 color: #000;
                 font-family: Montserrat;
-                font-size: {font_sizes['content']}px;
                 font-weight: 600;
-                text-align: center;
-                padding: 5px;
+                padding: 4px;
+                border-radius: 0px;
             }
             QSpinBox::up-button {
-                width: 10px;
-                height: 10px;
+                width: 20px;
+                height: 20px;
                 border: none;
-                border-radius: 8px;
-                margin-right: 5px;
                 background-color: #f0f0f0;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
+                border-radius: 0px;
             }
             QSpinBox::down-button {
-                width: 10px;
-                height: 10px;
+                width: 20px;
+                height: 20px;
                 border: none;
-                border-radius: 8px;
-                margin-right: 5px;
                 background-color: #f0f0f0;
-                border-bottom-left-radius: 8px;
-                border-bottom-right-radius: 8px;
+                border-radius: 0px;
             }
-            QSpinBox::up-button:hover,
-            QSpinBox::down-button:hover {
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
                 background-color: #d0d0d0;
             }
-            QSpinBox::up-button:pressed,
-            QSpinBox::down-button:pressed {
+            QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
                 background-color: #c0c0c0;
             }
             QSpinBox::up-arrow {
                 image: url(icon/arrow_up.png);
-                width: 5px;
-                height: 5px;
+                width: 8px;
+                height: 8px;
             }
             QSpinBox::down-arrow {
                 image: url(icon/arrow_down.png);
-                width: 5px;
-                height: 5px;
+                width: 8px;
+                height: 8px;
             }
             """
         )
-
         self.layout.addWidget(self.number_input)
+        self.layout.addStretch()
 
     def getValue(self):
         return self.number_input.value()
-    
+
     def resetValue(self):
         self.number_input.setValue(self.min_value)
