@@ -69,14 +69,15 @@ class Ui_MainWindow(object):
         self.title_label_1 = QtWidgets.QLabel(self.header_widget)
         self.title_label_1.setText("SC-β-VAE-GAN")
         self.title_label_1.setAlignment(QtCore.Qt.AlignCenter)
-        self.title_label_1.setStyleSheet("font-weight: bold; color: #003333; font-size: 14px;")
+        self.title_label_1.setStyleSheet("font-weight: bold; color: #003333; ")
+        self.title_label_1.setFont(QFont(font_family, font_sizes["title"]))
         self.title_subtitle_layout.addWidget(self.title_label_1)
 
         # Subtitle "Synthetic Data Generator"
         self.subtitle_label = QtWidgets.QLabel(self.header_widget)
         self.subtitle_label.setText("Synthetic Data Generator")
         self.subtitle_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.subtitle_label.setStyleSheet("font-weight: bold; color: #003333")
+        self.subtitle_label.setStyleSheet(" color: #003333")
         self.subtitle_label.setFont(QFont(font_family, font_sizes["title"]))
         self.title_subtitle_layout.addWidget(self.subtitle_label)
 
