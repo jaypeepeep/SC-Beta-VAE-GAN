@@ -96,6 +96,10 @@ class ModelWidget(QtWidgets.QWidget):
                 padding-left: 30px;
                 background-color: transparent;
             }
+            QTableWidget::item:selected {
+                background-color: transparent;
+                color: inherit;
+            }
             QTableCornerButton::section {
                 border: none;
                 background-color: #033;
@@ -192,7 +196,14 @@ class ModelWidget(QtWidgets.QWidget):
             
             icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../icon/arrow_up.png")
             if os.path.exists(icon_path):
-                actions_button.setIcon(QtGui.QIcon(icon_path))
+                icon = QtGui.QIcon(icon_path)
+                
+                # Create a transformed icon rotated 180 degrees
+                rotated_icon = QtGui.QIcon()
+                rotated_pixmap = icon.pixmap(QtCore.QSize(10, 10)).transformed(QtGui.QTransform().rotate(180))
+                rotated_icon.addPixmap(rotated_pixmap)
+                
+                actions_button.setIcon(rotated_icon)
                 actions_button.setIconSize(QtCore.QSize(10, 10))
             
             actions_button.setFixedSize(30, 30)
