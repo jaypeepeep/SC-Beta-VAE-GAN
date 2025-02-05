@@ -30,8 +30,9 @@ class QTextEditLogger(logging.Handler):
                 break
 
 class ProcessLogWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, log_name, parent=None):
         super(ProcessLogWidget, self).__init__(parent)
+        self.log_name = log_name  # Unique identifier for each log
         self.setup_ui()
         self.setup_logger()
 
@@ -93,7 +94,7 @@ class ProcessLogWidget(QtWidgets.QWidget):
 
     def setup_logger(self):
         # Create custom logger
-        self.logger = logging.getLogger('ConsoleLogger')
+        self.logger = logging.getLogger(self.log_name)
         self.logger.setLevel(logging.DEBUG)
         
         # Create handler and formatter
@@ -123,3 +124,6 @@ class ProcessLogWidget(QtWidgets.QWidget):
     def get_logger(self):
         """Return the actual logger, allowing use of .info(), .error(), etc."""
         return self.logger
+
+
+
