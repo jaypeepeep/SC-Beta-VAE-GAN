@@ -17,10 +17,21 @@ Last Date Modified: November 17, 2024
 from PyQt5 import QtWidgets, QtGui, QtCore
 import os
 from components.widget.pdf_viewer import PDFViewer
+# import this for fonts
+from font.dynamic_font_size import get_font_sizes, apply_fonts   
+from PyQt5.QtGui import QFont
+
 
 class ScrollableTableWidget(QtWidgets.QWidget):
     def __init__(self, title, steps, parent=None):
         super(ScrollableTableWidget, self).__init__(parent)
+        
+        # define first
+        font_sizes = get_font_sizes()  
+        font_family = "Montserrat"
+        titlefont = QtGui.QFont("Montserrat", font_sizes["title"])
+        
+        
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -30,12 +41,12 @@ class ScrollableTableWidget(QtWidgets.QWidget):
         header.setStyleSheet("""
             background-color: #e0e0e0;
             padding: 10px;
-            font-weight: bold;
-            font-size: 20px;
-            font-family: 'Montserrat', sans-serif;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
         """)
+        
+        # QLABEL - component.setFont()
+        header.setFont(titlefont)
         header.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(header)
 
@@ -78,7 +89,6 @@ class ScrollableTableWidget(QtWidgets.QWidget):
             step_label = QtWidgets.QLabel(step)
             step_label.setWordWrap(True)
             step_label.setStyleSheet("""
-                font-size: 18px;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 1.2;
                 padding: 5px 10px;
@@ -98,6 +108,10 @@ class About(QtWidgets.QWidget):
 
     def setupUi(self):
         # Main layout
+        font_sizes = get_font_sizes()  
+        font_family = "Montserrat"
+        contentfont = QtGui.QFont("Montserrat", font_sizes["content"])
+        buttonfont = QtGui.QFont("Montserrat", font_sizes["button"])
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -121,15 +135,16 @@ class About(QtWidgets.QWidget):
             "<li><b>Data Imputation:</b> Filling in missing values in multivariate time series data.</li>"
             "<li><b>Data Augmentation:</b> Generating additional synthetic data to expand the available dataset.</li>"
             "</ul>"
-            "<p style='text-align: center;'>View the full study to understand the complete framework, methodology, and key insights behind "
+            "<p style='text-align: center; '>View the full study to understand the complete framework, methodology, and key insights behind "
             "<span style='color: #005555; font-weight: bold;'>SC-β-VAE-GAN</span>.</p>"
         )
         intro_text.setWordWrap(True)
+        # Set only line-height in the stylesheet and rely on setFont() for the font
         intro_text.setStyleSheet(
-            "font-size: 18px;"
-            "font-family: 'Montserrat', sans-serif;"
-            "line-height: 24.38px;"
+            "line-height: 24.38px;"  # Only style line-height, not the font
         )
+
+        intro_text.setFont(contentfont)
         header_layout.addWidget(intro_text)
 
         # PDF Button
@@ -141,16 +156,16 @@ class About(QtWidgets.QWidget):
             "    border: none;"
             "    padding: 10px 20px;"
             "    border-radius: 8px;"
-            "    font-size: 18px;"
             "    font-weight: bold;"
-            "    font-family: 'Montserrat', sans-serif;"
             "    margin-top: 12px;"      
             "}"
             "QPushButton:hover {"
             "    background-color: #005555;"
             "}"
         )
+        
         self.pdf_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.pdf_button.setFont(buttonfont)
         self.pdf_button.clicked.connect(self.open_pdf_viewer)
 
         # Center the button
@@ -168,12 +183,11 @@ class About(QtWidgets.QWidget):
         steps_title = QtWidgets.QLabel("HOW TO USE THE TOOL")
         steps_title.setAlignment(QtCore.Qt.AlignCenter)
         steps_title.setStyleSheet(
-            "font-size: 20px;"
-            "font-family: 'Montserrat', sans-serif;"
-            "font-weight: bold;"
             "background-color: transparent;"
             "margin: 20px 0;"
+            "font-weight: bold"
         )
+        steps_title.setFont(contentfont)
         main_layout.addWidget(steps_title)
 
         # Tables container
@@ -207,14 +221,18 @@ class About(QtWidgets.QWidget):
             "8. <b>Generate Synthetic Data:</b> Click to generate synthetic data.",
             "9. <b>Results:</b> Check the generated results."
         ]
+        
 
         # Create scrollable tables
         workplace_table = ScrollableTableWidget("For Workplace", workplace_steps)
         handwriting_table = ScrollableTableWidget("For Handwriting", handwriting_steps)
 
         # Add tables to container
+        workplace_table.setFont(contentfont) 
+        handwriting_table.setFont(contentfont)  
         tables_layout.addWidget(workplace_table)
         tables_layout.addWidget(handwriting_table)
+        
         main_layout.addWidget(tables_container)
 
     def open_pdf_viewer(self):
