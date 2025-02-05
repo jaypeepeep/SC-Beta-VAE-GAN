@@ -387,7 +387,7 @@ class Handwriting(QtWidgets.QWidget):
         self.clear_all_button.clicked.connect(self.clear_all_drawings)
 
         # Add the buttons to the button layout
-        button_layout.addWidget(self.draw_more_button)
+        # button_layout.addWidget(self.draw_more_button)
         button_layout.addWidget(self.clear_all_button)
 
         # Add the button layout to the collapsible widget
