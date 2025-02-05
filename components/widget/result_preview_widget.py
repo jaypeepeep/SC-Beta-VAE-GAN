@@ -550,13 +550,19 @@ class SVCpreview(QtWidgets.QWidget):
 
             # Read and display the content
             with open(filename, "r") as file:
-                content = file.read()
+                content = file.readlines()
+
+                if content:
+                    # Define the column-wise spaces for the first row (adjust as needed)
+                    content[0:] = [line.replace(" ", "              ") for line in content[0:]]  
+                formatted_content = ''.join(content)
+
             if preview_index == 0:
                 self.filename1.setText(os.path.basename(filename))
-                self.text_preview1.setPlainText(content)
+                self.text_preview1.setPlainText(formatted_content)
             else:
                 self.filename2.setText(os.path.basename(filename))
-                self.text_preview2.setPlainText(content)
+                self.text_preview2.setPlainText(formatted_content)
         except Exception as e:
             error_message = f"Error reading file: {str(e)}"
             if preview_index == 0:
