@@ -20,7 +20,7 @@ class FileContainerWidget(QtWidgets.QWidget):
         self.setStyleSheet("background: #DEDEDE;")
         self.font_sizes = get_font_sizes()  
         self.font_family = "Montserrat"
-        self.buttonfont = QtGui.QFont("Montserrat", self.font_sizes["content"])
+        self.contentfont = QtGui.QFont("Montserrat", self.font_sizes["content"])
         self.titlefont= QtGui.QFont("Montserrat", self.font_sizes["title"])
         self.buttonfont = QtGui.QFont("Montserrat", self.font_sizes["button"])
         
@@ -44,7 +44,8 @@ class FileContainerWidget(QtWidgets.QWidget):
 
         # Label to display the file name
         self.file_label = QtWidgets.QLabel(self.file_name, self.container)
-        self.file_label.setStyleSheet(" margin-left: 10px; background: #DEDEDE; padding: 5px; color: black; color: #000; font-family: Montserrat; font-size: 13px;")
+        self.file_label.setStyleSheet(" margin-left: 10px; background: #DEDEDE; padding: 5px; color: black; color: #000;")
+        self.file_label.setFont(self.contentfont)
         self.layout.addWidget(self.file_label)
 
         # Spacer to push buttons to the right
@@ -76,7 +77,6 @@ class FileContainerWidget(QtWidgets.QWidget):
             QPushButton {
                 background-color: #003333; 
                 color: white; font-family: 
-                Montserrat; font-size: 10px; 
                 font-weight: 600; 
                 padding: 5px 15px; 
                 border-radius: 5px;

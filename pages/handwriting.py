@@ -119,7 +119,8 @@ class Handwriting(QtWidgets.QWidget):
     def show_drawing_page(self):
         """Show the drawing page layout with the Draw and Handwrite button."""
         self.clear_layout()
-
+        font_sizes = get_font_sizes()  
+        titlefont= QtGui.QFont("Montserrat", font_sizes["title"])
         # Create a layout for the text
         top_layout = QtWidgets.QVBoxLayout()
         top_layout.setAlignment(QtCore.Qt.AlignCenter)
@@ -127,7 +128,8 @@ class Handwriting(QtWidgets.QWidget):
 
         top_text = QtWidgets.QLabel("Draw and Handwrite", self)
         top_text.setAlignment(QtCore.Qt.AlignCenter)
-        top_text.setStyleSheet("font-size: {font_sizes['title']}px; font-weight: bold; color: #033; ")
+        top_text.setStyleSheet("font-weight: bold; color: #033; ")
+        top_text.setFont(titlefont)
         top_layout.addWidget(top_text)
         self.layout.addLayout(top_layout)
 
