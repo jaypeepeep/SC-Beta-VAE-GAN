@@ -17,11 +17,18 @@ Last Date Modified: December 09, 2024
 
 import os
 from PyQt5 import QtWidgets, QtGui, QtCore
+from font.dynamic_font_size import get_font_sizes, apply_fonts   
+from PyQt5.QtGui import QFont
 
 class Local(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Local, self).__init__(parent)
-        self.current_directory = "./files/uploads"  # Initial directory path
+        self.font_sizes = get_font_sizes()  
+        self.font_family = "Montserrat"
+        self.titlefont = QtGui.QFont("Montserrat", self.font_sizes["title"])
+        self.buttonfont = QtGui.QFont("Montserrat", self.font_sizes["button"])
+        self.contentfont = QtGui.QFont("Montserrat", self.font_sizes["content"])
+        self.current_directory = "./files"  # Initial directory path
         self.selected_file = None  # Track selected file for rename/delete
         self.setupUi()
         self.load_files(self.current_directory)  # Load files from the initial directory
@@ -44,9 +51,8 @@ class Local(QtWidgets.QWidget):
             margin-left: 5px; 
             color: black;
             font-weight: bold;
-            font-family: Montserrat; 
-            font-size: 18px; 
         """)
+        self.local_storage_label.setFont(self.contentfont)
         self.local_storage_label.setAlignment(QtCore.Qt.AlignLeft)
         label_layout.addWidget(self.local_storage_label)
 
@@ -54,18 +60,17 @@ class Local(QtWidgets.QWidget):
         self.path_label = QtWidgets.QLabel(self.current_directory, self)  # Initialize with the current directory path
         self.path_label.setStyleSheet("""
             margin-left: 25px;
-            color: black;
-            font-family: Montserrat; 
-            font-size: 16px;
+            color: black; 
             text-decoration: underline;
         """)
+        self.path_label.setFont(self.contentfont)
         self.path_label.setAlignment(QtCore.Qt.AlignLeft)
         label_layout.addWidget(self.path_label)
 
         # Horizontal layout for combining the label_layout and buttons
-        header_layout = QtWidgets.QHBoxLayout()
-        header_layout.addLayout(label_layout)
-        header_layout.addStretch()
+        self.header_layout = QtWidgets.QHBoxLayout()
+        self.header_layout.addLayout(label_layout)
+        self.header_layout.addStretch()
 
         # Change Location button
         self.change_location_button = QtWidgets.QPushButton("Change Location", self)
@@ -77,8 +82,6 @@ class Local(QtWidgets.QWidget):
                 border: none;
                 padding: 8px 17px;
                 border-radius: 5px;
-                font-size: 18px;
-                font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
             }
@@ -86,22 +89,23 @@ class Local(QtWidgets.QWidget):
                 background-color: #005555;
             }
         """)
+        self.change_location_button.setFont(self.buttonfont)
         self.change_location_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.change_location_button.clicked.connect(self.change_directory)
-        header_layout.addWidget(self.change_location_button)
+        self.header_layout.addWidget(self.change_location_button)
+        
 
         # Add the header layout to the grid layout at row 0, spanning 2 columns
-        self.gridLayout.addLayout(header_layout, 0, 0, 1, 2)
+        self.gridLayout.addLayout(self.header_layout, 0, 0, 1, 2)
 
         # Files label
         self.files_label = QtWidgets.QLabel("Files", self)
         self.files_label.setStyleSheet("""
             margin-left: 5px; 
             color: black;
-            font-family: Montserrat; 
-            font-size: 18px; 
             font-weight: 600;
         """)
+        self.change_location_button.setFont(self.contentfont)
         self.files_label.setAlignment(QtCore.Qt.AlignLeft)
         self.gridLayout.addWidget(self.files_label, 1, 0, 1, 2)  # Span across 2 columns
 
@@ -116,9 +120,7 @@ class Local(QtWidgets.QWidget):
         self.table_widget.setColumnWidth(0, 600)  # Adjusted "Name" column width
 
         # Set font to size 14 for the table
-        font_x = QtGui.QFont()
-        font_x.setPointSize(8)
-        self.table_widget.setFont(font_x)
+        self.table_widget.setFont(self.contentfont)
 
         # Add hover effect for rows
         self.table_widget.setStyleSheet("""
@@ -128,32 +130,32 @@ class Local(QtWidgets.QWidget):
             QTableWidget::item:hover {
                 background-color:#033;  
                 color: white;
+                border: none;
             }
             QTableWidget::item:selected {
                 background-color: #033; 
+                border: none;
                 color: white;
             }
             QHeaderView::section {
                 color: #033;
                 padding: 5px;
-                font-size: 16px;
                 font-weight: bold;
                 border: none;
             }
-
             QTableWidget::item {
                 padding: 16px;
                 border: none;
             }
 
             QTableCornerButton::section {
-                background-color: #f0f0f0;
                 border: none;
             }
         """)
 
         # Add table to the layout
         self.gridLayout.addWidget(self.table_widget)
+        self.add_back_button()
 
         # Set up the context menu policy
         self.table_widget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -161,6 +163,39 @@ class Local(QtWidgets.QWidget):
         
         self.table_widget.cellClicked.connect(self.preview_file)
 
+    def add_back_button(self):
+        """Add back button to return to the previous directory"""
+        self.back_button = QtWidgets.QPushButton("Back")
+        self.back_button.setStyleSheet("""
+            QPushButton {
+                margin-left: 10px;
+                background-color: #003333;
+                color: white;
+                border: none;
+                padding: 8px 17px;
+                border-radius: 5px;
+                font-family: 'Montserrat', sans-serif;
+                line-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #005555;
+            }
+        """)
+        self.back_button.setFont(self.buttonfont)
+        self.back_button.clicked.connect(self.go_back)
+        # Initially, hide the back button
+        self.back_button.setVisible(False)
+        
+        # Place it somewhere in your layout (e.g., at the top)
+        self.header_layout.addWidget(self.back_button)
+
+    def update_back_button_visibility(self):
+        """Show or hide the back button based on the current directory"""
+        if self.current_directory != "./files":
+            self.back_button.setVisible(True)  # Show the back button
+        else:
+            self.back_button.setVisible(False)  # Hide the back button
+    
     def showEvent(self, event):
         """Override the showEvent to reload files each time the widget is shown."""
         super(Local, self).showEvent(event)
@@ -214,7 +249,6 @@ class Local(QtWidgets.QWidget):
                 background-color: #033; 
                 border: none;
                 font-weight: bold;
-                font-size: 16px;
             }
             QMenu::item { 
                 color: white; 
@@ -229,6 +263,7 @@ class Local(QtWidgets.QWidget):
                 color: #033; 
             }
         """)
+        context_menu.setFont(self.contentfont)
         
         # Create actions for the context menu
         open_action = context_menu.addAction("Open")
@@ -247,36 +282,47 @@ class Local(QtWidgets.QWidget):
         
         
     def preview_file(self, row, column):
-        """Handle file preview when a file is clicked"""
-        # Get the file name from the clicked row
+        """Handle file preview or open folder temporarily"""
         file_name = self.table_widget.item(row, 0).text()
         file_path = os.path.join(self.current_directory, file_name)
 
-        # For now, let's handle basic previews:
-        # 1. If it's an image file, show it in a QLabel
-        # 2. Otherwise, print file path or open the file with the default program
-        if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
-            # Preview image
-            self.show_image_preview(file_path)
+        if os.path.isdir(file_path):
+            # If it's a folder, store the current directory as previous directory
+            self.previous_directory = self.current_directory
+            self.load_files(file_path)  # Load files from the selected folder
+            self.current_directory = file_path  # Temporarily update directory
+            self.update_back_button_visibility()  # Update visibility of Back button
         else:
-            # Non-image files - open in default program (or print path)
-            QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(file_path))
+            # Handle file previews
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                self.show_image_preview(file_path)
+            else:
+                QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(file_path))
     
-    def preview_file(self, row, column):
-        """Handle file preview when a file is clicked"""
-        # Get the file name from the clicked row
-        file_name = self.table_widget.item(row, 0).text()
-        file_path = os.path.join(self.current_directory, file_name)
+    def go_back(self):
+        """Navigate back to the previous directory"""
+        if self.previous_directory:
+            self.load_files(self.previous_directory)  # Load files from the previous directory
+            self.current_directory = self.previous_directory  # Update current directory to previous one
+            self.previous_directory = None  # Reset previous directory
+            self.update_back_button_visibility()  # Update visibility of Back button
 
-        # For now, let's handle basic previews:
-        # 1. If it's an image file, show it in a QLabel
-        # 2. Otherwise, print file path or open the file with the default program
-        if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
-            # Preview image
-            self.show_image_preview(file_path)
-        else:
-            # Non-image files - open in default program (or print path)
-            QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(file_path))
+
+    # def preview_file(self, row, column):
+    #     """Handle file preview when a file is clicked"""
+    #     # Get the file name from the clicked row
+    #     file_name = self.table_widget.item(row, 0).text()
+    #     file_path = os.path.join(self.current_directory, file_name)
+
+    #     # For now, let's handle basic previews:
+    #     # 1. If it's an image file, show it in a QLabel
+    #     # 2. Otherwise, print file path or open the file with the default program
+    #     if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+    #         # Preview image
+    #         self.show_image_preview(file_path)
+    #     else:
+    #         # Non-image files - open in default program (or print path)
+    #         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(file_path))
 
 
     def show_image_preview(self, file_path):
@@ -315,15 +361,14 @@ class Local(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 16px;
                 font-weight: bold;
-                font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
             }
             QPushButton:hover {
                 background-color: #005555; 
             }
         """)
+        close_button.setFont(self.contentfont)
         close_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
         # Add the close button to the layout
@@ -381,11 +426,8 @@ class Local(QtWidgets.QWidget):
         layout.setSpacing(10)  
         message_box.setStyleSheet("""
             QMessageBox {
-                font-size: 18px;
                 font-weight: bold;
                 margin: 32px 32px;
-                
-                font-family: 'Montserrat', sans-serif;
             }
             QPushButton {
                 margin-left: 10px;
@@ -394,15 +436,14 @@ class Local(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;
                 border-radius: 5px;
-                font-size: 18px;
                 font-weight: bold;
-                font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
             }
             QPushButton:hover {
                 background-color: #005555;
             }
         """)
+        message_box.setFont(self.contentfont)
 
         return message_box.exec_() == QtWidgets.QMessageBox.Yes
     
@@ -416,8 +457,7 @@ class Local(QtWidgets.QWidget):
         # Apply custom styles to input dialog
         input_dialog.setStyleSheet("""
             QMessageBox {
-                font-size: 18px;
-                font-family: 'Montserrat', sans-serif;
+
             }
             QPushButton {
                 margin-left: 10px;
@@ -426,9 +466,7 @@ class Local(QtWidgets.QWidget):
                 border: none;
                 padding: 5px 15px;;
                 border-radius: 5px;
-                font-size: 18px;
                 font-weight: bold;
-                font-family: 'Montserrat', sans-serif;
                 line-height: 20px;
             }
             QPushButton:hover {
@@ -437,15 +475,12 @@ class Local(QtWidgets.QWidget):
             QLineEdit {
                 padding: 5px;
                 width: 500px;
-                font-family: 'Montserrat', sans-serif;
-                font-size: 18px;
             }
             QLabel {
-                font-size: 18px; 
-                font-weight: bold;
                 font-family: 'Montserrat', sans-serif;
             }
         """)
+        input_dialog.setFont(self.contentfont)
         ok = input_dialog.exec_()
 
         return input_dialog.textValue(), ok
