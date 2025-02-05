@@ -1,2 +1,1 @@
-
-class MainWindow(QMainWindow):
+Ch
